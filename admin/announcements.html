@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Announcements - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== LIGHT & DARK THEME ===== */
+        :root {
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6;
+            --primary: #008751;
+            --primary-light: #E8F5E9;
+            --primary-dark: #006d3f;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --muted: #94a3b8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-bg: #2d3748;
+            --input-bg: #2d3748;
+            --input-border: #4a5568;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+            transition: background 0.3s, border 0.3s, transform 0.3s ease;
+        }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            color: var(--text); text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle {
+            margin-top: 0.5rem;
+            width: 100%;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            background: none; border: none; cursor: pointer;
+            font-size: 0.95rem; color: var(--text);
+            transition: background 0.2s;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        .topbar .menu-toggle {
+            display: none;
+            background: none; border: none; font-size: 1.5rem;
+            color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem;
+        }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrapper { position: relative; }
+        .notif-wrapper .bell-btn {
+            background: none; border: none; font-size: 1.3rem;
+            color: var(--text); cursor: pointer; padding: 0.4rem;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white; font-size: 0.6rem;
+            font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px;
+            display: none;
+        }
+        .notif-badge.show { display: inline-block; }
+        .notif-dropdown {
+            position: absolute; right: 0; top: 2.8rem; width: 320px;
+            max-height: 400px; overflow-y: auto;
+            background: var(--card); border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            border: 1px solid var(--border); display: none; z-index: 50;
+        }
+        .notif-dropdown.active { display: block; }
+        .notif-item {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+            cursor: default;
+        }
+        .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+        .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+        .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
+        .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s, box-shadow 0.2s;
+            margin-bottom: 1.25rem;
+        }
+        .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== INPUTS & BUTTONS ===== */
+        .input-field {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.9rem;
+            transition: border 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+        textarea.input-field {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 0.4rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { background: var(--hover-bg); }
+        .btn-sm { padding: 0.2rem 0.6rem; font-size: 0.75rem; }
+
+        /* ===== ANNOUNCEMENT LIST ===== */
+        .announcement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .announcement-item:last-child {
+            border-bottom: none;
+        }
+        .announcement-item .announcement-title {
+            font-weight: 500;
+            color: var(--text);
+        }
+        .announcement-item .announcement-meta {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+        .announcement-item .announcement-status {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+        }
+        .announcement-item .announcement-status.active { background: #d1fae5; color: #065f46; }
+        .announcement-item .announcement-status.expired { background: #fee2e2; color: #991b1b; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--card);
+            border-radius: 20px;
+            max-width: 440px;
+            width: 100%;
+            padding: 2rem 1.5rem 1.5rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            animation: modalFadeIn 0.3s ease;
+            text-align: center;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-box .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .modal-box .modal-icon.success { color: #22c55e; }
+        .modal-box .modal-icon.error { color: #ef4444; }
+        .modal-box .modal-icon.warning { color: #eab308; }
+        .modal-box .modal-icon.info { color: #3b82f6; }
+        .modal-box .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .modal-box .modal-message {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin: 0.5rem 0;
+        }
+        .modal-box .modal-details {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin: 0.5rem 0 1rem;
+            padding: 0.5rem;
+            background: var(--hover-bg);
+            border-radius: 8px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .notif-dropdown { width: 280px; right: -0.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+
+        .text-primary { color: var(--primary); }
+        .text-muted { color: var(--muted); }
+        .hidden { display: none; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .font-bold { font-weight: 700; }
+        .text-xl { font-size: 1.25rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .w-full { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-box">
+            <div class="modal-icon" id="modalIcon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="modal-title" id="modalTitle">Announcement Sent!</h2>
+            <p class="modal-message" id="modalMessage">Your announcement has been sent successfully.</p>
+            <div class="modal-details" id="modalDetails"></div>
+            <button onclick="closeModal()" class="btn btn-primary">
+                <i class="fas fa-check mr-1"></i>OK
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="students.html"><i class="fas fa-users"></i> Students</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="analytics.html"><i class="fas fa-chart-bar"></i> Progress</a>
+            <a href="announcements.html" class="active"><i class="fas fa-bullhorn"></i> Announcements</a>
+            <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+            <a href="super-settings.html" id="superSettingsLink" style="display: none;">
+                <i class="fas fa-crown"></i> Super Admin
+            </a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold" style="margin:0;">Announcements</h1>
+            </div>
+            <div class="flex-center gap-2 flex-wrap">
+                <div class="notif-wrapper">
+                    <button class="bell-btn" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <span class="notif-badge" id="unreadBadge">0</span>
+                    <div class="notif-dropdown" id="notificationDropdown">
+                        <div id="notificationList"><div class="notif-empty">No notifications</div></div>
+                    </div>
+                </div>
+                <button onclick="reloadData()" class="btn btn-secondary btn-sm"><i class="fas fa-sync mr-1"></i>Reload</button>
+            </div>
+        </div>
+
+        <!-- ===== CREATE ANNOUNCEMENT ===== -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-plus-circle text-primary"></i> Create Announcement</div>
+            <form id="announcementForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input type="text" id="announcementTitle" class="input-field" placeholder="Announcement title..." required />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea id="announcementMessage" class="input-field" placeholder="Write your announcement here..." rows="4" required></textarea>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Expires At (Optional)</label>
+                        <input type="datetime-local" id="announcementExpires" class="input-field" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Options</label>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="sendEmail" class="rounded border-gray-300 text-primary-500 focus:ring-primary-500" />
+                            <label for="sendEmail" class="text-sm text-gray-700">Send email copy to students</label>
+                        </div>
+                        <p class="text-xs text-muted mt-1">Students will also receive this via email.</p>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4"><i class="fas fa-paper-plane mr-1"></i>Send Announcement</button>
+                <div id="formFeedback" class="mt-2 text-sm"></div>
+            </form>
+        </div>
+
+        <!-- ===== ANNOUNCEMENT HISTORY ===== -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-history text-primary"></i> Announcement History</div>
+            <div id="announcementList">
+                <p class="text-sm text-muted">Loading announcements...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // ============================================================
+        // SIDEBAR TOGGLE
+        // ============================================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeSidebar();
+        });
+
+        // ============================================================
+        // DARK MODE
+        // ============================================================
+        function loadTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark', dark);
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        window.handleLogout = async function() {
+            try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; }
+            catch (e) { window.location.href = '../login.html'; }
+        };
+
+        // ============================================================
+        // SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+
+        // ============================================================
+        // SHOW / HIDE SUPER ADMIN LINK
+        // ============================================================
+        async function updateSidebarForRole() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabaseClient
+                    .from('admins')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                const isSuper = data?.role === 'super_admin';
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) {
+                    superLink.style.display = isSuper ? 'flex' : 'none';
+                }
+            } catch (err) {
+                console.warn('Could not fetch role – hiding super admin link.', err);
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) superLink.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // MODAL FUNCTIONS
+        // ============================================================
+        function showModal(icon, title, message, details = '') {
+            const modal = document.getElementById('resultModal');
+            const iconEl = document.getElementById('modalIcon');
+            const titleEl = document.getElementById('modalTitle');
+            const msgEl = document.getElementById('modalMessage');
+            const detailsEl = document.getElementById('modalDetails');
+
+            iconEl.className = 'modal-icon ' + icon;
+            if (icon === 'success') iconEl.innerHTML = '<i class="fas fa-check-circle"></i>';
+            else if (icon === 'error') iconEl.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            else if (icon === 'warning') iconEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            else iconEl.innerHTML = '<i class="fas fa-info-circle"></i>';
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            detailsEl.innerHTML = details;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('resultModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        async function fetchNotifications(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (e) { return []; }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('unreadBadge');
+            const unread = notifications.filter(n => !n.is_read);
+            const unreadCount = unread.length;
+
+            badge.textContent = unreadCount;
+            badge.classList.toggle('show', unreadCount > 0);
+
+            if (!notifications.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${!n.is_read ? 'unread' : ''}">
+                    <div class="title">${n.title}</div>
+                    <div class="msg">${n.message}</div>
+                    <div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>
+                    ${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try {
+                await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
+                await loadNotifications();
+            } catch (e) {}
+        }
+
+        async function loadNotifications() {
+            const user = await window.auth.getCurrentUser();
+            if (!user) return;
+            const data = await fetchNotifications(user.id);
+            renderNotifications(data);
+        }
+
+        document.getElementById('notificationBell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationDropdown').classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationDropdown').classList.remove('active');
+        });
+
+        // ============================================================
+        // LOAD ANNOUNCEMENTS
+        // ============================================================
+        async function loadAnnouncements() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('announcements')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Load announcements error:', error);
+                    document.getElementById('announcementList').innerHTML = '<p class="text-red-500 text-sm">Failed to load announcements.</p>';
+                    return;
+                }
+
+                const container = document.getElementById('announcementList');
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-muted">No announcements sent yet.</p>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(a => {
+                    const isExpired = a.expires_at && new Date(a.expires_at) < new Date();
+                    const statusClass = isExpired ? 'expired' : 'active';
+                    const statusText = isExpired ? 'Expired' : 'Active';
+                    const date = new Date(a.created_at).toLocaleDateString();
+                    const time = new Date(a.created_at).toLocaleTimeString();
+                    const emailBadge = a.send_email ? '📧 Email sent' : '📱 In-app only';
+
+                    html += `
+                        <div class="announcement-item">
+                            <div>
+                                <div class="announcement-title">${a.title}</div>
+                                <div class="announcement-meta">${date} at ${time} · ${emailBadge}</div>
+                                <div class="text-xs text-muted mt-1">${a.message}</div>
+                            </div>
+                            <div>
+                                <span class="announcement-status ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error('Load announcements error:', err);
+                document.getElementById('announcementList').innerHTML = '<p class="text-red-500 text-sm">Failed to load announcements.</p>';
+            }
+        }
+
+        // ============================================================
+        // SEND ANNOUNCEMENT
+        // ============================================================
+        document.getElementById('announcementForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('announcementTitle').value.trim();
+            const message = document.getElementById('announcementMessage').value.trim();
+            const expires = document.getElementById('announcementExpires').value;
+            const sendEmail = document.getElementById('sendEmail').checked;
+
+            if (!title || !message) {
+                showModal('error', 'Missing Fields', 'Please fill in both title and message.');
+                return;
+            }
+
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Sending...';
+
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    showModal('error', 'Not Logged In', 'You must be logged in to send announcements.');
+                    return;
+                }
+
+                // Insert announcement into database
+                const { error: insertError } = await supabaseClient
+                    .from('announcements')
+                    .insert([{
+                        title: title,
+                        message: message,
+                        expires_at: expires || null,
+                        send_email: sendEmail,
+                        sent_by: user.id
+                    }]);
+
+                if (insertError) {
+                    console.error('Insert error:', insertError);
+                    showModal('error', 'Database Error', 'Failed to save announcement: ' + insertError.message);
+                    return;
+                }
+
+                // Get all students
+                const { data: students, error: studentError } = await supabaseClient
+                    .from('students')
+                    .select('user_id, email, full_name');
+
+                if (studentError) {
+                    console.error('Student fetch error:', studentError);
+                    showModal('error', 'Student Error', 'Failed to fetch students: ' + studentError.message);
+                    return;
+                }
+
+                // Create notifications for each student
+                let notifError = false;
+                let notifCount = 0;
+                for (const student of students) {
+                    if (!student.user_id) continue;
+                    const { error: notifErr } = await supabaseClient
+                        .from('notifications')
+                        .insert([{
+                            user_id: student.user_id,
+                            title: '📢 ' + title,
+                            message: message,
+                            type: 'announcement',
+                            link: '/student/dashboard.html'
+                        }]);
+                    if (notifErr) {
+                        console.error('Notification error:', notifErr);
+                        notifError = true;
+                    } else {
+                        notifCount++;
+                    }
+                }
+
+                // Send emails if enabled
+                let emailError = false;
+                let emailCount = 0;
+                if (sendEmail && students.length > 0) {
+                    try {
+                        const emailResponse = await fetch('/api/send-announcement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: title,
+                                message: message,
+                                students: students
+                            })
+                        });
+                        const emailData = await emailResponse.json();
+                        if (!emailResponse.ok) {
+                            emailError = true;
+                            console.error('Email send failed:', emailData);
+                        } else {
+                            emailCount = emailData.sentCount || 0;
+                        }
+                    } catch (err) {
+                        emailError = true;
+                        console.error('Email error:', err);
+                    }
+                }
+
+                // Reset form
+                document.getElementById('announcementTitle').value = '';
+                document.getElementById('announcementMessage').value = '';
+                document.getElementById('announcementExpires').value = '';
+                document.getElementById('sendEmail').checked = false;
+
+                // Build modal details
+                let details = '';
+                if (sendEmail) {
+                    details += `📧 Emails sent: ${emailCount} of ${students.length} students<br>`;
+                }
+                details += `📱 In-app notifications: ${notifCount} of ${students.length} students`;
+
+                if (notifError || emailError) {
+                    showModal(
+                        'warning',
+                        'Partial Success',
+                        `Announcement created but some deliveries failed.`,
+                        details
+                    );
+                } else {
+                    showModal(
+                        'success',
+                        'Announcement Sent!',
+                        `✅ Announcement sent to ${students.length} students.`,
+                        details
+                    );
+                }
+
+                await loadAnnouncements();
+
+            } catch (err) {
+                console.error('Send error:', err);
+                showModal('error', 'Failed', 'Failed to send announcement: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // ============================================================
+        // RELOAD ALL
+        // ============================================================
+        window.reloadData = async function() {
+            await Promise.all([
+                loadAnnouncements(),
+                loadNotifications()
+            ]);
+            showModal('success', 'Reloaded', 'All data has been refreshed.');
+        };
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await updateSidebarForRole();
+                await loadAnnouncements();
+                await loadNotifications();
+            } catch (e) {
+                console.warn('Init error:', e);
+            }
+        });
+    </script>
+</body>
+</html>

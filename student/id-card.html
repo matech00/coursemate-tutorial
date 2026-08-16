@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID Card - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg: #f9fafb; --card: #ffffff; --text: #111827;
+            --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+        }
+        body.dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --muted: #94a3b8; --shadow: 0 2px 8px rgba(0,0,0,0.3); --hover-bg: #2d3748; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 260px; height: 100%; background: var(--card); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; z-index: 100; transition: transform 0.3s ease, background 0.3s, border 0.3s; }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; color: var(--text); text-decoration: none; transition: background 0.2s, color 0.2s; font-size: 0.95rem; }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle { margin-top: 0.5rem; width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; background: none; border: none; cursor: pointer; font-size: 0.95rem; color: var(--text); transition: background 0.2s; }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+        .sidebar-overlay.active { display: block; }
+        .main-content { margin-left: 260px; padding: 1.5rem 2rem; min-height: 100vh; transition: background 0.3s; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light); }
+        .topbar .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem; }
+        
+        /* ID Card Layout - Rebuilt from screenshot */
+        .card-wrapper { max-width: 800px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; }
+        .id-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; width: 320px; padding: 1.5rem; box-shadow: var(--shadow); transition: background 0.3s, border 0.3s; position: relative; display: flex; flex-direction: column; }
+        .id-card .label-top { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .id-card .brand { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+        .id-card .brand span { font-weight: 300; color: var(--text); }
+        .id-card .id-badge { background: var(--primary); color: white; font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; margin-left: auto; }
+        .id-card .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); background: var(--primary-light); display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0 auto 0.75rem; font-size: 2.5rem; color: var(--primary); }
+        .id-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .id-card .name { font-size: 1.2rem; font-weight: 700; color: var(--text); text-align: center; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+        .details-grid .lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+        .details-grid .val { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .status-pill { margin: 1rem auto 0; padding: 0.2rem 1.2rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; text-align: center; display: inline-block; }
+        .status-pill.paid { background: #d1fae5; color: #065f46; }
+        .status-pill.monthly { background: #fef3c7; color: #92400e; }
+        .status-pill.expired { background: #fee2e2; color: #991b1b; }
+        .status-pill.pending { background: #f3f4f6; color: #6b7280; }
+        .footer-text { font-size: 0.6rem; color: var(--muted); text-align: center; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.75rem; }
+        
+        /* Back Card */
+        .back-card { align-items: center; text-align: center; }
+        .back-card .qr-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; width: 100%; display: flex; justify-content: center; }
+        .back-card .qr-box #qr-placeholder { display: flex; justify-content: center; min-height: 120px; align-items: center; }
+        .back-card .scan-text { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 0.75rem; }
+        .back-card .back-name { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 0.25rem; }
+        .back-card .back-id { font-size: 0.8rem; color: var(--muted); }
+        .back-card .back-status { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+        
+        /* Buttons */
+        .action-bar { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--hover-bg); }
+        .loader { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .text-center { text-align: center; }
+        .text-muted { color: var(--muted); }
+        .mt-2 { margin-top: 0.5rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .w-full { width: 100%; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; padding: 1rem; } .topbar .menu-toggle { display: block; } .card-wrapper { flex-direction: column; align-items: center; } .id-card { width: 100%; max-width: 340px; } }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
+            <a href="id-card.html" class="active"><i class="fas fa-id-card"></i> ID Card</a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center"><button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><h1 class="text-xl font-bold" style="margin:0;">My ID Card</h1></div>
+        </div>
+        
+        <div id="loading-state" class="text-center py-8">
+            <div class="loader"></div>
+            <p class="text-muted mt-2">Loading ID card...</p>
+        </div>
+        
+        <div id="id-card-wrapper" class="hidden">
+            <div id="card-to-download" class="card-wrapper">
+                <!-- FRONT CARD -->
+                <div class="id-card">
+                    <div class="flex-center" style="justify-content:space-between;">
+                        <div class="brand">Course<span>Mate</span></div>
+                        <span class="id-badge">ID</span>
+                    </div>
+                    <div class="label-top" style="margin-top:0.5rem;">FRONT</div>
+                    <div class="avatar" id="avatar-container"><i class="fas fa-user-graduate"></i></div>
+                    <div class="name" id="front-name">—</div>
+                    <div class="details-grid">
+                        <div><div class="lbl">Student ID</div><div class="val" id="front-student-id">—</div></div>
+                        <div><div class="lbl">Department</div><div class="val" id="front-dept">—</div></div>
+                        <div><div class="lbl">Program</div><div class="val" id="front-program">—</div></div>
+                        <div><div class="lbl">Level</div><div class="val" id="front-level">—</div></div>
+                    </div>
+                    <div class="text-center"><span class="status-pill pending" id="front-status">Pending</span></div>
+                    <div class="footer-text">Valid ID • Present this card when attending sessions</div>
+                </div>
+
+                <!-- BACK CARD -->
+                <div class="id-card back-card">
+                    <div class="flex-center" style="justify-content:space-between;">
+                        <div class="brand">Course<span>Mate</span></div>
+                        <span class="id-badge">ID</span>
+                    </div>
+                    <div class="label-top" style="margin-top:0.5rem;">BACK</div>
+                    <div class="qr-box">
+                        <div id="qr-placeholder"><span class="text-muted" style="font-size:0.8rem;">Loading...</span></div>
+                    </div>
+                    <div class="scan-text">SCAN TO VERIFY IDENTITY</div>
+                    <div class="back-name" id="back-name">—</div>
+                    <div class="back-id" id="back-student-id">—</div>
+                    <div class="back-status">Status: <span id="back-status-text">Pending</span></div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="action-bar">
+                <button id="download-btn" class="btn btn-primary"><i class="fas fa-download"></i> Download</button>
+                <button id="share-btn" class="btn btn-outline"><i class="fas fa-share-alt"></i> Share</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+        window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+        function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+        function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
+        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) { window.location.href = '../login.html'; return; }
+                const { data: student, error } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+                if (error || !student) {
+                    document.getElementById('loading-state').innerHTML = '<p class="text-red-500">Student record not found.</p>';
+                    return;
+                }
+
+                const name = student.full_name || 'Student';
+                const studentId = student.student_id || '—';
+                const level = student.level || '—';
+                const dept = student.department || '—';
+                const prog = student.program || '—';
+
+                // Front
+                document.getElementById('front-name').textContent = name;
+                document.getElementById('front-student-id').textContent = studentId;
+                document.getElementById('front-dept').textContent = dept;
+                document.getElementById('front-program').textContent = prog;
+                document.getElementById('front-level').textContent = level;
+
+                // Back
+                document.getElementById('back-name').textContent = name;
+                document.getElementById('back-student-id').textContent = studentId;
+
+                // Status
+                const status = student.payment_status || 'pending';
+                const map = { 'paid': 'paid', 'monthly_active': 'monthly', 'expired': 'expired', 'pending': 'pending' };
+                const labelMap = { 'paid': 'Fully Paid', 'monthly': 'Monthly Active', 'expired': 'Expired', 'pending': 'Pending' };
+                const cls = map[status] || 'pending';
+                document.getElementById('front-status').className = 'status-pill ' + cls;
+                document.getElementById('front-status').textContent = labelMap[cls] || 'Pending';
+                document.getElementById('back-status-text').textContent = labelMap[cls] || 'Pending';
+
+                // Avatar
+                const avatarContainer = document.getElementById('avatar-container');
+                if (student.avatar_url) {
+                    avatarContainer.innerHTML = `<img src="${student.avatar_url}?t=${Date.now()}" alt="Avatar" />`;
+                } else {
+                    avatarContainer.innerHTML = `<i class="fas fa-user-graduate"></i>`;
+                }
+
+                // QR Code
+                const placeholder = document.getElementById('qr-placeholder');
+                if (student.student_id) {
+                    placeholder.innerHTML = '';
+                    new QRCode(placeholder, {
+                        text: student.student_id,
+                        width: 120,
+                        height: 120,
+                        colorDark: '#008751',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } else {
+                    placeholder.innerHTML = '<span style="font-size:0.8rem;color:#94a3b8;">No ID assigned</span>';
+                }
+
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('id-card-wrapper').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading-state').innerHTML = '<p class="text-red-500">Failed to load ID card.</p>';
+            }
+        });
+
+        // Download Button Logic
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const element = document.getElementById('card-to-download');
+            html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'CourseMate_ID_Card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+
+        // Share Button Logic
+        document.getElementById('share-btn').addEventListener('click', async function() {
+            const element = document.getElementById('card-to-download');
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'CourseMate ID Card',
+                        files: [new File([blob], 'CourseMate_ID_Card.png', { type: 'image/png' })]
+                    });
+                } catch (err) { console.log('Share cancelled', err); }
+            } else {
+                alert('Share not supported on this browser. Please download the image.');
+            }
+        });
+    </script>
+</body>
+</html>

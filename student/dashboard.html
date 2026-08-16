@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #f9fafb; --card: #ffffff; --text: #111827;
+            --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+        }
+        body.dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --muted: #94a3b8; --shadow: 0 2px 8px rgba(0,0,0,0.3); --hover-bg: #2d3748; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 260px; height: 100%; background: var(--card); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; z-index: 100; transition: background 0.3s, border 0.3s, transform 0.3s ease; }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; color: var(--text); text-decoration: none; transition: background 0.2s, color 0.2s; font-size: 0.95rem; }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle { margin-top: 0.5rem; width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; background: none; border: none; cursor: pointer; font-size: 0.95rem; color: var(--text); transition: background 0.2s; }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+        .sidebar-overlay.active { display: block; }
+        .main-content { margin-left: 260px; padding: 1.5rem 2rem; min-height: 100vh; transition: background 0.3s; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light); }
+        .topbar .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem; }
+        .notif-wrapper { position: relative; }
+        .notif-wrapper .bell-btn { background: none; border: none; font-size: 1.3rem; color: var(--text); cursor: pointer; padding: 0.4rem; border-radius: 50%; transition: background 0.2s; }
+        .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
+        .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px; display: none; }
+        .notif-badge.show { display: inline-block; }
+        .notif-dropdown { position: absolute; right: 0; top: 2.8rem; width: 320px; max-height: 400px; overflow-y: auto; background: var(--card); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); display: none; z-index: 50; }
+        .notif-dropdown.active { display: block; }
+        .notif-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: default; }
+        .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+        .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+        .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
+        .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.25rem; box-shadow: var(--shadow); transition: background 0.3s, border 0.3s; }
+        .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+        .stat-card .label i { color: var(--primary); font-size: 0.8rem; }
+        .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem; }
+        .stat-card .sub { font-size: 0.7rem; color: var(--muted); }
+        .badge { display: inline-block; padding: 0.15rem 0.75rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+        .badge-paid { background: #d1fae5; color: #065f46; }
+        .badge-monthly { background: #fef3c7; color: #92400e; }
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #f3f4f6; color: #6b7280; }
+        .badge-verified { background: #dbeafe; color: #1e40af; }
+        .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.5rem; transition: background 0.3s, border 0.3s; }
+        .info-card .icon { color: var(--primary); margin-right: 0.5rem; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; padding: 1rem; } .topbar .menu-toggle { display: block; } .notif-dropdown { width: 280px; right: -0.5rem; } }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+        .text-primary { color: var(--primary); } .text-muted { color: var(--muted); } .hidden { display: none; } .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
+            <a href="id-card.html"><i class="fas fa-id-card"></i> ID Card</a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center"><button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><h1 class="text-xl font-bold" style="margin:0;">Dashboard</h1></div>
+            <div class="notif-wrapper">
+                <button class="bell-btn" id="notificationBell"><i class="fas fa-bell"></i></button>
+                <span class="notif-badge" id="unreadBadge">0</span>
+                <div class="notif-dropdown" id="notificationDropdown"><div id="notificationList"><div class="notif-empty">No notifications</div></div></div>
+            </div>
+        </div>
+        <div class="mb-4">
+            <p class="text-lg font-semibold">Welcome back, <span class="text-primary" id="studentNameDisplay">Student</span> 👋</p>
+            <p class="text-sm text-muted">Student ID: <span id="studentIdDisplay">Loading...</span></p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="label"><i class="fas fa-calendar-check"></i> Attendance</div><div class="value" id="attendancePercent">0%</div><div class="sub" id="attendanceDetail">0 present / 0 total</div></div>
+            <div class="stat-card"><div class="label"><i class="fas fa-credit-card"></i> Payment Status</div><div class="value" id="paymentBadge" style="font-size:1rem; font-weight:600; color:var(--text);"><span class="badge badge-pending">Loading...</span></div></div>
+            <div class="stat-card"><div class="label"><i class="fas fa-id-card"></i> Student ID</div><div class="value" id="studentIdCard" style="font-size:1.2rem; color:var(--text);">Loading...</div></div>
+            <div class="stat-card"><div class="label"><i class="fas fa-shield-alt"></i> Verification</div><div class="value" id="verificationBadge" style="font-size:1rem; font-weight:600; color:var(--text);"><span class="badge badge-pending">Pending</span></div></div>
+        </div>
+        <div class="info-card"><p class="text-sm text-muted"><i class="fas fa-info-circle icon"></i> Your attendance and profile are up to date.</p></div>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+        window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+        function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+        function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
+        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
+        async function fetchNotifications(userId) { try { const { data, error } = await supabaseClient.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { return []; } }
+        function renderNotifications(notifications) { const list = document.getElementById('notificationList'); const badge = document.getElementById('unreadBadge'); const unread = notifications.filter(n => !n.is_read); badge.textContent = unread.length; badge.classList.toggle('show', unread.length > 0); if (!notifications.length) { list.innerHTML = '<div class="notif-empty">No notifications</div>'; return; } list.innerHTML = notifications.map(n => `<div class="notif-item ${!n.is_read ? 'unread' : ''}"><div class="title">${n.title}</div><div class="msg">${n.message}</div><div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}</div>`).join(''); }
+        async function markAsRead(id) { try { await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id); await loadNotifications(); } catch (e) {} }
+        async function loadNotifications() { const user = await window.auth.getCurrentUser(); if (!user) return; const data = await fetchNotifications(user.id); renderNotifications(data); }
+        document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('notificationDropdown').classList.toggle('active'); }); document.addEventListener('click', () => { document.getElementById('notificationDropdown').classList.remove('active'); });
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) { window.location.href = '../login.html'; return; }
+                document.getElementById('studentIdDisplay').textContent = 'Loading...';
+                document.getElementById('studentIdCard').textContent = 'Loading...';
+                const { data: student, error } = await supabaseClient.from('students').select('full_name, student_id, payment_status, qr_code').eq('user_id', user.id).maybeSingle();
+                if (error || !student) {
+                    document.getElementById('studentIdCard').textContent = 'Not found';
+                    document.getElementById('studentIdDisplay').textContent = 'Not found';
+                    document.getElementById('studentNameDisplay').textContent = 'Student';
+                    return;
+                }
+                document.getElementById('studentNameDisplay').textContent = student.full_name || 'Student';
+                document.getElementById('studentIdDisplay').textContent = student.student_id || 'Not assigned';
+                document.getElementById('studentIdCard').textContent = student.student_id || 'Not assigned';
+                if (student.qr_code) { const qrLink = document.querySelector('a[href="qr.html"]'); if (qrLink) { qrLink.innerHTML = `<i class="fas fa-qrcode"></i> My QR Code`; } }
+                const status = student.payment_status || 'pending';
+                const map = { 'paid': { label: 'Fully Paid', cls: 'badge-paid' }, 'monthly_active': { label: 'Monthly Active', cls: 'badge-monthly' }, 'expired': { label: 'Expired', cls: 'badge-expired' }, 'pending': { label: 'Pending', cls: 'badge-pending' } };
+                const info = map[status] || map['pending'];
+                document.getElementById('paymentBadge').innerHTML = `<span class="badge ${info.cls}">${info.label}</span>`;
+                const verifyBadge = document.getElementById('verificationBadge');
+                if (status === 'paid' || status === 'monthly_active') { verifyBadge.innerHTML = '<span class="badge badge-verified">Verified</span>'; } else { verifyBadge.innerHTML = '<span class="badge badge-pending">Pending</span>'; }
+                await loadNotifications();
+            } catch (err) { console.error(err); document.getElementById('studentNameDisplay').textContent = 'Student'; document.getElementById('studentIdDisplay').textContent = 'Error loading'; document.getElementById('studentIdCard').textContent = 'Error loading'; }
+        });
+    </script>
+</body>
+</html>

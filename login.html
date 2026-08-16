@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                            300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                            600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .password-wrapper { position: relative; }
+        .password-toggle {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: #9ca3af; background: transparent; border: none; padding: 0;
+            transition: color 0.2s ease; z-index: 10;
+        }
+        .password-toggle:hover { color: #4b5563; }
+        .password-toggle.active { color: #008751; }
+    </style>
+</head>
+<body>
+
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-8 shadow-sm">
+        <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-primary-500">Course<span class="font-light text-gray-600">Mate</span></a>
+            <div class="flex items-center gap-4">
+                <a href="register.html" class="text-sm text-gray-600 hover:text-primary-500 transition font-medium">Register</a>
+                <a href="index.html" class="text-sm text-gray-600 hover:text-primary-500 transition font-medium"><i class="fas fa-home"></i> Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bg-gradient-to-b from-primary-50 to-white min-h-screen flex items-center justify-center px-4 pt-20 pb-10">
+        <div class="bg-white max-w-md w-full rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                <p class="text-gray-600 mt-1 text-sm">Login to your CourseMate account</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                </div>
+                
+                <div class="mb-2 password-wrapper">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow pr-12" required />
+                    <button type="button" id="togglePassword" class="password-toggle">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="text-right mb-6">
+                    <a href="forgot-password.html" class="text-sm text-primary-500 hover:underline font-medium">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative flex items-center my-6">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="px-4 text-sm text-gray-500 bg-white">Or continue with</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <!-- Google Button (Standard) -->
+            <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium flex items-center justify-center gap-3 transition">
+                <i class="fab fa-google text-red-500 text-lg"></i>Continue with Google
+            </button>
+
+            <!-- Hidden Fallback Link (Only used if the button fails) -->
+            <div id="forceGoogleLink" style="display: none; margin-top: 20px; text-align: center;">
+                <p class="text-sm text-red-500 mb-2">⚠️ Button failed. Use the direct link below:</p>
+                <a id="directGoogleAuth" href="#" class="text-primary-500 underline text-sm">Force Google Login</a>
+            </div>
+
+            <div class="text-center mt-6 text-sm text-gray-600">
+                Don't have an account? <a href="register.html" class="text-primary-500 font-semibold hover:underline">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // ============================================================
+        // 1. PASSWORD TOGGLE
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('loginPassword');
+            const icon = toggleBtn.querySelector('i');
+
+            toggleBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash');
+                    toggleBtn.classList.add('active');
+                } else {
+                    icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye');
+                    toggleBtn.classList.remove('active');
+                }
+            });
+        });
+
+        // ============================================================
+        // 2. STANDARD GOOGLE SIGN-IN FUNCTION
+        // ============================================================
+        window.handleGoogleSignIn = async function() {
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/google-success.html' }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.error('Google Sign-In error:', err);
+                // If the button fails, show the hidden fallback link
+                document.getElementById('forceGoogleLink').style.display = 'block';
+                const directLink = document.getElementById('directGoogleAuth');
+                directLink.href = 'https://mbniynyvcxzspjmzgovp.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://coursemate-tutorial.vercel.app/google-success.html';
+                if (window.toast) window.toast.error('Google Sign-In failed. Use the fallback link below.');
+                else alert('Google Sign-In failed. Use the fallback link below.');
+            }
+        };
+
+        // ============================================================
+        // 3. STANDARD LOGIN LOGIC
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                try {
+                    const { user } = await window.auth.signIn(email, password);
+                    if (user) {
+                        if (window.toast) window.toast.success('Login successful! Redirecting...');
+
+                        const { data: admin } = await window.supabaseClient.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
+                        if (admin) { window.location.href = 'admin/dashboard.html'; return; }
+
+                        const { data: student } = await window.supabaseClient.from('students').select('user_id').eq('user_id', user.id).maybeSingle();
+                        if (student) { window.location.href = 'student/dashboard.html'; } 
+                        else { window.location.href = 'complete-profile.html'; }
+                    }
+                } catch (error) {
+                    if (window.toast) window.toast.error('Login failed: ' + error.message);
+                    else alert('Login failed: ' + error.message);
+                    console.error(error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

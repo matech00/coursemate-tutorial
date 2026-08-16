@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== LIGHT & DARK THEME ===== */
+        :root {
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+            --primary: #008751;
+            --primary-light: #E8F5E9;
+            --primary-dark: #006d3f;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --muted: #94a3b8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-bg: #2d3748;
+            --input-bg: #2d3748;
+            --input-border: #4a5568;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease, background 0.3s, border 0.3s;
+        }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle {
+            margin-top: 0.5rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        .topbar .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+        }
+        /* ===== SETTINGS CARD ===== */
+        .settings-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .settings-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+        .settings-card .subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+        .avatar-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-preview i { font-size: 32px; color: var(--primary); }
+        .avatar-actions .upload-btn {
+            padding: 0.3rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text);
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .avatar-actions .upload-btn:hover { background: var(--hover-bg); }
+        .avatar-actions .file-info { 
+            font-size: 0.75rem; 
+            color: var(--muted);
+            display: block;
+            margin-top: 0.25rem;
+        }
+        .avatar-actions .file-info .highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .field-group { margin-bottom: 1.25rem; }
+        .field-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+        .field-group .value {
+            font-size: 1rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid transparent;
+            color: var(--text);
+        }
+        .field-group .value.editable { border-bottom: 1px dashed var(--border); }
+        .field-group input, .field-group select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 1rem;
+            display: none;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        .field-group input:focus, .field-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+        .field-group.edit-mode .value { display: none; }
+        .field-group.edit-mode input, .field-group.edit-mode select { display: block; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-paid { background: #d1fae5; color: #065f46; }
+        .badge-monthly { background: #fef3c7; color: #92400e; }
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #f3f4f6; color: #6b7280; }
+        .btn {
+            padding: 0.4rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { opacity: 0.8; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .actions-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .spacer { flex: 1; }
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 200; padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--card);
+            border-radius: 16px;
+            max-width: 420px; width: 100%;
+            padding: 1.75rem; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+        .modal-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .modal-icon.success { color: #22c55e; }
+        .modal-icon.error { color: #ef4444; }
+        .modal-icon.warning { color: #eab308; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+        .modal-message { color: var(--muted); font-size: 0.95rem; margin: 0.25rem 0 1.25rem; }
+        .modal-btn {
+            padding: 0.4rem 1.5rem;
+            border: none; border-radius: 8px;
+            background: var(--primary); color: white;
+            font-weight: 600; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .modal-btn:hover { background: var(--primary-dark); }
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .avatar-row { flex-direction: column; align-items: flex-start; }
+            .settings-card { padding: 1rem; }
+        }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+        .text-primary { color: var(--primary); }
+        .text-muted { color: var(--muted); }
+        .hidden { display: none; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .gap-2 { gap: 0.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .font-bold { font-weight: 700; }
+        .text-xl { font-size: 1.25rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
+            <a href="id-card.html"><i class="fas fa-id-card"></i> ID Card</a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold" style="margin:0;">Settings</h1>
+            </div>
+            <a href="dashboard.html" class="text-sm text-muted" style="text-decoration:none;"><i class="fas fa-arrow-left"></i> Dashboard</a>
+        </div>
+
+        <div class="settings-card">
+            <h2>My Profile</h2>
+            <p class="subtitle">View and manage your personal information</p>
+
+            <!-- Avatar -->
+            <div class="avatar-row">
+                <div class="avatar-preview" id="avatar-preview">
+                    <img id="avatar-img" src="" alt="Avatar" style="display:none;" />
+                    <i id="avatar-icon" class="fas fa-user-graduate"></i>
+                </div>
+                <div class="avatar-actions">
+                    <button class="upload-btn" id="upload-btn"><i class="fas fa-upload"></i> Upload Photo</button>
+                    <input type="file" id="avatar-input" accept="image/*" style="display:none;" />
+                    <span class="file-info">
+                        <span class="highlight">Max 2MB</span> · Compressed to ~200KB · JPG/PNG
+                    </span>
+                    <span class="file-info" id="upload-status" style="display:none;"></span>
+                </div>
+            </div>
+
+            <!-- Fields -->
+            <div class="field-group" id="field-name">
+                <label>Full Name</label>
+                <div class="value" id="display-name">—</div>
+                <input type="text" id="input-name" placeholder="Enter your full name" />
+            </div>
+            <div class="field-group">
+                <label>Student ID</label>
+                <div class="value" id="display-student-id">—</div>
+            </div>
+            <div class="field-group" id="field-dept">
+                <label>Department</label>
+                <div class="value" id="display-dept">—</div>
+                <select id="input-dept"><option value="">Select Department</option></select>
+            </div>
+            <div class="field-group" id="field-program">
+                <label>Program</label>
+                <div class="value" id="display-program">—</div>
+                <select id="input-program"><option value="">Select Program</option></select>
+            </div>
+            <div class="field-group" id="field-level">
+                <label>Level</label>
+                <div class="value" id="display-level">—</div>
+                <input type="text" id="input-level" placeholder="e.g. 200" />
+            </div>
+            <div class="field-group">
+                <label>Payment Status</label>
+                <div><span class="status-badge" id="status-badge">Pending</span></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-row">
+                <button id="edit-btn" class="btn btn-primary"><i class="fas fa-edit"></i> Edit Profile</button>
+                <button id="save-btn" class="btn btn-success" style="display:none;"><i class="fas fa-save"></i> Save</button>
+                <button id="cancel-btn" class="btn btn-secondary" style="display:none;">Cancel</button>
+                <span class="spacer"></span>
+                <button id="logout-btn" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <div class="modal-icon" id="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="modal-title" id="modal-title">Success</div>
+            <div class="modal-message" id="modal-message">Your profile has been updated.</div>
+            <button class="modal-btn" id="modal-btn">OK</button>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+        window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+        function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+        function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
+        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
+        const modal = document.getElementById('modal');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalBtn = document.getElementById('modal-btn');
+        function showModal(icon, title, message, type = 'success') {
+            modalIcon.innerHTML = `<i class="fas ${icon}"></i>`;
+            modalIcon.className = 'modal-icon ' + type;
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.add('active');
+            setTimeout(() => modal.classList.remove('active'), 4000);
+        }
+        modalBtn.addEventListener('click', () => modal.classList.remove('active'));
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+        const avatarImg = document.getElementById('avatar-img');
+        const avatarIcon = document.getElementById('avatar-icon');
+        function setAvatarPreview(url) {
+            if (url) {
+                avatarImg.crossOrigin = "anonymous";
+                avatarImg.src = url + '?t=' + Date.now();
+                avatarImg.style.display = 'block';
+                avatarIcon.style.display = 'none';
+                avatarImg.onerror = function() {
+                    avatarImg.style.display = 'none';
+                    avatarIcon.style.display = 'flex';
+                };
+            } else {
+                avatarImg.style.display = 'none';
+                avatarIcon.style.display = 'flex';
+            }
+        }
+
+        // ============================================================
+        // 🔥 IMAGE COMPRESSION - Compresses to ~150-200KB
+        // ============================================================
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Max dimensions 400x400 pixels
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 400;
+                        
+                        if (width > height) {
+                            if (width > maxDim) {
+                                height = (height / width) * maxDim;
+                                width = maxDim;
+                            }
+                        } else {
+                            if (height > maxDim) {
+                                width = (width / height) * maxDim;
+                                height = maxDim;
+                            }
+                        }
+                        
+                        canvas.width = Math.round(width);
+                        canvas.height = Math.round(height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        // Compress as JPEG at 85% quality
+                        const compressed = canvas.toDataURL('image/jpeg', 0.85);
+                        resolve(compressed);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
+        // ============================================================
+        // CONVERT DATA URL TO FILE
+        // ============================================================
+        function dataURLToFile(dataURL, fileName) {
+            const arr = dataURL.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], fileName, { type: mime });
+        }
+
+        let departments = [], programs = [];
+        async function loadDepartmentsAndPrograms() {
+            try {
+                const { data: depts, error: deptErr } = await supabaseClient
+                    .from('departments').select('id, name').order('name');
+                if (deptErr) throw deptErr;
+                departments = depts || [];
+                const { data: progs, error: progErr } = await supabaseClient
+                    .from('programs').select('id, department_id, name').order('name');
+                if (progErr) throw progErr;
+                programs = progs || [];
+                const select = document.getElementById('input-dept');
+                select.innerHTML = '<option value="">Select Department</option>';
+                departments.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    select.appendChild(opt);
+                });
+                document.getElementById('input-dept').addEventListener('change', populatePrograms);
+            } catch (err) {
+                console.error(err);
+                showModal('fa-exclamation-triangle', 'Error', 'Could not load departments/programs.', 'error');
+            }
+        }
+        function populatePrograms() {
+            const deptId = document.getElementById('input-dept').value;
+            const select = document.getElementById('input-program');
+            select.innerHTML = '<option value="">Select Program</option>';
+            if (!deptId) return;
+            const filtered = programs.filter(p => p.department_id === deptId);
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                select.appendChild(opt);
+            });
+        }
+
+        const displayName = document.getElementById('display-name');
+        const inputName = document.getElementById('input-name');
+        const displayStudentId = document.getElementById('display-student-id');
+        const displayDept = document.getElementById('display-dept');
+        const inputDept = document.getElementById('input-dept');
+        const displayProgram = document.getElementById('display-program');
+        const inputProgram = document.getElementById('input-program');
+        const displayLevel = document.getElementById('display-level');
+        const inputLevel = document.getElementById('input-level');
+        const statusBadge = document.getElementById('status-badge');
+        const uploadBtn = document.getElementById('upload-btn');
+        const avatarInput = document.getElementById('avatar-input');
+        const editBtn = document.getElementById('edit-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const uploadStatus = document.getElementById('upload-status');
+        const fieldGroups = {
+            name: document.getElementById('field-name'),
+            dept: document.getElementById('field-dept'),
+            program: document.getElementById('field-program'),
+            level: document.getElementById('field-level')
+        };
+
+        let currentUser = null;
+        let studentData = null;
+        let isEditMode = false;
+
+        async function loadStudent() {
+            try {
+                let user = null;
+                if (window.auth && typeof window.auth.getCurrentUser === 'function') {
+                    user = await window.auth.getCurrentUser();
+                }
+                if (!user) {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    user = session?.user;
+                }
+                if (!user) {
+                    showModal('fa-exclamation-circle', 'Not Logged In', 'Please log in first.', 'error');
+                    setTimeout(() => window.location.href = '../login.html', 2000);
+                    return;
+                }
+                currentUser = user;
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+                if (error || !data) {
+                    showModal('fa-exclamation-circle', 'Not Found', 'Student record not found.', 'error');
+                    return;
+                }
+                studentData = data;
+                displayName.textContent = data.full_name || '—';
+                displayStudentId.textContent = data.student_id || '—';
+                displayDept.textContent = data.department || '—';
+                displayProgram.textContent = data.program || '—';
+                displayLevel.textContent = data.level || '—';
+                inputName.value = data.full_name || '';
+                inputLevel.value = data.level || '';
+                if (data.department) {
+                    const foundDept = departments.find(d => d.name === data.department);
+                    if (foundDept) {
+                        inputDept.value = foundDept.id;
+                        populatePrograms();
+                        if (data.program) {
+                            const foundProg = programs.find(p => p.name === data.program && p.department_id === foundDept.id);
+                            if (foundProg) inputProgram.value = foundProg.id;
+                        }
+                    }
+                }
+                const status = data.payment_status || 'pending';
+                const map = {
+                    'paid': { label: 'Fully Paid', cls: 'badge-paid' },
+                    'monthly_active': { label: 'Monthly Active', cls: 'badge-monthly' },
+                    'expired': { label: 'Expired', cls: 'badge-expired' },
+                    'pending': { label: 'Pending', cls: 'badge-pending' }
+                };
+                const info = map[status] || map['pending'];
+                statusBadge.textContent = info.label;
+                statusBadge.className = 'status-badge ' + info.cls;
+                setAvatarPreview(data.avatar_url);
+                setEditMode(false);
+            } catch (err) {
+                console.error(err);
+                showModal('fa-exclamation-triangle', 'Error', 'Failed to load profile.', 'error');
+            }
+        }
+
+        function setEditMode(enable) {
+            isEditMode = enable;
+            Object.values(fieldGroups).forEach(group => group.classList.toggle('edit-mode', enable));
+            editBtn.style.display = enable ? 'none' : 'inline-flex';
+            saveBtn.style.display = enable ? 'inline-flex' : 'none';
+            cancelBtn.style.display = enable ? 'inline-flex' : 'none';
+        }
+
+        editBtn.addEventListener('click', () => setEditMode(true));
+        cancelBtn.addEventListener('click', () => {
+            inputName.value = studentData.full_name || '';
+            inputLevel.value = studentData.level || '';
+            if (studentData.department) {
+                const foundDept = departments.find(d => d.name === studentData.department);
+                if (foundDept) {
+                    inputDept.value = foundDept.id;
+                    populatePrograms();
+                    if (studentData.program) {
+                        const foundProg = programs.find(p => p.name === studentData.program && p.department_id === foundDept.id);
+                        if (foundProg) inputProgram.value = foundProg.id;
+                    }
+                }
+            }
+            setEditMode(false);
+        });
+
+        saveBtn.addEventListener('click', async () => {
+            if (!currentUser || !studentData) {
+                showModal('fa-exclamation-circle', 'Error', 'No profile loaded.', 'error');
+                return;
+            }
+            const deptId = inputDept.value;
+            const progId = inputProgram.value;
+            let deptName = '', progName = '';
+            if (deptId) {
+                const dept = departments.find(d => d.id === deptId);
+                if (dept) deptName = dept.name;
+            }
+            if (progId) {
+                const prog = programs.find(p => p.id === progId);
+                if (prog) progName = prog.name;
+            }
+            const updates = {
+                full_name: inputName.value.trim(),
+                department: deptName || studentData.department || '',
+                program: progName || studentData.program || '',
+                level: inputLevel.value.trim()
+            };
+            try {
+                const { error } = await supabaseClient
+                    .from('students')
+                    .update(updates)
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                studentData = { ...studentData, ...updates };
+                displayName.textContent = updates.full_name || '—';
+                displayDept.textContent = updates.department || '—';
+                displayProgram.textContent = updates.program || '—';
+                displayLevel.textContent = updates.level || '—';
+                setEditMode(false);
+                showModal('fa-check-circle', 'Success', 'Profile updated successfully!', 'success');
+            } catch (err) {
+                showModal('fa-exclamation-triangle', 'Error', 'Update failed: ' + err.message, 'error');
+            }
+        });
+
+        // ============================================================
+        // 🔥 UPLOAD WITH COMPRESSION
+        // ============================================================
+        uploadBtn.addEventListener('click', () => avatarInput.click());
+        avatarInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // ✅ MAX FILE SIZE: 2MB (to catch huge files)
+            const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+            if (file.size > MAX_SIZE) {
+                showModal('fa-exclamation-triangle', 'File Too Large', 'Image exceeds 2MB limit. Please compress it first.', 'error');
+                avatarInput.value = '';
+                return;
+            }
+
+            if (!currentUser || !studentData) {
+                showModal('fa-exclamation-circle', 'Error', 'Please load your profile first.', 'error');
+                avatarInput.value = '';
+                return;
+            }
+
+            uploadStatus.style.display = 'block';
+            uploadStatus.textContent = '⏳ Compressing image...';
+            uploadStatus.className = 'file-info';
+
+            try {
+                // ✅ COMPRESS THE IMAGE
+                const compressedDataURL = await compressImage(file);
+                const compressedSizeKB = Math.round((compressedDataURL.length * 3) / 4 / 1024);
+                uploadStatus.textContent = `✅ Compressed to ${compressedSizeKB}KB`;
+
+                // Convert to File for upload
+                const fileName = `avatar_${currentUser.id}_${Date.now()}.jpg`;
+                const compressedFile = dataURLToFile(compressedDataURL, fileName);
+
+                // Upload compressed file
+                const filePath = `avatars/${fileName}`;
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('students')
+                    .upload(filePath, compressedFile, { cacheControl: '3600', upsert: false });
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabaseClient.storage
+                    .from('students')
+                    .getPublicUrl(filePath);
+
+                const { error: updateError } = await supabaseClient
+                    .from('students')
+                    .update({ avatar_url: publicUrl })
+                    .eq('user_id', currentUser.id);
+
+                if (updateError) throw updateError;
+
+                studentData.avatar_url = publicUrl;
+                setAvatarPreview(publicUrl);
+                uploadStatus.textContent = `✅ Uploaded successfully (${compressedSizeKB}KB)`;
+                uploadStatus.className = 'file-info text-success';
+
+                showModal('fa-check-circle', 'Success', `Profile photo uploaded! (${compressedSizeKB}KB)`, 'success');
+
+            } catch (err) {
+                console.error(err);
+                uploadStatus.textContent = '❌ Upload failed: ' + err.message;
+                uploadStatus.className = 'file-info text-danger';
+                showModal('fa-exclamation-triangle', 'Upload Failed', err.message || 'Something went wrong.', 'error');
+            }
+
+            avatarInput.value = '';
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = '../login.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDepartmentsAndPrograms();
+            await loadStudent();
+            setEditMode(false);
+        });
+    </script>
+</body>
+</html>

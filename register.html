@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                            300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                            600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Success Modal Style */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 24px;
+            max-width: 440px;
+            width: 100%;
+            padding: 2rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            text-align: center;
+        }
+        .modal-box .icon {
+            width: 80px; height: 80px;
+            background: #dcfce7; color: #16a34a;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 3rem;
+        }
+        .modal-box h2 { font-size: 1.5rem; font-weight: 700; color: #111827; }
+        .modal-box p { color: #6b7280; margin: 0.5rem 0 1.5rem; }
+        .modal-box .btn {
+            padding: 0.75rem 2rem;
+            background: #008751; color: white;
+            border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer;
+        }
+        .modal-box .btn:hover { background: #006d3f; }
+
+        /* Password Toggle CSS */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9ca3af;
+            transition: color 0.2s ease;
+            z-index: 10;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .password-toggle:hover {
+            color: #4b5563;
+        }
+        .password-toggle.active {
+            color: #008751;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SUCCESS MODAL ===== -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Account Created! 🎉</h2>
+            <p>Your account has been created successfully. Redirecting you to complete your payment...</p>
+            <button onclick="goToPayment()" class="btn">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-8">
+        <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-primary-500">Course<span class="font-light text-gray-600">Mate</span></a>
+            <div class="flex items-center gap-4">
+                <a href="login.html" class="text-sm text-gray-600 hover:text-primary-500 transition">Login</a>
+                <a href="index.html" class="text-sm text-gray-600 hover:text-primary-500 transition"><i class="fas fa-home"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bg-gradient-to-b from-primary-50 to-white min-h-screen flex items-center justify-center px-4 pt-20 pb-10">
+        <div class="bg-white max-w-md w-full rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-500 text-2xl">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Create Account</h2>
+                <p class="text-gray-600 mt-1 text-sm">Join CourseMate and start learning</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="fullName" placeholder="John Doe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                </div>
+                
+                <!-- Password Field with Toggle -->
+                <div class="mb-4 password-wrapper">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                    <button type="button" id="togglePassword" class="password-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="080 123 4567" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <select id="department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Program</label>
+                    <select id="program" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                        <option value="">Select Program</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <select id="level" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white" required>
+                        <option value="">Select Level</option>
+                        <option value="100L">100 Level</option>
+                        <option value="200L">200 Level</option>
+                        <option value="300L">300 Level</option>
+                        <option value="400L">400 Level</option>
+                        <option value="500L">500 Level</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-user-plus"></i> Register
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative flex items-center my-6">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="px-4 text-sm text-gray-500 bg-white">Or sign up with</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <!-- Google Button -->
+            <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium flex items-center justify-center gap-3 transition">
+                <i class="fab fa-google text-red-500 text-lg"></i>Continue with Google
+            </button>
+
+            <div class="text-center mt-6 text-sm text-gray-600">
+                Already have an account? <a href="login.html" class="text-primary-500 font-semibold hover:underline">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+    const supabaseClient = window.supabaseClient;
+
+    // ============================================================
+    // MODAL HANDLERS
+    // ============================================================
+    function openSuccessModal() {
+        document.getElementById('successModal').classList.add('active');
+    }
+
+    function goToPayment() {
+        window.location.href = 'payment.html';
+    }
+
+    // ============================================================
+    // GOOGLE SIGN-IN FUNCTION (ADDED HERE)
+    // ============================================================
+    window.handleGoogleSignIn = async function() {
+        try {
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/google-success.html' }
+            });
+            if (error) throw error;
+        } catch (err) {
+            console.error('Google Sign-In error:', err);
+            alert('Google Sign-In failed. Please try again.');
+        }
+    };
+
+    // ============================================================
+    // LOAD DROPDOWNS
+    // ============================================================
+    async function loadDropdowns() {
+        try {
+            const { data: departments, error: deptError } = await supabaseClient
+                .from('departments')
+                .select('id, name')
+                .order('name');
+            if (deptError) throw deptError;
+
+            const deptSelect = document.getElementById('department');
+            deptSelect.innerHTML = '<option value="">Select Department</option>';
+            departments.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                deptSelect.appendChild(opt);
+            });
+
+            const progSelect = document.getElementById('program');
+            document.getElementById('department').addEventListener('change', async function() {
+                const deptId = this.value;
+                progSelect.innerHTML = '<option value="">Select Program</option>';
+                if (!deptId) return;
+                const { data: programs, error: progError } = await supabaseClient
+                    .from('programs')
+                    .select('id, name')
+                    .eq('department_id', deptId)
+                    .order('name');
+                if (progError) throw progError;
+                programs.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    progSelect.appendChild(opt);
+                });
+            });
+        } catch (err) {
+            console.error('Load error:', err);
+            alert('Could not load departments. Please refresh.');
+        }
+    }
+
+    // ============================================================
+    // PASSWORD TOGGLE LOGIC
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const icon = toggleBtn.querySelector('i');
+
+        toggleBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                toggleBtn.classList.add('active');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                toggleBtn.classList.remove('active');
+            }
+        });
+    });
+
+    // ============================================================
+    // REGISTER FORM SUBMIT
+    // ============================================================
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        
+        const deptText = document.getElementById('department').options[document.getElementById('department').selectedIndex].text;
+        const progText = document.getElementById('program').options[document.getElementById('program').selectedIndex].text;
+        const level = document.getElementById('level').value;
+
+        if (!fullName || !email || !password || !phone || !deptText || !progText || !level) {
+            alert('Please fill in all fields.');
+            return;
+        }
+
+        try {
+            await window.auth.signUpStudent(email, password, fullName, phone, deptText, progText, level, 'student');
+            openSuccessModal();
+        } catch (error) {
+            alert('Registration failed: ' + error.message);
+            console.error(error);
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        const user = await window.auth.getCurrentUser();
+        if (user) {
+            window.location.href = 'student/dashboard.html';
+            return;
+        }
+        await loadDropdowns();
+    });
+</script>
+</body>
+</html>

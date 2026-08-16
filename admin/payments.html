@@ -1,0 +1,1011 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payments - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+        /* ===== LIGHT & DARK THEME ===== */
+        :root {
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6;
+            --primary: #008751;
+            --primary-light: #E8F5E9;
+            --primary-dark: #006d3f;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --muted: #94a3b8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-bg: #2d3748;
+            --input-bg: #2d3748;
+            --input-border: #4a5568;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+            transition: background 0.3s, border 0.3s, transform 0.3s ease;
+        }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            color: var(--text); text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle {
+            margin-top: 0.5rem;
+            width: 100%;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            background: none; border: none; cursor: pointer;
+            font-size: 0.95rem; color: var(--text);
+            transition: background 0.2s;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        .topbar .menu-toggle {
+            display: none;
+            background: none; border: none; font-size: 1.5rem;
+            color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem;
+        }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrapper { position: relative; }
+        .notif-wrapper .bell-btn {
+            background: none; border: none; font-size: 1.3rem;
+            color: var(--text); cursor: pointer; padding: 0.4rem;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white; font-size: 0.6rem;
+            font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px;
+            display: none;
+        }
+        .notif-badge.show { display: inline-block; }
+        .notif-dropdown {
+            position: absolute; right: 0; top: 2.8rem; width: 320px;
+            max-height: 400px; overflow-y: auto;
+            background: var(--card); border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            border: 1px solid var(--border); display: none; z-index: 50;
+        }
+        .notif-dropdown.active { display: block; }
+        .notif-item {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+            cursor: default;
+        }
+        .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+        .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+        .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
+        .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+
+        /* ===== PAYMENT SPECIFIC ===== */
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+        }
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .stat-card .stat-value.green { color: #22c55e; }
+        .stat-card .stat-value.yellow { color: #eab308; }
+        .stat-card .stat-value.red { color: #ef4444; }
+        .stat-card .stat-value.gray { color: var(--muted); }
+
+        .payment-table-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .payment-table-card .table-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .payment-table-card .table-title .title-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .payment-table-card .table-title .title-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-download {
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-download:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ===== RESPONSIVE TABLE ===== */
+        .payment-table-card .overflow-x-auto {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .payment-table-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .payment-table-card table thead {
+            display: table-header-group;
+        }
+
+        .payment-table-card table thead th {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .payment-table-card table tbody tr {
+            display: table-row;
+        }
+
+        .payment-table-card table tbody tr td {
+            display: table-cell;
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .payment-table-card table tbody tr td::before {
+            display: none;
+        }
+
+        .payment-table-card table tbody tr:hover {
+            background: var(--hover-bg);
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-paid { background: #d1fae5; color: #065f46; }
+        .badge-monthly { background: #fef3c7; color: #92400e; }
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #f3f4f6; color: #6b7280; }
+
+        .filter-select {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--card);
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            padding: 1.75rem 2rem 1.5rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-box .modal-icon {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .modal-box .modal-icon.success { color: #22c55e; }
+        .modal-box .modal-icon.error { color: #ef4444; }
+        .modal-box h3 { font-size: 1.2rem; font-weight: 700; color: var(--text); text-align: center; margin-bottom: 0.25rem; }
+        .modal-box .modal-sub { font-size: 0.9rem; color: var(--muted); text-align: center; margin-bottom: 1rem; }
+        .modal-box label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+        .modal-box select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        .modal-box select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+
+        .btn-modal {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        .btn-modal-primary { background: var(--primary); color: white; }
+        .btn-modal-primary:hover { background: var(--primary-dark); }
+        .btn-modal-secondary { background: var(--border); color: var(--text); }
+        .btn-modal-secondary:hover { background: var(--hover-bg); }
+
+        /* ===== SUCCESS TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 100%;
+        }
+        .toast-item {
+            background: var(--card);
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 5px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.4s ease;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .toast-item .toast-icon { color: var(--primary); font-size: 1.2rem; }
+        .toast-item .toast-close { cursor: pointer; color: var(--muted); margin-left: auto; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ===== MOBILE CARD VIEW ===== */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .notif-dropdown { width: 280px; right: -0.5rem; }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+
+            .payment-table-card table thead {
+                display: none;
+            }
+            
+            .payment-table-card table tbody tr {
+                display: block;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+                background: var(--card);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            }
+            
+            .payment-table-card table tbody tr td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.3rem 0;
+                border-bottom: 1px solid var(--border);
+                font-size: 0.85rem;
+            }
+            
+            .payment-table-card table tbody tr td:last-child {
+                border-bottom: none;
+            }
+            
+            .payment-table-card table tbody tr td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--muted);
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+            
+            .payment-table-card table tbody tr td:first-child {
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--text);
+                border-bottom: 2px solid var(--primary-light);
+                padding-bottom: 0.4rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .payment-table-card table tbody tr td:first-child::before {
+                display: none;
+            }
+            
+            .payment-table-card table tbody tr td .badge-status {
+                font-size: 0.65rem;
+                padding: 0.1rem 0.5rem;
+            }
+
+            .payment-table-card table tbody tr td .action-btn {
+                font-size: 0.8rem;
+                padding: 0.2rem 0.6rem;
+            }
+
+            .payment-table-card .table-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .payment-table-card .table-title .title-right {
+                width: 100%;
+            }
+            .payment-table-card .table-title .title-right .btn-download {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 769px) { 
+            .sidebar-overlay { display: none !important; } 
+        }
+
+        .text-primary { color: var(--primary); }
+        .text-muted { color: var(--muted); }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .font-bold { font-weight: 700; }
+        .text-xl { font-size: 1.25rem; }
+        .text-sm { font-size: 0.875rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-4 { margin-top: 1rem; }
+        .gap-2 { gap: 0.5rem; }
+        .flex-wrap { flex-wrap: wrap; }
+        .hidden { display: none; }
+        .grid { display: grid; }
+        .md\:grid-cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .gap-4 { gap: 1rem; }
+        
+        @media (max-width: 768px) {
+            .md\:grid-cols-4 { grid-template-columns: 1fr 1fr; }
+            .gap-4 { gap: 0.75rem; }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                            300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                            600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="students.html"><i class="fas fa-users"></i> Students</a>
+            <a href="payments.html" class="active"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="analytics.html"><i class="fas fa-chart-bar"></i> Progress</a>
+            <a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
+            <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+            <a href="super-settings.html" id="superSettingsLink" style="display: none;">
+                <i class="fas fa-crown"></i> Super Admin
+            </a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold" style="margin:0;">Payments</h1>
+            </div>
+            <div class="flex-center flex-wrap gap-2">
+                <!-- Notification Bell -->
+                <div class="notif-wrapper">
+                    <button class="bell-btn" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <span class="notif-badge" id="unreadBadge">0</span>
+                    <div class="notif-dropdown" id="notificationDropdown">
+                        <div id="notificationList"><div class="notif-empty">No notifications</div></div>
+                    </div>
+                </div>
+                <select id="paymentFilter" class="filter-select">
+                    <option value="all">All Payments</option>
+                    <option value="paid">Fully Paid</option>
+                    <option value="monthly_active">Monthly Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div class="grid md:grid-cols-4 gap-4 mb-4">
+            <div class="stat-card">
+                <div class="stat-label">Total Paid</div>
+                <div class="stat-value green" id="totalPaid">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Monthly Active</div>
+                <div class="stat-value yellow" id="totalMonthly">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Expired</div>
+                <div class="stat-value red" id="totalExpired">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value gray" id="totalPending">0</div>
+            </div>
+        </div>
+
+        <!-- ===== TABLE ===== -->
+        <div class="payment-table-card">
+            <div class="table-title">
+                <div class="title-left">
+                    <i class="fas fa-list text-primary"></i> Payment Records
+                </div>
+                <div class="title-right">
+                    <button onclick="downloadCSV()" class="btn-download">
+                        <i class="fas fa-download"></i> Download CSV
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Student ID</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentTableBody">
+                        <tr><td colspan="6" class="text-center text-gray-400 py-4">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== UPDATE STATUS MODAL ===== -->
+    <div class="modal-overlay" id="updateModal">
+        <div class="modal-box">
+            <h3>Update Payment Status</h3>
+            <p class="modal-sub">Student: <span id="modalStudentName" class="font-medium text-gray-900"></span></p>
+            <label for="modalStatus">Status</label>
+            <select id="modalStatus">
+                <option value="paid">Fully Paid</option>
+                <option value="monthly_active">Monthly Active</option>
+                <option value="expired">Expired</option>
+                <option value="pending">Pending</option>
+            </select>
+            <input type="hidden" id="modalStudentId" value="" />
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="btn-modal-secondary btn-modal flex-1">Cancel</button>
+                <button onclick="savePaymentStatus()" class="btn-modal-primary btn-modal flex-1">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUCCESS MODAL ===== -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-box">
+            <div class="modal-icon success"><i class="fas fa-check-circle"></i></div>
+            <h3>Payment Status Updated!</h3>
+            <p class="modal-sub">The student's payment status has been updated successfully.</p>
+            <button onclick="closeSuccessModal()" class="btn-modal-primary btn-modal" style="width:100%;">OK</button>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        // ============================================================
+        // SIDEBAR TOGGLE
+        // ============================================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeSidebar();
+        });
+
+        // ============================================================
+        // DARK MODE
+        // ============================================================
+        function loadTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark', dark);
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        window.handleLogout = async function() {
+            try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; }
+            catch (e) { window.location.href = '../login.html'; }
+        };
+
+        // ============================================================
+        // SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+
+        // ============================================================
+        // SHOW / HIDE SUPER ADMIN LINK
+        // ============================================================
+        async function updateSidebarForRole() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabaseClient
+                    .from('admins')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                const isSuper = data?.role === 'super_admin';
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) {
+                    superLink.style.display = isSuper ? 'flex' : 'none';
+                }
+            } catch (err) {
+                console.warn('Could not fetch role – hiding super admin link.', err);
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) superLink.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        async function fetchNotifications(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (e) { return []; }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('unreadBadge');
+            const unread = notifications.filter(n => !n.is_read);
+
+            badge.textContent = unread.length;
+            badge.classList.toggle('show', unread.length > 0);
+
+            if (!notifications.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${!n.is_read ? 'unread' : ''}">
+                    <div class="title">${n.title}</div>
+                    <div class="msg">${n.message}</div>
+                    <div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>
+                    ${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try {
+                await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
+                await loadNotifications();
+            } catch (e) {}
+        }
+
+        async function loadNotifications() {
+            const user = await window.auth.getCurrentUser();
+            if (!user) return;
+            const data = await fetchNotifications(user.id);
+            renderNotifications(data);
+        }
+
+        document.getElementById('notificationBell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationDropdown').classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationDropdown').classList.remove('active');
+        });
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-item';
+            toast.innerHTML = `
+                <span class="toast-icon"><i class="fas fa-check-circle"></i></span>
+                <span>${message}</span>
+                <span class="toast-close" onclick="this.parentElement.remove()">&times;</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 4000);
+        }
+
+        // ============================================================
+        // MODAL - UPDATE
+        // ============================================================
+        function openModal(studentId, studentName, currentStatus) {
+            document.getElementById('modalStudentId').value = studentId;
+            document.getElementById('modalStudentName').textContent = studentName;
+            document.getElementById('modalStatus').value = currentStatus || 'pending';
+            document.getElementById('updateModal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('updateModal').classList.remove('active');
+        }
+        document.getElementById('updateModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ============================================================
+        // MODAL - SUCCESS
+        // ============================================================
+        function showSuccessModal() {
+            document.getElementById('successModal').classList.add('active');
+        }
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+        document.getElementById('successModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSuccessModal();
+        });
+
+        // ============================================================
+        // SAVE PAYMENT STATUS
+        // ============================================================
+        async function savePaymentStatus() {
+            const studentId = document.getElementById('modalStudentId').value;
+            const newStatus = document.getElementById('modalStatus').value;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('students')
+                    .update({ payment_status: newStatus })
+                    .eq('id', studentId);
+
+                if (error) throw error;
+
+                closeModal();
+                await loadPayments();
+                showSuccessModal();
+
+            } catch (err) {
+                console.error(err);
+                alert('Failed to update status: ' + err.message);
+            }
+        }
+
+        // ============================================================
+        // DOWNLOAD CSV
+        // ============================================================
+        function downloadCSV() {
+            const table = document.getElementById('paymentTableBody');
+            const rows = table.querySelectorAll('tr');
+            
+            if (!rows.length || rows[0].textContent.includes('No payment records')) {
+                showToast('No data to export');
+                return;
+            }
+
+            let csv = 'Student,Plan,Amount,Status,Student ID\n';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    // Get text content from each cell, stripping out HTML
+                    const student = cells[0]?.textContent.trim() || '';
+                    const plan = cells[1]?.textContent.trim() || '';
+                    const amount = cells[2]?.textContent.trim() || '';
+                    const status = cells[3]?.textContent.trim() || '';
+                    const studentId = cells[4]?.textContent.trim() || '';
+                    csv += `"${student}","${plan}","${amount}","${status}","${studentId}"\n`;
+                }
+            });
+
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `payments_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('CSV downloaded successfully!');
+        }
+
+        // ============================================================
+        // LOAD PAYMENTS
+        // ============================================================
+        async function loadPayments() {
+            try {
+                const filter = document.getElementById('paymentFilter').value;
+
+                let query = supabaseClient
+                    .from('students')
+                    .select('id, full_name, student_id, payment_status, payment_plan, paid_at, expires_at')
+                    .order('full_name');
+
+                if (filter !== 'all') {
+                    query = query.eq('payment_status', filter);
+                }
+
+                const { data: students, error } = await query;
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('paymentTableBody');
+
+                if (!students || students.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-400 py-4">No payment records found.</td></tr>`;
+                    updateStats([]);
+                    return;
+                }
+
+                updateStats(students);
+
+                const statusMap = {
+                    'paid': { label: 'Fully Paid', cls: 'badge-paid' },
+                    'monthly_active': { label: 'Monthly Active', cls: 'badge-monthly' },
+                    'expired': { label: 'Expired', cls: 'badge-expired' },
+                    'pending': { label: 'Pending', cls: 'badge-pending' }
+                };
+
+                tbody.innerHTML = students.map(s => {
+                    const info = statusMap[s.payment_status] || statusMap['pending'];
+                    const amount = s.payment_status === 'paid' ? '₦20,000' :
+                                   s.payment_status === 'monthly_active' ? '₦5,000' : '₦0';
+                    const plan = s.payment_plan || (s.payment_status === 'paid' ? 'Full' : 'Monthly');
+                    return `
+                        <tr>
+                            <td data-label="Student">${s.full_name || '—'}</td>
+                            <td data-label="Plan">${plan}</td>
+                            <td data-label="Amount">${amount}</td>
+                            <td data-label="Status"><span class="badge-status ${info.cls}">${info.label}</span></td>
+                            <td data-label="Student ID">${s.student_id || '—'}</td>
+                            <td data-label="Action">
+                                <button onclick="openModal('${s.id}', '${s.full_name}', '${s.payment_status}')" 
+                                        class="text-primary hover:text-primary-600 text-sm font-medium action-btn">
+                                    Update
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Load payments error:', err);
+                document.getElementById('paymentTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-red-500 py-4">Failed to load payments.</td></tr>`;
+            }
+        }
+
+        // ============================================================
+        // UPDATE STATS
+        // ============================================================
+        function updateStats(students) {
+            const totalPaid = students.filter(s => s.payment_status === 'paid').length;
+            const totalMonthly = students.filter(s => s.payment_status === 'monthly_active').length;
+            const totalExpired = students.filter(s => s.payment_status === 'expired').length;
+            const totalPending = students.filter(s => s.payment_status === 'pending').length;
+
+            document.getElementById('totalPaid').textContent = totalPaid;
+            document.getElementById('totalMonthly').textContent = totalMonthly;
+            document.getElementById('totalExpired').textContent = totalExpired;
+            document.getElementById('totalPending').textContent = totalPending;
+        }
+
+        // ============================================================
+        // FILTER CHANGE
+        // ============================================================
+        document.getElementById('paymentFilter').addEventListener('change', loadPayments);
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            await updateSidebarForRole();
+            await loadNotifications();
+            await loadPayments();
+
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (user) {
+                    const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin';
+                    document.getElementById('adminName').textContent = name;
+                }
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>

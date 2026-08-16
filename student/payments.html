@@ -1,0 +1,319 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payments - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        :root {
+            --bg: #f9fafb; --card: #ffffff; --text: #111827;
+            --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+        }
+        body.dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --muted: #94a3b8; --shadow: 0 2px 8px rgba(0,0,0,0.3); --hover-bg: #2d3748; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 260px; height: 100%; background: var(--card); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; z-index: 100; transition: transform 0.3s ease, background 0.3s, border 0.3s; }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; color: var(--text); text-decoration: none; transition: background 0.2s, color 0.2s; font-size: 0.95rem; }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle { margin-top: 0.5rem; width: 100%; display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 10px; background: none; border: none; cursor: pointer; font-size: 0.95rem; color: var(--text); transition: background 0.2s; }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+        .sidebar-overlay.active { display: block; }
+        .main-content { margin-left: 260px; padding: 1.5rem 2rem; min-height: 100vh; transition: background 0.3s; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light); }
+        .topbar .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem; }
+
+        .payments-container { max-width: 900px; margin: 0 auto; }
+        .status-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .status-info h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+        .status-info p { font-size: 0.9rem; color: var(--muted); }
+        .status-badge { display: inline-block; padding: 0.25rem 1rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+        
+        .countdown-box { margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; padding: 0.3rem 0.8rem; border-radius: 999px; display: inline-block; text-align: center; min-width: 120px; }
+        .countdown-safe { background: #dcfce7; color: #16a34a; }
+        .countdown-warning { background: #fef9c3; color: #854d0e; }
+        .countdown-danger { background: #fee2e2; color: #dc2626; }
+
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .plan-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow); transition: all 0.3s; }
+        .plan-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .plan-card h3 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+        .plan-card .price { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
+        .plan-card .price span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
+        .plan-card ul { list-style: none; padding: 0; margin: 1rem 0; font-size: 0.9rem; color: var(--muted); }
+        .plan-card ul li { padding: 0.25rem 0; display: flex; align-items: center; gap: 0.5rem; }
+        .plan-card ul li i { color: var(--primary); }
+        .plan-card .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .plan-card .btn-primary { background: var(--primary); color: white; }
+        .plan-card .btn-primary:hover { background: var(--primary-dark); }
+        .plan-card .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .plan-card .btn-outline:hover { background: var(--primary-light); }
+
+        .history-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .history-table th { text-align: left; padding: 1rem; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.04em; background: var(--hover-bg); }
+        .history-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text); }
+        .history-table tr:last-child td { border-bottom: none; }
+        .history-table .status-badge { font-size: 0.65rem; padding: 0.15rem 0.6rem; }
+
+        body.dark .history-table td { color: #f1f5f9; }
+        body.dark .history-table th { color: #94a3b8; }
+        
+        .loader { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .text-muted { color: var(--muted); }
+        .mt-2 { margin-top: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; padding: 1rem; } .topbar .menu-toggle { display: block; } .status-card { flex-direction: column; align-items: flex-start; } }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="payments.html" class="active"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
+            <a href="id-card.html"><i class="fas fa-id-card"></i> ID Card</a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center"><button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><h1 class="text-xl font-bold" style="margin:0;">Payments</h1></div>
+        </div>
+
+        <div id="loading-state" class="text-center py-8">
+            <div class="loader"></div>
+            <p class="text-muted mt-2">Loading your payment info...</p>
+        </div>
+
+        <div id="payments-content" class="payments-container hidden">
+            <!-- Current Status -->
+            <div class="status-card">
+                <div class="status-info">
+                    <h2>Current Plan</h2>
+                    <p id="plan-detail">Loading...</p>
+                </div>
+                <div>
+                    <span class="status-badge" id="status-badge">Loading</span>
+                    <div id="countdown-container" class="countdown-box countdown-safe mt-2">Checking...</div>
+                </div>
+            </div>
+
+            <!-- Plans -->
+            <h2 class="text-xl font-bold mb-4">Choose a Payment Plan</h2>
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <h3>Full Payment</h3>
+                    <div class="price">₦<span id="full-amount">20,000</span> <span>one-time</span></div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Access to all sessions</li>
+                        <li><i class="fas fa-check-circle"></i> Student ID & QR code</li>
+                        <li><i class="fas fa-check-circle"></i> Certificate upon completion</li>
+                    </ul>
+                    <button id="pay-full-btn" class="btn btn-primary">Pay Now</button>
+                </div>
+
+                <div class="plan-card">
+                    <h3>Monthly Payment</h3>
+                    <div class="price">₦<span id="monthly-amount">5,000</span> <span>/ month</span></div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Access to all sessions</li>
+                        <li><i class="fas fa-check-circle"></i> Student ID & QR code</li>
+                        <li><i class="fas fa-clock"></i> Auto-renews monthly</li>
+                    </ul>
+                    <button id="pay-monthly-btn" class="btn btn-outline">Pay Now</button>
+                </div>
+            </div>
+
+            <!-- History -->
+            <h2 class="text-xl font-bold mb-4">Payment History</h2>
+            <div class="history-card">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <tr><td colspan="5" class="text-center text-muted py-4">No payment history found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+        window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+        function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+        function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
+        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
+
+        let currentUser = null;
+        let studentData = null;
+        let fullFee = 20000;
+        let monthlyFee = 5000;
+
+        function getCountdownText(expiresAt) {
+            if (!expiresAt) return { text: 'No expiry set', class: 'countdown-safe' };
+            const now = new Date();
+            const expiry = new Date(expiresAt);
+            const diff = expiry - now;
+            if (diff <= 0) return { text: '⚠️ Payment Overdue!', class: 'countdown-danger' };
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            if (days === 0) return { text: 'Due today!', class: 'countdown-warning' };
+            if (days === 1) return { text: 'Due tomorrow!', class: 'countdown-warning' };
+            if (days <= 7) return { text: `Due in ${days} days`, class: 'countdown-warning' };
+            return { text: `Due in ${days} days`, class: 'countdown-safe' };
+        }
+
+        async function loadPaymentsPage() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) { window.location.href = '../login.html'; return; }
+                currentUser = user;
+
+                const { data: student, error: stuErr } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+                if (stuErr || !student) throw new Error('Student not found');
+                studentData = student;
+
+                const { data: settings } = await supabaseClient
+                    .from('settings')
+                    .select('*')
+                    .in('key', ['full_fee', 'monthly_fee']);
+                if (settings) {
+                    settings.forEach(s => {
+                        if (s.key === 'full_fee') fullFee = parseInt(s.value) || 20000;
+                        if (s.key === 'monthly_fee') monthlyFee = parseInt(s.value) || 5000;
+                    });
+                }
+
+                document.getElementById('full-amount').textContent = fullFee.toLocaleString();
+                document.getElementById('monthly-amount').textContent = monthlyFee.toLocaleString();
+
+                const status = student.payment_status || 'pending';
+                const plan = student.payment_plan || 'None';
+                const cls = status === 'paid' ? 'badge-active' : status === 'monthly_active' ? 'badge-active' : status === 'expired' ? 'badge-expired' : 'badge-pending';
+                const label = status === 'paid' ? 'Fully Paid' : status === 'monthly_active' ? 'Monthly Active' : status === 'expired' ? 'Expired' : 'Pending';
+                document.getElementById('status-badge').className = `status-badge ${cls}`;
+                document.getElementById('status-badge').textContent = label;
+                document.getElementById('plan-detail').textContent = `${plan} — ${label}`;
+
+                // Countdown
+                const countdownEl = document.getElementById('countdown-container');
+                if (student.expires_at && (status === 'monthly_active' || status === 'expired')) {
+                    const { text, class: clsName } = getCountdownText(student.expires_at);
+                    countdownEl.textContent = text;
+                    countdownEl.className = `countdown-box ${clsName} mt-2`;
+                } else if (status === 'paid') {
+                    countdownEl.textContent = '✅ Fully paid — No expiry';
+                    countdownEl.className = 'countdown-box countdown-safe mt-2';
+                } else {
+                    countdownEl.textContent = '—';
+                    countdownEl.className = 'countdown-box countdown-safe mt-2';
+                }
+
+                // Load payment history
+                const { data: history, error: histErr } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                const tbody = document.getElementById('history-body');
+                if (!histErr && history && history.length > 0) {
+                    tbody.innerHTML = history.map(p => `
+                        <tr>
+                            <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                            <td>${p.plan || '—'}</td>
+                            <td>₦${p.amount?.toLocaleString() || '—'}</td>
+                            <td><span class="status-badge badge-active">${p.status || '—'}</span></td>
+                            <td class="text-muted text-sm">${p.reference || '—'}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('payments-content').classList.remove('hidden');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading-state').innerHTML = '<p class="text-red-500">Failed to load payment info.</p>';
+            }
+        }
+
+        // PAYMENT LOGIC
+        async function handlePayment(plan) {
+            if (!currentUser || !studentData) {
+                alert('Please reload the page.');
+                return;
+            }
+            const amount = plan === 'full' ? fullFee : monthlyFee;
+            const email = currentUser.email;
+            const reference = `CMT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+            const handler = PaystackPop.setup({
+                key: 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a', // <-- Replace with live key later
+                email: email,
+                amount: amount * 100,
+                currency: 'NGN',
+                ref: reference,
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Plan", variable_name: "plan", value: plan },
+                        { display_name: "User ID", variable_name: "user_id", value: currentUser.id }
+                    ]
+                },
+                callback: function(response) {
+                    alert('Payment successful! Your dashboard will update shortly.');
+                    window.location.href = 'dashboard.html';
+                },
+                onClose: function() {
+                    alert('Payment cancelled.');
+                }
+            });
+            handler.openIframe();
+        }
+
+        document.getElementById('pay-full-btn').addEventListener('click', () => handlePayment('full'));
+        document.getElementById('pay-monthly-btn').addEventListener('click', () => handlePayment('monthly'));
+
+        document.addEventListener('DOMContentLoaded', loadPaymentsPage);
+    </script>
+</body>
+</html>

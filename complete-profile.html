@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Your Profile - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                            300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                            600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- ===== MINIMAL HEADER ===== -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-8 shadow-sm">
+        <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-primary-500">
+                Course<span class="font-light text-gray-600">Mate</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="login.html" class="text-sm text-gray-600 hover:text-primary-500 transition font-medium">Login</a>
+                <a href="index.html" class="text-sm text-gray-600 hover:text-primary-500 transition font-medium"><i class="fas fa-home"></i> Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== PROFILE FORM ===== -->
+    <div class="bg-gradient-to-b from-primary-50 to-white min-h-screen flex items-center justify-center px-4 pt-20 pb-10">
+        <div class="bg-white max-w-md w-full rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-500 text-2xl">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Complete Your Profile</h2>
+                <p class="text-gray-600 mt-1 text-sm">Tell us a bit more about you</p>
+            </div>
+
+            <form id="profileForm">
+                <!-- Phone Number -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="080 123 4567" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
+                </div>
+
+                <!-- Department Dropdown -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <select id="department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+
+                <!-- Program Dropdown -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Program</label>
+                    <select id="program" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                        <option value="">Select Program</option>
+                    </select>
+                </div>
+
+                <!-- Level Dropdown -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <select id="level" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white" required>
+                        <option value="">Select Level</option>
+                        <option value="100L">100 Level</option>
+                        <option value="200L">200 Level</option>
+                        <option value="300L">300 Level</option>
+                        <option value="400L">400 Level</option>
+                        <option value="500L">500 Level</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="saveBtn" class="w-full py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Save & Continue
+                </button>
+            </form>
+
+            <div class="text-center mt-6 text-sm text-gray-500">
+                <a href="login.html" class="hover:text-primary-500"><i class="fas fa-arrow-left mr-1"></i> Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // ============================================================
+        //  SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient;
+
+        // ============================================================
+        //  1. CHECK USER AUTH
+        // ============================================================
+        async function checkUser() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                return user;
+            } catch (e) {
+                window.location.href = 'login.html';
+                return null;
+            }
+        }
+
+        // ============================================================
+        //  2. LOAD DEPARTMENTS & PROGRAMS
+        // ============================================================
+        async function loadDropdowns() {
+            try {
+                // Load Departments
+                const { data: departments, error: deptError } = await supabaseClient
+                    .from('departments')
+                    .select('id, name')
+                    .order('name');
+                if (deptError) throw deptError;
+
+                const deptSelect = document.getElementById('department');
+                deptSelect.innerHTML = '<option value="">Select Department</option>';
+                
+                departments.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    deptSelect.appendChild(opt);
+                });
+
+                // Load Programs (Triggered when Department changes)
+                const progSelect = document.getElementById('program');
+                
+                document.getElementById('department').addEventListener('change', async function() {
+                    const deptId = this.value;
+                    progSelect.innerHTML = '<option value="">Select Program</option>';
+                    if (!deptId) return;
+
+                    const { data: programs, error: progError } = await supabaseClient
+                        .from('programs')
+                        .select('id, name')
+                        .eq('department_id', deptId)
+                        .order('name');
+                    if (progError) throw progError;
+
+                    programs.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.name;
+                        progSelect.appendChild(opt);
+                    });
+                });
+
+            } catch (err) {
+                console.error('Load error:', err);
+                alert('Could not load departments. Please refresh.');
+            }
+        }
+
+        // ============================================================
+        //  3. SAVE PROFILE (WITH DUPLICATE CHECK)
+        // ============================================================
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const user = await checkUser();
+                if (!user) return;
+
+                const phone = document.getElementById('phone').value.trim();
+                
+                // Get the displayed text, NOT the UUID
+                const department = document.getElementById('department').options[document.getElementById('department').selectedIndex].text;
+                const program = document.getElementById('program').options[document.getElementById('program').selectedIndex].text;
+                const level = document.getElementById('level').value;
+
+                if (!phone || !department || !program || !level) {
+                    alert('Please fill in all fields.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save & Continue';
+                    return;
+                }
+
+                // 🔥 FIX: Check if student already exists
+                const { data: existingStudent, error: checkError } = await supabaseClient
+                    .from('students')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (checkError) throw checkError;
+
+                let result;
+
+                if (existingStudent) {
+                    // ✅ UPDATE existing record
+                    result = await supabaseClient
+                        .from('students')
+                        .update({
+                            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
+                            email: user.email,
+                            phone: phone,
+                            department: department,
+                            program: program,
+                            level: level
+                        })
+                        .eq('user_id', user.id);
+                } else {
+                    // ✅ INSERT new record
+                    result = await supabaseClient
+                        .from('students')
+                        .insert([{
+                            user_id: user.id,
+                            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
+                            email: user.email,
+                            phone: phone,
+                            department: department,
+                            program: program,
+                            level: level,
+                            payment_status: 'pending'
+                        }]);
+                }
+
+                if (result.error) throw result.error;
+
+                // Redirect to Payment
+                window.location.href = 'payment.html';
+
+            } catch (err) {
+                console.error('Save error:', err);
+                alert('Failed to save profile: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save & Continue';
+            }
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            const user = await checkUser();
+            if (user) {
+                await loadDropdowns();
+            }
+        });
+    </script>
+</body>
+</html>

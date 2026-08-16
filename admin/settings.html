@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* ===== LIGHT & DARK THEME ===== */
+        :root {
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6;
+            --primary: #008751;
+            --primary-light: #E8F5E9;
+            --primary-dark: #006d3f;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --muted: #94a3b8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-bg: #2d3748;
+            --input-bg: #2d3748;
+            --input-border: #4a5568;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ===== TOAST ===== */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .toast-item {
+            background: var(--card);
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 5px solid;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: slideInRight 0.4s ease;
+            transition: opacity 0.3s ease;
+        }
+        .toast-item.success { border-left-color: var(--primary); }
+        .toast-item.error { border-left-color: #e53e3e; }
+        .toast-item.warning { border-left-color: #d69e2e; }
+        .toast-item.info { border-left-color: #3182ce; }
+        .toast-item .icon { font-size: 1.2rem; }
+        .toast-item .message { flex: 1; font-size: 0.9rem; color: var(--text); }
+        .toast-item .close-btn { cursor: pointer; color: var(--muted); }
+        .toast-item .close-btn:hover { color: var(--text); }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-item.hiding { opacity: 0; transform: translateX(100%); }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+            transition: background 0.3s, border 0.3s, transform 0.3s ease;
+        }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            color: var(--text); text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle {
+            margin-top: 0.5rem;
+            width: 100%;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            background: none; border: none; cursor: pointer;
+            font-size: 0.95rem; color: var(--text);
+            transition: background 0.2s;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        .topbar .menu-toggle {
+            display: none;
+            background: none; border: none; font-size: 1.5rem;
+            color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem;
+        }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrapper { position: relative; }
+        .notif-wrapper .bell-btn {
+            background: none; border: none; font-size: 1.3rem;
+            color: var(--text); cursor: pointer; padding: 0.4rem;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white; font-size: 0.6rem;
+            font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px;
+            display: none;
+        }
+        .notif-badge.show { display: inline-block; }
+        .notif-dropdown {
+            position: absolute; right: 0; top: 2.8rem; width: 320px;
+            max-height: 400px; overflow-y: auto;
+            background: var(--card); border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            border: 1px solid var(--border); display: none; z-index: 50;
+        }
+        .notif-dropdown.active { display: block; }
+        .notif-item {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+            cursor: default;
+        }
+        .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+        .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+        .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
+        .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s, box-shadow 0.2s;
+            margin-bottom: 1.25rem;
+        }
+        .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== INPUTS & BUTTONS ===== */
+        .input-field {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: border 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+        .input-field:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { background: var(--hover-bg); }
+        .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .input-group input, .input-group select {
+            flex: 1;
+            min-width: 150px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 0.5rem 0.6rem;
+            font-size: 0.85rem;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,135,81,0.15);
+        }
+        .input-group .btn {
+            flex-shrink: 0;
+        }
+
+        /* ===== FEE DISPLAY ===== */
+        .fee-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .fee-display .fee-item {
+            background: var(--primary-light);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .fee-display .fee-item .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .fee-display .fee-item .label {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .fee-display .fee-item .note {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        /* ===== COURSES & PROGRAMS ===== */
+        .course-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .course-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .course-box .box-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .course-box .box-title .count {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.05rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .list-item .tag {
+            background: var(--border);
+            padding: 0.05rem 0.4rem;
+            border-radius: 999px;
+            font-size: 0.6rem;
+            color: var(--muted);
+        }
+        .max-h-48 {
+            max-height: 12rem;
+            overflow-y: auto;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .notif-dropdown { width: 280px; right: -0.5rem; }
+            .course-grid { grid-template-columns: 1fr; }
+            .fee-display { grid-template-columns: 1fr; }
+            .input-group {
+                flex-direction: column;
+            }
+            .input-group input, .input-group select {
+                min-width: 100%;
+                width: 100%;
+            }
+            .input-group .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .btn {
+                white-space: normal;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar-overlay { display: none !important; }
+        }
+        
+        /* Responsive grid for settings */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .text-center { text-align: center; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .w-full { width: 100%; }
+        .hidden { display: none; }
+        .block { display: block; }
+        .text-primary-500 { color: var(--primary); }
+        .text-red-500 { color: #ef4444; }
+        .text-gray-500 { color: var(--muted); }
+        .text-gray-400 { color: var(--muted); opacity: 0.7; }
+        .text-muted { color: var(--muted); }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div id="toast-container"></div>
+
+    <!-- ===== LAYOUT ===== -->
+    <div class="flex min-h-screen">
+        <!-- ===== SIDEBAR ===== -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">Course<span>Mate</span></div>
+            <nav>
+                <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="students.html"><i class="fas fa-users"></i> Students</a>
+                <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+                <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+              <a href="analytics.html"><i class="fas fa-chart-bar"></i> Progress</a>
+              <a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
+                <a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a>
+                <a href="super-settings.html" id="superSettingsLink" style="display: none;">
+                    <i class="fas fa-crown"></i> Super Admin
+                </a>
+            </nav>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i> Dark Mode
+            </button>
+            <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </aside>
+
+        <!-- ===== MAIN ===== -->
+        <div class="main-content">
+            <div class="topbar">
+                <div class="flex items-center gap-3">
+                    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1 class="text-xl font-bold" style="margin:0;">Settings</h1>
+                </div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="notif-wrapper">
+                        <button class="bell-btn" id="notificationBell">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <span class="notif-badge" id="unreadBadge">0</span>
+                        <div class="notif-dropdown" id="notificationDropdown">
+                            <div id="notificationList"><div class="notif-empty">No notifications</div></div>
+                        </div>
+                    </div>
+                    <button onclick="reloadAll()" class="btn btn-secondary btn-sm"><i class="fas fa-sync mr-1"></i>Reload</button>
+                </div>
+            </div>
+
+            <!-- ===== COURSES & PROGRAMS ===== -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-graduation-cap text-primary-500"></i>Courses & Programs</div>
+                
+                <div class="course-grid">
+                    <!-- Departments Box -->
+                    <div class="course-box">
+                        <div class="box-title">
+                            <i class="fas fa-building text-primary-500"></i> Departments
+                            <span class="count" id="deptCount">0</span>
+                        </div>
+                        <div id="departmentList" class="max-h-48 space-y-1 mb-3">
+                            <p class="text-sm text-gray-500">Loading...</p>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="newDepartment" placeholder="Enter department..." class="input-field" />
+                            <button onclick="addDepartment()" class="btn btn-primary btn-sm">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Programs Box -->
+                    <div class="course-box">
+                        <div class="box-title">
+                            <i class="fas fa-book-open text-primary-500"></i> Programs
+                            <span class="count" id="progCount">0</span>
+                        </div>
+                        <div class="input-group mb-2">
+                            <select id="programDepartment" class="input-field">
+                                <option value="">Select Department</option>
+                            </select>
+                            <input type="text" id="newProgram" placeholder="Enter program..." class="input-field" />
+                            <button onclick="addProgram()" class="btn btn-primary btn-sm">Add</button>
+                        </div>
+                        <div id="programList" class="max-h-48 space-y-1">
+                            <p class="text-sm text-gray-500">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SETTINGS GRID ===== -->
+            <div class="settings-grid">
+                <!-- ===== FEE STRUCTURE (VIEW ONLY) ===== -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-money-bill-wave text-primary-500"></i>Fee Structure <span class="text-xs text-gray-400 font-normal ml-2">(View Only)</span></div>
+                    <div class="fee-display">
+                        <div class="fee-item">
+                            <div class="label">Full Payment</div>
+                            <div class="amount" id="displayFullFee">₦0</div>
+                            <div class="note">per student</div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="label">Monthly Payment</div>
+                            <div class="amount" id="displayMonthlyFee">₦0</div>
+                            <div class="note">per month</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2"><i class="fas fa-info-circle mr-1"></i>Only Super Admin can edit fee structure.</p>
+                </div>
+
+                <!-- ===== CLASS SCHEDULE ===== -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-clock text-primary-500"></i>Class Schedule</div>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Class Start Time</label>
+                            <input type="time" id="classStartTime" class="input-field" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Class End Time</label>
+                            <input type="time" id="classEndTime" class="input-field" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Grace Period (minutes)</label>
+                            <input type="number" id="graceMinutes" class="input-field" placeholder="e.g. 30" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Grace Days</label>
+                            <input type="number" id="graceDays" class="input-field" placeholder="e.g. 3" />
+                        </div>
+                        <button onclick="saveClassSchedule()" class="btn btn-primary w-full mt-2"><i class="fas fa-save mr-1"></i>Save Schedule</button>
+                        <div id="schedule-message" class="mt-2 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ADMIN PROFILE ===== -->
+            <div class="card">
+                <div class="card-title"><i class="fas fa-user-edit text-primary-500"></i>Admin Profile</div>
+                <form id="adminProfileForm">
+                    <div class="settings-grid">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="adminFullName" class="input-field" placeholder="Your full name" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="adminEmail" class="input-field" placeholder="Your email" />
+                        </div>
+                    </div>
+                    <div style="margin-top:0.5rem;">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New Password (leave blank to keep current)</label>
+                        <input type="password" id="adminPassword" class="input-field" placeholder="Enter new password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4"><i class="fas fa-save mr-1"></i>Update Profile</button>
+                    <div id="profile-message" class="mt-2 text-sm"></div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // ============================================================
+        //  SIDEBAR TOGGLE
+        // ============================================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeSidebar();
+        });
+
+        // ============================================================
+        //  DARK MODE
+        // ============================================================
+        function loadTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark', dark);
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
+        window.handleLogout = async function() {
+            try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; }
+            catch (e) { window.location.href = '../login.html'; }
+        };
+
+        // ============================================================
+        //  SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+        window.supabaseClient = supabaseClient;
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+            const iconMap = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            toast.innerHTML = `
+                <span class="icon"><i class="fas ${iconMap[type] || iconMap.info}"></i></span>
+                <span class="message">${message}</span>
+                <span class="close-btn" onclick="this.closest('.toast-item').remove()">&times;</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        // ============================================================
+        //  SHOW / HIDE SUPER ADMIN LINK BASED ON ROLE
+        // ============================================================
+        async function updateSidebarForRole() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabaseClient
+                    .from('admins')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                const isSuper = data?.role === 'super_admin';
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) {
+                    superLink.style.display = isSuper ? 'flex' : 'none';
+                }
+            } catch (err) {
+                console.warn('Could not fetch role – hiding super admin link.', err);
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) superLink.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        //  NOTIFICATIONS
+        // ============================================================
+        async function fetchNotifications(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (e) { return []; }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('unreadBadge');
+            const unread = notifications.filter(n => !n.is_read);
+
+            badge.textContent = unread.length;
+            badge.classList.toggle('show', unread.length > 0);
+
+            if (!notifications.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${!n.is_read ? 'unread' : ''}">
+                    <div class="title">${n.title}</div>
+                    <div class="msg">${n.message}</div>
+                    <div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>
+                    ${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try {
+                await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
+                await loadNotifications();
+            } catch (e) {}
+        }
+
+        async function loadNotifications() {
+            const user = await window.auth.getCurrentUser();
+            if (!user) return;
+            const data = await fetchNotifications(user.id);
+            renderNotifications(data);
+        }
+
+        document.getElementById('notificationBell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationDropdown').classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationDropdown').classList.remove('active');
+        });
+
+        // ============================================================
+        //  DEPARTMENTS (ADD ONLY - NO DELETE)
+        // ============================================================
+        let departmentsCache = [];
+
+        async function loadDepartments() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('departments')
+                    .select('*')
+                    .order('name');
+                if (error) throw error;
+                departmentsCache = data || [];
+                renderDepartments();
+                populateDepartmentDropdown();
+            } catch (err) {
+                console.error('Dept load error:', err);
+                document.getElementById('departmentList').innerHTML = '<p class="text-red-500 text-sm">Failed to load departments.</p>';
+            }
+        }
+
+        function renderDepartments() {
+            const container = document.getElementById('departmentList');
+            const countEl = document.getElementById('deptCount');
+            countEl.textContent = departmentsCache.length;
+            
+            if (!departmentsCache.length) {
+                container.innerHTML = '<p class="text-sm text-gray-400">No departments added yet.</p>';
+                return;
+            }
+            container.innerHTML = departmentsCache.map(d => `
+                <div class="list-item">
+                    <span>${d.name}</span>
+                </div>
+            `).join('');
+        }
+
+        function populateDepartmentDropdown() {
+            const select = document.getElementById('programDepartment');
+            select.innerHTML = '<option value="">Select Department</option>';
+            departmentsCache.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                select.appendChild(opt);
+            });
+        }
+
+        window.addDepartment = async function() {
+            const name = document.getElementById('newDepartment').value.trim();
+            if (!name) { showToast('Enter a department name.', 'error'); return; }
+
+            // Check if department already exists
+            const exists = departmentsCache.some(d => d.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                showToast(`Department "${name}" already exists.`, 'warning');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.from('departments').insert([{ name }]);
+                if (error) throw error;
+                showToast(`Department "${name}" added.`, 'success');
+                document.getElementById('newDepartment').value = '';
+                await loadDepartments();
+            } catch (err) {
+                showToast('Failed to add department.', 'error');
+            }
+        };
+
+        // ============================================================
+        //  PROGRAMS (ADD ONLY - NO DELETE)
+        // ============================================================
+        let programsCache = [];
+
+        async function loadPrograms() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('programs')
+                    .select('*, departments(name)')
+                    .order('name');
+                if (error) throw error;
+                programsCache = data || [];
+                renderPrograms();
+            } catch (err) {
+                console.error('Prog load error:', err);
+                document.getElementById('programList').innerHTML = '<p class="text-red-500 text-sm">Failed to load programs.</p>';
+            }
+        }
+
+        function renderPrograms() {
+            const container = document.getElementById('programList');
+            const countEl = document.getElementById('progCount');
+            countEl.textContent = programsCache.length;
+            
+            if (!programsCache.length) {
+                container.innerHTML = '<p class="text-sm text-gray-400">No programs added yet.</p>';
+                return;
+            }
+            container.innerHTML = programsCache.map(p => `
+                <div class="list-item">
+                    <span>${p.name} <span class="text-xs text-gray-400">(${p.departments?.name || 'Unknown'})</span></span>
+                </div>
+            `).join('');
+        }
+
+        window.addProgram = async function() {
+            const deptId = document.getElementById('programDepartment').value;
+            const name = document.getElementById('newProgram').value.trim();
+            if (!deptId) { showToast('Select a department.', 'error'); return; }
+            if (!name) { showToast('Enter a program name.', 'error'); return; }
+
+            // Check if program already exists in this department
+            const exists = programsCache.some(p => 
+                p.department_id === deptId && p.name.toLowerCase() === name.toLowerCase()
+            );
+            if (exists) {
+                showToast(`Program "${name}" already exists in this department.`, 'warning');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('programs')
+                    .insert([{ department_id: deptId, name }]);
+                if (error) throw error;
+                showToast(`Program "${name}" added.`, 'success');
+                document.getElementById('newProgram').value = '';
+                await loadPrograms();
+            } catch (err) {
+                showToast('Failed to add program.', 'error');
+            }
+        };
+
+        // ============================================================
+        //  FEE STRUCTURE (VIEW ONLY)
+        // ============================================================
+        async function loadFeeStructure() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('*')
+                    .in('key', ['full_fee', 'monthly_fee']);
+                if (error) throw error;
+                const feeMap = {};
+                data.forEach(f => feeMap[f.key] = f.value);
+                document.getElementById('displayFullFee').textContent = `₦${Number(feeMap['full_fee'] || 20000).toLocaleString()}`;
+                document.getElementById('displayMonthlyFee').textContent = `₦${Number(feeMap['monthly_fee'] || 5000).toLocaleString()}`;
+            } catch (err) {
+                console.warn('Fee load error:', err);
+                document.getElementById('displayFullFee').textContent = '₦20,000';
+                document.getElementById('displayMonthlyFee').textContent = '₦5,000';
+            }
+        }
+
+        // ============================================================
+        //  CLASS SCHEDULE (EDITABLE BY REGULAR ADMIN)
+        // ============================================================
+        async function loadClassSchedule() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('*')
+                    .in('key', ['class_start_time', 'class_end_time', 'grace_minutes', 'grace_days']);
+                if (error) throw error;
+                const map = {};
+                data.forEach(row => map[row.key] = row.value);
+                document.getElementById('classStartTime').value = map.class_start_time || '10:00';
+                document.getElementById('classEndTime').value = map.class_end_time || '15:00';
+                document.getElementById('graceMinutes').value = map.grace_minutes || 30;
+                document.getElementById('graceDays').value = map.grace_days || 3;
+            } catch (err) {
+                console.warn('Class schedule load error:', err);
+                document.getElementById('classStartTime').value = '10:00';
+                document.getElementById('classEndTime').value = '15:00';
+                document.getElementById('graceMinutes').value = 30;
+                document.getElementById('graceDays').value = 3;
+            }
+        }
+
+        window.saveClassSchedule = async function() {
+            const startTime = document.getElementById('classStartTime').value;
+            const endTime = document.getElementById('classEndTime').value;
+            const graceMinutes = document.getElementById('graceMinutes').value;
+            const graceDays = document.getElementById('graceDays').value;
+
+            if (!startTime || !endTime || !graceMinutes || !graceDays) {
+                showToast('Please fill in all fields.', 'error');
+                return;
+            }
+
+            try {
+                const updates = [
+                    { key: 'class_start_time', value: startTime },
+                    { key: 'class_end_time', value: endTime },
+                    { key: 'grace_minutes', value: graceMinutes },
+                    { key: 'grace_days', value: graceDays }
+                ];
+                for (const item of updates) {
+                    const { error } = await supabaseClient
+                        .from('settings')
+                        .upsert(item, { onConflict: 'key' });
+                    if (error) throw error;
+                }
+                showToast('Class schedule saved.', 'success');
+            } catch (err) {
+                showToast('Failed to save schedule: ' + err.message, 'error');
+            }
+        };
+
+        // ============================================================
+        //  ADMIN PROFILE
+        // ============================================================
+        async function loadAdminProfile() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data, error } = await supabaseClient
+                    .from('admins')
+                    .select('full_name, email')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('adminFullName').value = data.full_name || '';
+                document.getElementById('adminEmail').value = data.email || user.email || '';
+            } catch (err) {
+                console.error('Profile load error:', err);
+                const user = await window.auth.getCurrentUser();
+                if (user) {
+                    document.getElementById('adminFullName').value = user.user_metadata?.full_name || '';
+                    document.getElementById('adminEmail').value = user.email || '';
+                }
+            }
+        }
+
+        document.getElementById('adminProfileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('adminFullName').value.trim();
+            const email = document.getElementById('adminEmail').value.trim();
+            const newPassword = document.getElementById('adminPassword').value.trim();
+
+            if (!fullName || !email) {
+                showToast('Name and email are required.', 'error');
+                return;
+            }
+
+            const user = await window.auth.getCurrentUser();
+            if (!user) {
+                showToast('You must be logged in.', 'error');
+                return;
+            }
+
+            try {
+                const updates = {
+                    data: { full_name: fullName }
+                };
+                if (newPassword) {
+                    if (newPassword.length < 6) {
+                        showToast('Password must be at least 6 characters.', 'error');
+                        return;
+                    }
+                    updates.password = newPassword;
+                }
+
+                const { error: authError } = await supabaseClient.auth.updateUser(updates);
+                if (authError) {
+                    if (authError.message.includes('New password should be different from the old password')) {
+                        showToast('Password unchanged (same as current).', 'info');
+                    } else {
+                        throw authError;
+                    }
+                }
+
+                const { error: adminError } = await supabaseClient
+                    .from('admins')
+                    .update({
+                        full_name: fullName,
+                        email: email
+                    })
+                    .eq('user_id', user.id);
+
+                if (adminError) throw adminError;
+
+                showToast('Profile updated successfully!', 'success');
+                document.getElementById('adminPassword').value = '';
+            } catch (err) {
+                console.error('Profile update error:', err);
+                showToast('Failed to update profile: ' + err.message, 'error');
+            }
+        });
+
+        // ============================================================
+        //  RELOAD ALL
+        // ============================================================
+        window.reloadAll = async function() {
+            showToast('Reloading...', 'info');
+            await Promise.all([
+                loadDepartments(),
+                loadPrograms(),
+                loadFeeStructure(),
+                loadClassSchedule(),
+                loadAdminProfile(),
+                loadNotifications()
+            ]);
+            showToast('Data reloaded.', 'success');
+        };
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await Promise.all([
+                    updateSidebarForRole(),
+                    loadDepartments(),
+                    loadPrograms(),
+                    loadFeeStructure(),
+                    loadClassSchedule(),
+                    loadAdminProfile(),
+                    loadNotifications()
+                ]);
+            } catch (e) {
+                console.warn('Init error:', e);
+            }
+        });
+    </script>
+</body>
+</html>

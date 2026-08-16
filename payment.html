@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Payment - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        .loader {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e5e7eb;
+            border-radius: 50%;
+            border-top-color: #008751;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .plan-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .plan-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+        }
+        .fee-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        /* ===== PAYMENT SUCCESS MODAL ===== */
+        .success-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 1rem;
+        }
+        .success-modal-overlay.active { display: flex; }
+        .success-modal-box {
+            background: white;
+            border-radius: 24px;
+            max-width: 440px;
+            width: 100%;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: popIn 0.4s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .success-modal-box .icon {
+            width: 80px; height: 80px;
+            background: #dcfce7; color: #16a34a;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.2rem;
+            font-size: 3rem;
+        }
+        .success-modal-box h2 { font-size: 1.5rem; font-weight: 700; color: #111827; }
+        .success-modal-box p { color: #6b7280; margin: 0.5rem 0 1.5rem; }
+        .success-modal-box .btn {
+            padding: 0.75rem 2rem;
+            background: #008751; color: white;
+            border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .success-modal-box .btn:hover { background: #006d3f; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                            300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                            600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-8">
+        <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-primary-500">Course<span class="font-light text-gray-600">Mate</span></a>
+            <div class="flex items-center gap-4">
+                <a href="login.html" class="text-sm text-gray-600 hover:text-primary-500 transition">Login</a>
+                <a href="index.html" class="text-sm text-gray-600 hover:text-primary-500 transition"><i class="fas fa-home"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== PAYMENT SUCCESS MODAL ===== -->
+    <div id="successModal" class="success-modal-overlay">
+        <div class="success-modal-box">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Payment Successful! 🎉</h2>
+            <p>Your student ID has been generated. You now have full access to your dashboard.</p>
+            <button onclick="goToDashboard()" class="btn">Go to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- ===== PAYMENT SECTION ===== -->
+    <div class="bg-gradient-to-b from-primary-50 to-white min-h-screen flex items-center justify-center px-4 pt-20">
+        <div class="max-w-4xl w-full">
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-bold text-gray-900">Complete Your Payment</h1>
+                <p class="text-gray-600 mt-2">Choose a payment plan to activate your account</p>
+            </div>
+
+            <!-- Hidden user_id field -->
+            <input type="hidden" id="userId" value="" />
+
+            <!-- Loading State -->
+            <div id="loading-state" class="text-center py-12">
+                <div class="loader mx-auto"></div>
+                <p class="text-gray-500 mt-4">Loading fee structure...</p>
+            </div>
+
+            <!-- Payment Plans Container -->
+            <div id="plans-container" class="grid md:grid-cols-2 gap-6" style="display:none;">
+                <!-- Full Payment -->
+                <div id="plan-full" class="bg-white rounded-2xl shadow-xl border-2 border-primary-500 p-8 relative plan-card">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary-500 text-white text-xs font-bold px-4 py-1 rounded-full">BEST VALUE</div>
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Full Payment</h2>
+                        <p class="text-4xl font-bold text-primary-500 mt-2" id="full-price-display">₦<span id="full-amount">20,000</span></p>
+                        <p class="text-sm text-gray-500 mt-1">One-time payment for the entire program</p>
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-600 mb-6">
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Access to all sessions</li>
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Student ID & QR code</li>
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Full attendance tracking</li>
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Certificate upon completion</li>
+                    </ul>
+                    <button id="pay-full-btn" class="w-full py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition">Pay Now</button>
+                </div>
+
+                <!-- Monthly Payment -->
+                <div id="plan-monthly" class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 plan-card">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Monthly Payment</h2>
+                        <p class="text-4xl font-bold text-primary-500 mt-2" id="monthly-price-display">₦<span id="monthly-amount">5,000</span></p>
+                        <p class="text-sm text-gray-500 mt-1">Renews monthly</p>
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-600 mb-6">
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Access to all sessions</li>
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Student ID & QR code</li>
+                        <li><i class="fas fa-check-circle text-primary-500 mr-2"></i> Monthly attendance tracking</li>
+                        <li><i class="fas fa-clock text-gray-400 mr-2"></i> Renews every month</li>
+                    </ul>
+                    <button id="pay-monthly-btn" class="w-full py-3 bg-white border-2 border-primary-500 text-primary-500 rounded-lg hover:bg-primary-50 font-semibold transition">Pay Now</button>
+                </div>
+            </div>
+
+            <!-- Back to Dashboard -->
+            <div class="text-center mt-8 text-sm text-gray-500">
+                <a href="student/dashboard.html" class="hover:text-primary-500"><i class="fas fa-arrow-left mr-1"></i> Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        // ============================================================
+        //  SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+
+        const PAYSTACK_KEY = window.PAYSTACK_PUBLIC_KEY || 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a';
+
+        let fullFee = 20000;
+        let monthlyFee = 5000;
+        let currentUser = null;
+
+        // ============================================================
+        //  TOAST (For errors only now)
+        // ============================================================
+        function showToast(message, type = 'info') {
+            if (window.toast) {
+                window.toast[type](message);
+                return;
+            }
+            alert(message);
+        }
+
+        // ============================================================
+        //  MODAL HANDLERS
+        // ============================================================
+        function openSuccessModal() {
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function goToDashboard() {
+            window.location.href = 'student/dashboard.html';
+        }
+
+        // ============================================================
+        //  LOAD FEE STRUCTURE - DYNAMICALLY FROM SETTINGS
+        // ============================================================
+        async function loadFeeStructure() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('key, value')
+                    .in('key', ['full_fee', 'monthly_fee']);
+
+                if (error) throw error;
+
+                const feeMap = {};
+                data.forEach(row => feeMap[row.key] = row.value);
+
+                fullFee = parseInt(feeMap.full_fee) || 20000;
+                monthlyFee = parseInt(feeMap.monthly_fee) || 5000;
+
+                // Update UI with dynamic fees
+                document.getElementById('full-amount').textContent = fullFee.toLocaleString();
+                document.getElementById('monthly-amount').textContent = monthlyFee.toLocaleString();
+                document.getElementById('pay-full-btn').textContent = `Pay ₦${fullFee.toLocaleString()}`;
+                document.getElementById('pay-monthly-btn').textContent = `Pay ₦${monthlyFee.toLocaleString()}`;
+
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('plans-container').style.display = 'grid';
+
+                console.log('✅ Fees loaded: Full = ₦' + fullFee + ', Monthly = ₦' + monthlyFee);
+
+            } catch (err) {
+                console.error('Fee load error:', err);
+                // Use fallback defaults
+                fullFee = 20000;
+                monthlyFee = 5000;
+                document.getElementById('full-amount').textContent = '20,000';
+                document.getElementById('monthly-amount').textContent = '5,000';
+                document.getElementById('pay-full-btn').textContent = 'Pay ₦20,000';
+                document.getElementById('pay-monthly-btn').textContent = 'Pay ₦5,000';
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('plans-container').style.display = 'grid';
+                showToast('Using default fee structure.', 'warning');
+            }
+        }
+
+        // ============================================================
+        //  CHECK USER
+        // ============================================================
+        async function checkUser() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                currentUser = user;
+                document.getElementById('userId').value = user.id;
+
+                const { data: student, error } = await supabaseClient
+                    .from('students')
+                    .select('payment_status, student_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (!error && student && (student.payment_status === 'paid' || student.payment_status === 'monthly_active')) {
+                    showToast('You already have an active payment. Redirecting to dashboard...', 'success');
+                    setTimeout(() => window.location.href = 'student/dashboard.html', 2000);
+                }
+            } catch (error) {
+                console.error('User check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ============================================================
+        //  PAYMENT HANDLER
+        // ============================================================
+        async function handlePayment(plan) {
+            try {
+                const userId = document.getElementById('userId').value;
+                if (!userId) {
+                    showToast('User not found. Please log in again.', 'error');
+                    return;
+                }
+
+                const amount = plan === 'full' ? fullFee : monthlyFee;
+                const email = currentUser.email;
+                const fullName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Student';
+
+                const reference = `CMT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+                const handler = PaystackPop.setup({
+                    key: PAYSTACK_KEY,
+                    email: email,
+                    amount: amount * 100,
+                    currency: 'NGN',
+                    ref: reference,
+                    metadata: {
+                        custom_fields: [
+                            { display_name: "Plan", variable_name: "plan", value: plan },
+                            { display_name: "User ID", variable_name: "user_id", value: userId }
+                        ]
+                    },
+                    callback: function(response) {
+                        console.log('Payment successful:', response);
+                        verifyPaymentBackend(userId, plan, amount, response.reference);
+                    },
+                    onClose: function() {
+                        showToast('Payment was cancelled.', 'warning');
+                    }
+                });
+
+                handler.openIframe();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showToast('Unable to initiate payment. Please try again.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  VERIFY THROUGH BACKEND (SECURE)
+        // ============================================================
+        async function verifyPaymentBackend(userId, plan, amount, reference) {
+            try {
+                const response = await fetch('/api/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        plan: plan,
+                        amount: amount,
+                        reference: reference
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Payment verification failed');
+                }
+
+                // 🟢 SHOW THE BEAUTIFUL SUCCESS MODAL
+                openSuccessModal();
+
+            } catch (error) {
+                console.error('Verification error:', error);
+                showToast('Failed to complete verification. Please contact support.', 'error');
+            }
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkUser();
+            await loadFeeStructure();
+
+            document.getElementById('pay-full-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                handlePayment('full');
+            });
+
+            document.getElementById('pay-monthly-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                handlePayment('monthly');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ===== LIGHT & DARK THEME (CSS Variables) ===== */
+        :root {
+            --bg: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+            --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --hover-bg: #f3f4f6;
+            --primary: #008751;
+            --primary-light: #E8F5E9;
+            --primary-dark: #006d3f;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --muted: #94a3b8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            --hover-bg: #2d3748;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+            transition: background 0.3s, border 0.3s, transform 0.3s ease;
+        }
+        .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
+        .sidebar .brand span { font-weight: 300; color: var(--text); }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            color: var(--text); text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
+        .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+        .sidebar nav a i { width: 1.25rem; text-align: center; }
+        .sidebar .logout-btn, .sidebar .theme-toggle {
+            margin-top: 0.5rem;
+            width: 100%;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.6rem 1rem; border-radius: 10px;
+            background: none; border: none; cursor: pointer;
+            font-size: 0.95rem; color: var(--text);
+            transition: background 0.2s;
+        }
+        .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+        .sidebar .theme-toggle:hover { background: var(--hover-bg); }
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem 2rem;
+            min-height: 100vh;
+            transition: background 0.3s;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        .topbar .menu-toggle {
+            display: none;
+            background: none; border: none; font-size: 1.5rem;
+            color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem;
+        }
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrapper { position: relative; }
+        .notif-wrapper .bell-btn {
+            background: none; border: none; font-size: 1.3rem;
+            color: var(--text); cursor: pointer; padding: 0.4rem;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white; font-size: 0.6rem;
+            font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px;
+            display: none;
+        }
+        .notif-badge.show { display: inline-block; }
+        .notif-dropdown {
+            position: absolute; right: 0; top: 2.8rem; width: 320px;
+            max-height: 400px; overflow-y: auto;
+            background: var(--card); border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+            border: 1px solid var(--border); display: none; z-index: 50;
+        }
+        .notif-dropdown.active { display: block; }
+        .notif-item {
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+            cursor: default;
+        }
+        .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+        .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+        .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+        .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
+        .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .stat-card .label {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .stat-card .label i {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+        .stat-card .value {
+            font-size: 1.8rem; font-weight: 700; color: var(--primary);
+        }
+        .stat-card .sub-text {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        /* ===== TOP STUDENTS ===== */
+        .top-students-list {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .top-students-list .section-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .top-student-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .top-student-item:last-child {
+            border-bottom: none;
+        }
+        .top-student-item .rank {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.8rem;
+            min-width: 28px;
+        }
+        .top-student-item .name {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .top-student-item .attendance-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.1rem 0.6rem;
+            border-radius: 999px;
+        }
+        .top-student-item .attendance-badge.high { background: #d1fae5; color: #065f46; }
+        .top-student-item .attendance-badge.medium { background: #fef3c7; color: #92400e; }
+        .top-student-item .attendance-badge.low { background: #fee2e2; color: #991b1b; }
+
+        /* ===== RECENT ACTIVITY ===== */
+        .recent-activity-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .recent-activity-section .section-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-item .activity-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+        .activity-item .activity-content {
+            flex: 1;
+        }
+        .activity-item .activity-content .activity-text {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .activity-item .activity-content .activity-time {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+        .activity-item .activity-status {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+        }
+        .activity-item .activity-status.present { background: #d1fae5; color: #065f46; }
+        .activity-item .activity-status.late { background: #fef3c7; color: #92400e; }
+        .activity-item .activity-status.absent { background: #fee2e2; color: #991b1b; }
+
+        /* ===== INFO CARDS ===== */
+        .info-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            transition: background 0.3s, border 0.3s;
+        }
+        .info-card .icon { color: var(--primary); margin-right: 0.5rem; }
+
+        /* ===== RESPONSIVE ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .notif-dropdown { width: 280px; right: -0.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+
+        .text-primary { color: var(--primary); }
+        .text-muted { color: var(--muted); }
+        .hidden { display: none; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .font-bold { font-weight: 700; }
+        .text-xl { font-size: 1.25rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-4 { margin-top: 1rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .w-full { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">Course<span>Mate</span></div>
+        <nav>
+            <a href="dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="students.html"><i class="fas fa-users"></i> Students</a>
+            <a href="payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
+            <a href="analytics.html"><i class="fas fa-chart-bar"></i> Progress</a>
+            <a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
+            <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+            <a href="super-settings.html" id="superSettingsLink" style="display: none;">
+                <i class="fas fa-crown"></i> Super Admin
+            </a>
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="flex-center">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold" style="margin:0;">Dashboard</h1>
+            </div>
+            <div class="flex-center gap-2 flex-wrap">
+                <div class="notif-wrapper">
+                    <button class="bell-btn" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <span class="notif-badge" id="unreadBadge">0</span>
+                    <div class="notif-dropdown" id="notificationDropdown">
+                        <div id="notificationList"><div class="notif-empty">No notifications</div></div>
+                    </div>
+                </div>
+                <button onclick="reloadDashboard()" class="text-sm text-muted hover:text-primary cursor-pointer" style="background:none; border:none;">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Welcome -->
+        <div class="mb-4">
+            <p class="text-lg font-semibold">Welcome back, <span class="text-primary" id="adminName">Admin</span></p>
+            <p class="text-sm text-muted" id="adminRole">Loading...</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsContainer">
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-users"></i> Total Students</div>
+                <div class="value" id="totalStudents">0</div>
+                <div class="sub-text">Registered students</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-credit-card"></i> Active Payments</div>
+                <div class="value" id="activePayments">0</div>
+                <div class="sub-text">Paid / Monthly Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-clipboard-check"></i> Today's Attendance</div>
+                <div class="value" id="todayAttendance">0</div>
+                <div class="sub-text">Checked in today</div>
+            </div>
+            <!-- Revenue - Hidden for Regular Admins -->
+            <div class="stat-card" id="revenueCard">
+                <div class="label"><i class="fas fa-coins"></i> Revenue</div>
+                <div class="value" id="totalRevenue">₦0</div>
+                <div class="sub-text">Total collected</div>
+            </div>
+            <!-- Regular Admin Replacement - Top Student -->
+            <div class="stat-card" id="topStudentCard" style="display:none;">
+                <div class="label"><i class="fas fa-trophy" style="color:var(--primary);"></i> Best Student</div>
+                <div class="value" id="topStudentName" style="font-size:1.2rem;">—</div>
+                <div class="sub-text" id="topStudentAttendance">Attendance: 0 days</div>
+            </div>
+        </div>
+
+        <!-- ===== GRID: Top Students + Recent Activity ===== -->
+        <div class="grid-2">
+            <!-- Top Students -->
+            <div class="top-students-list">
+                <div class="section-title">
+                    <i class="fas fa-trophy text-primary"></i> Top Students
+                </div>
+                <div id="topStudentsList">
+                    <p class="text-sm text-muted">Loading top students...</p>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity-section">
+                <div class="section-title">
+                    <i class="fas fa-clock text-primary"></i> Recent Activity
+                </div>
+                <div id="recentActivityList">
+                    <p class="text-sm text-muted">Loading recent activity...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="grid-2 mt-4">
+            <div class="info-card">
+                <p class="text-sm text-muted">
+                    <i class="fas fa-info-circle icon"></i>
+                    <span id="sessionStatusText">Loading session status...</span>
+                </p>
+            </div>
+            <div class="info-card">
+                <p class="text-sm text-muted">
+                    <i class="fas fa-bell icon"></i>
+                    You have <span id="adminNotifCount">0</span> unread notifications.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // ============================================================
+        // SIDEBAR TOGGLE
+        // ============================================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeSidebar();
+        });
+
+        // ============================================================
+        // DARK MODE
+        // ============================================================
+        function loadTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark', dark);
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        window.handleLogout = async function() {
+            try {
+                await window.supabaseClient.auth.signOut();
+                window.location.href = '../login.html';
+            } catch (e) { window.location.href = '../login.html'; }
+        };
+
+        // ============================================================
+        // SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+
+        // ============================================================
+        // SHOW / HIDE SUPER ADMIN LINK & REVENUE BASED ON ROLE
+        // ============================================================
+        let currentUserRole = 'admin';
+
+        async function updateSidebarForRole() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data, error } = await window.supabaseClient
+                    .from('admins')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                currentUserRole = data?.role || 'admin';
+                const isSuper = currentUserRole === 'super_admin';
+
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) {
+                    superLink.style.display = isSuper ? 'flex' : 'none';
+                }
+
+                const revenueCard = document.getElementById('revenueCard');
+                const topStudentCard = document.getElementById('topStudentCard');
+                
+                if (isSuper) {
+                    revenueCard.style.display = 'block';
+                    topStudentCard.style.display = 'none';
+                } else {
+                    revenueCard.style.display = 'none';
+                    topStudentCard.style.display = 'block';
+                }
+
+                const roleEl = document.getElementById('adminRole');
+                if (roleEl) {
+                    roleEl.textContent = isSuper ? 'Super Admin' : 'Admin';
+                }
+
+            } catch (err) {
+                console.warn('Could not fetch role – defaulting to admin.', err);
+                const superLink = document.getElementById('superSettingsLink');
+                if (superLink) superLink.style.display = 'none';
+                document.getElementById('revenueCard').style.display = 'none';
+                document.getElementById('topStudentCard').style.display = 'block';
+            }
+        }
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        async function fetchNotifications(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (e) { return []; }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('unreadBadge');
+            const unread = notifications.filter(n => !n.is_read);
+            const unreadCount = unread.length;
+
+            badge.textContent = unreadCount;
+            badge.classList.toggle('show', unreadCount > 0);
+
+            const notifCountSpan = document.getElementById('adminNotifCount');
+            if (notifCountSpan) notifCountSpan.textContent = unreadCount;
+
+            if (!notifications.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${!n.is_read ? 'unread' : ''}">
+                    <div class="title">${n.title}</div>
+                    <div class="msg">${n.message}</div>
+                    <div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>
+                    ${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try {
+                await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
+                await loadNotifications();
+            } catch (e) {}
+        }
+
+        async function loadNotifications() {
+            const user = await window.auth.getCurrentUser();
+            if (!user) return;
+            const data = await fetchNotifications(user.id);
+            renderNotifications(data);
+        }
+
+        document.getElementById('notificationBell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationDropdown').classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationDropdown').classList.remove('active');
+        });
+
+        // ============================================================
+        // DASHBOARD STATS
+        // ============================================================
+        async function loadStats() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+
+                const { count: totalStudents } = await supabaseClient
+                    .from('students')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('totalStudents').textContent = totalStudents || 0;
+
+                const { count: activePayments } = await supabaseClient
+                    .from('students')
+                    .select('*', { count: 'exact', head: true })
+                    .in('payment_status', ['paid', 'monthly_active']);
+                document.getElementById('activePayments').textContent = activePayments || 0;
+
+                const { count: todayAttendance } = await supabaseClient
+                    .from('attendance')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('session_date', today);
+                document.getElementById('todayAttendance').textContent = todayAttendance || 0;
+
+                const { data: students } = await supabaseClient
+                    .from('students')
+                    .select('payment_status');
+                let revenue = 0;
+                if (students) {
+                    students.forEach(s => {
+                        if (s.payment_status === 'paid') revenue += 20000;
+                        else if (s.payment_status === 'monthly_active') revenue += 5000;
+                    });
+                }
+                document.getElementById('totalRevenue').textContent = `₦${revenue.toLocaleString()}`;
+
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        // ============================================================
+        // TOP STUDENTS
+        // ============================================================
+        async function loadTopStudents() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 30);
+                const startStr = startDate.toISOString().split('T')[0];
+
+                const { data: students } = await supabaseClient
+                    .from('students')
+                    .select('id, full_name, student_id, payment_status');
+
+                if (!students || students.length === 0) {
+                    document.getElementById('topStudentsList').innerHTML = '<p class="text-sm text-muted">No students yet.</p>';
+                    return;
+                }
+
+                const studentAttendance = [];
+                for (const student of students) {
+                    const { count: attended } = await supabaseClient
+                        .from('attendance')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('student_id', student.id)
+                        .gte('session_date', startStr)
+                        .lte('session_date', today);
+
+                    studentAttendance.push({
+                        ...student,
+                        attended: attended || 0
+                    });
+                }
+
+                studentAttendance.sort((a, b) => b.attended - a.attended);
+                const top5 = studentAttendance.slice(0, 5);
+
+                if (top5.length === 0 || top5[0].attended === 0) {
+                    document.getElementById('topStudentsList').innerHTML = '<p class="text-sm text-muted">No attendance records yet this month.</p>';
+                    return;
+                }
+
+                const topStudent = top5[0];
+                document.getElementById('topStudentName').textContent = topStudent.full_name || '—';
+                document.getElementById('topStudentAttendance').textContent = `Attendance: ${topStudent.attended} days`;
+
+                let listHTML = '';
+                top5.forEach((s, index) => {
+                    let badgeClass = 'high';
+                    let badgeText = 'Excellent';
+                    if (s.attended < 3) { badgeClass = 'low'; badgeText = 'Low'; }
+                    else if (s.attended < 6) { badgeClass = 'medium'; badgeText = 'Good'; }
+
+                    listHTML += `
+                        <div class="top-student-item">
+                            <span class="rank">#${index + 1}</span>
+                            <span class="name">${s.full_name || 'Unknown'}</span>
+                            <span class="attendance-badge ${badgeClass}">${s.attended} days</span>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('topStudentsList').innerHTML = listHTML;
+
+            } catch (err) {
+                console.error('Top students error:', err);
+                document.getElementById('topStudentsList').innerHTML = '<p class="text-sm text-red-500">Failed to load top students.</p>';
+            }
+        }
+
+        // ============================================================
+        // RECENT ACTIVITY
+        // ============================================================
+        async function loadRecentActivity() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const { data: checkIns, error } = await supabaseClient
+                    .from('attendance')
+                    .select('*, students(full_name, student_id)')
+                    .eq('session_date', today)
+                    .order('check_in_time', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                if (!checkIns || checkIns.length === 0) {
+                    document.getElementById('recentActivityList').innerHTML = '<p class="text-sm text-muted">No check-ins today yet.</p>';
+                    return;
+                }
+
+                let listHTML = '';
+                checkIns.forEach(record => {
+                    const studentName = record.students?.full_name || 'Unknown';
+                    const time = record.check_in_time || '—';
+                    const status = record.status || 'present';
+                    
+                    let statusClass = 'present';
+                    let statusText = 'Present';
+                    if (status === 'late') { statusClass = 'late'; statusText = 'Late'; }
+                    else if (status === 'absent') { statusClass = 'absent'; statusText = 'Absent'; }
+
+                    listHTML += `
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">${studentName} checked in</div>
+                                <div class="activity-time">${time}</div>
+                            </div>
+                            <span class="activity-status ${statusClass}">${statusText}</span>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('recentActivityList').innerHTML = listHTML;
+
+            } catch (err) {
+                console.error('Recent activity error:', err);
+                document.getElementById('recentActivityList').innerHTML = '<p class="text-sm text-red-500">Failed to load recent activity.</p>';
+            }
+        }
+
+        // ============================================================
+        // SESSION STATUS
+        // ============================================================
+        async function loadSessionStatus() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const { data: existingLog } = await supabaseClient
+                    .from('email_logs')
+                    .select('id')
+                    .eq('session_date', today)
+                    .eq('recipient_type', 'admin')
+                    .maybeSingle();
+
+                const statusEl = document.getElementById('sessionStatusText');
+                if (existingLog) {
+                    statusEl.innerHTML = '<i class="fas fa-lock" style="color:#ef4444;"></i> Today\'s session has been closed.';
+                } else {
+                    statusEl.innerHTML = '<i class="fas fa-circle" style="color:#22c55e;"></i> Session is open today.';
+                }
+            } catch (err) {
+                console.error('Session status error:', err);
+                document.getElementById('sessionStatusText').textContent = 'Session status unavailable.';
+            }
+        }
+
+        // ============================================================
+        // RELOAD DASHBOARD
+        // ============================================================
+        window.reloadDashboard = async function() {
+            await Promise.all([
+                loadStats(),
+                loadTopStudents(),
+                loadRecentActivity(),
+                loadSessionStatus(),
+                loadNotifications()
+            ]);
+            const btn = document.querySelector('[onclick="reloadDashboard()"]');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check text-primary"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-sync"></i>';
+                }, 1500);
+            }
+        };
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (user) {
+                    const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin';
+                    document.getElementById('adminName').textContent = name;
+                }
+
+                await updateSidebarForRole();
+                await loadStats();
+                await loadTopStudents();
+                await loadRecentActivity();
+                await loadSessionStatus();
+                await loadNotifications();
+
+            } catch (e) {
+                console.warn('Init error:', e);
+            }
+        });
+    </script>
+</body>
+</html>

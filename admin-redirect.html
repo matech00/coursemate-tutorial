@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    
+    <script src="js/auth.js"></script>
+    <script>
+        (async function() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Check if they are an Admin
+                const { data: admin } = await window.supabaseClient
+                    .from('admins')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (admin) {
+                    if (admin.role === 'super_admin') {
+                        window.location.href = 'admin/super-settings.html';
+                    } else {
+                        window.location.href = 'admin/dashboard.html';
+                    }
+                    return;
+                }
+
+                // If not an admin, check if they are a Student
+                const { data: student } = await window.supabaseClient
+                    .from('students')
+                    .select('user_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (student) {
+                    window.location.href = 'student/dashboard.html';
+                } else {
+                    window.location.href = 'complete-profile.html';
+                }
+            } catch (err) {
+                console.error('Redirect error:', err);
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="flex items-center justify-center min-h-screen bg-gray-50">
+        <div class="text-center">
+            <div class="inline-block w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 text-gray-600">Redirecting you to your dashboard...</p>
+        </div>
+    </div>
+</body>
+</html>
