@@ -6,6 +6,7 @@
     <title>Attendance - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="../css/style.css" />
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -433,6 +434,154 @@
         .gap-2 { gap: 0.5rem; }
         .flex-wrap { flex-wrap: wrap; }
         .hidden { display: none; }
+/* ===== FIXED: NOTIFICATION BELL - Mobile Responsive ===== */
+.notif-wrapper { 
+    position: relative; 
+    display: inline-block;
+}
+.notif-wrapper .bell-btn {
+    background: none; 
+    border: none; 
+    font-size: 1.3rem;
+    color: var(--text); 
+    cursor: pointer; 
+    padding: 0.4rem;
+    border-radius: 50%; 
+    transition: background 0.2s;
+}
+.notif-wrapper .bell-btn:hover { 
+    background: var(--primary-light); 
+}
+.notif-badge {
+    position: absolute; 
+    top: -4px; 
+    right: -4px;
+    background: #ef4444; 
+    color: white; 
+    font-size: 0.6rem;
+    font-weight: 600; 
+    padding: 0.1rem 0.4rem; 
+    border-radius: 999px;
+    display: none;
+}
+.notif-badge.show { 
+    display: inline-block; 
+}
+.notif-dropdown {
+    position: absolute;
+    top: 2.8rem;
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    border: 1px solid var(--border);
+    display: none;
+    z-index: 999;
+}
+
+.notif-dropdown.active { 
+    display: block; 
+}
+
+/* Dropdown arrow */
+.notif-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 22px;
+    width: 16px;
+    height: 16px;
+    background: var(--card);
+    transform: rotate(45deg);
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+}
+
+/* Dark mode arrow */
+body.dark .notif-dropdown::before {
+    background: var(--card);
+    border-color: var(--border);
+}
+
+/* ===== MOBILE RESPONSIVE FIX ===== */
+@media (max-width: 768px) {
+    .notif-dropdown {
+        right: -10px;
+        width: 280px;
+        max-width: 85vw;
+    }
+    .notif-dropdown::before {
+        right: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notif-dropdown {
+        right: -20px;
+        width: calc(100vw - 30px);
+        max-width: 300px;
+        top: 2.8rem;
+        border-radius: 10px;
+    }
+    .notif-dropdown::before {
+        right: 28px;
+        top: -7px;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Scrollbar */
+.notif-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+.notif-dropdown::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 10px;
+}
+.notif-dropdown::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+.notif-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: default;
+}
+.notif-item.unread { 
+    background: var(--primary-light); 
+    border-left: 3px solid var(--primary); 
+}
+.notif-item .title { 
+    font-weight: 600; 
+    font-size: 0.9rem; 
+    color: var(--text); 
+}
+.notif-item .msg { 
+    font-size: 0.8rem; 
+    color: var(--muted); 
+    margin-top: 0.1rem; 
+}
+.notif-item .time { 
+    font-size: 0.65rem; 
+    color: var(--muted); 
+    margin-top: 0.2rem; 
+}
+.notif-item .mark-read { 
+    font-size: 0.65rem; 
+    color: var(--primary); 
+    cursor: pointer; 
+    float: right; 
+}
+.notif-empty { 
+    padding: 1.5rem; 
+    text-align: center; 
+    color: var(--muted); 
+}
     </style>
     <script>
         tailwind.config = {
@@ -1183,7 +1332,7 @@
             const statusText = document.getElementById('sessionStatusText');
             const scannerContainer = document.getElementById('scannerContainer');
 
-            // 🔒 CHECK IF SESSION IS ALREADY CLOSED FOR TODAY
+            // CHECK IF SESSION IS ALREADY CLOSED FOR TODAY
             const today = new Date().toISOString().split('T')[0];
             try {
                 const { data: existingEmailLog, error } = await window.supabaseClient
@@ -1258,7 +1407,7 @@
                     // Send notifications
                     await sendNotifications();
 
-                    // ✅ INSERT INTO EMAIL_LOGS TO LOCK THE SESSION
+                    // INSERT INTO EMAIL_LOGS TO LOCK THE SESSION
                     const { error: insertError } = await window.supabaseClient
                         .from('email_logs')
                         .insert({ 

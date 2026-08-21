@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="../css/style.css" />
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         .loader {
@@ -28,14 +29,6 @@
         .plan-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
-        .fee-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 20px;
-            color: #6b7280;
         }
 
         /* ===== PAYMENT SUCCESS MODAL ===== */
@@ -115,12 +108,7 @@
 
     <!-- ===== PAYMENT SUCCESS MODAL ===== -->
     <div id="successModal" class="success-modal-overlay">
-        <div class="success-modal-box">
-            <div class="icon"><i class="fas fa-check-circle"></i></div>
-            <h2>Payment Successful! 🎉</h2>
-            <p>Your student ID has been generated. You now have full access to your dashboard.</p>
-            <button onclick="goToDashboard()" class="btn">Go to Dashboard</button>
-        </div>
+        <!-- This will be dynamically filled by JavaScript -->
     </div>
 
     <!-- ===== PAYMENT SECTION ===== -->
@@ -176,9 +164,11 @@
                 </div>
             </div>
 
-            <!-- Back to Dashboard -->
+            <!-- Back to Dashboard - Disabled until payment -->
             <div class="text-center mt-8 text-sm text-gray-500">
-                <a href="student/dashboard.html" class="hover:text-primary-500"><i class="fas fa-arrow-left mr-1"></i> Back to Dashboard</a>
+                <button id="backToDashboardBtn" class="text-gray-400 cursor-not-allowed" disabled>
+                    <i class="fas fa-arrow-left mr-1"></i> Complete payment to access dashboard
+                </button>
             </div>
         </div>
     </div>
@@ -205,32 +195,39 @@
         let currentUser = null;
 
         // ============================================================
-        //  TOAST (For errors only now)
+        //  TOAST
         // ============================================================
         function showToast(message, type = 'info') {
-            if (window.toast) {
-                window.toast[type](message);
-                return;
+            if (typeof window.toast !== 'undefined' && window.toast) {
+                if (type === 'error') {
+                    window.toast.error(message);
+                } else if (type === 'warning') {
+                    window.toast.warning(message);
+                } else if (type === 'success') {
+                    window.toast.success(message);
+                } else {
+                    window.toast.info(message);
+                }
+            } else {
+                alert(message);
             }
-            alert(message);
         }
 
         // ============================================================
         //  MODAL HANDLERS
         // ============================================================
-        function openSuccessModal() {
-            document.getElementById('successModal').classList.add('active');
-        }
-
         function goToDashboard() {
             window.location.href = 'student/dashboard.html';
         }
 
         // ============================================================
-        //  LOAD FEE STRUCTURE - DYNAMICALLY FROM SETTINGS
+        //  LOAD FEE STRUCTURE
         // ============================================================
         async function loadFeeStructure() {
             try {
+                const loadingState = document.getElementById('loading-state');
+                const plansContainer = document.getElementById('plans-container');
+
                 const { data, error } = await supabaseClient
                     .from('settings')
                     .select('key, value')
@@ -244,28 +241,37 @@
                 fullFee = parseInt(feeMap.full_fee) || 20000;
                 monthlyFee = parseInt(feeMap.monthly_fee) || 5000;
 
-                // Update UI with dynamic fees
-                document.getElementById('full-amount').textContent = fullFee.toLocaleString();
-                document.getElementById('monthly-amount').textContent = monthlyFee.toLocaleString();
-                document.getElementById('pay-full-btn').textContent = `Pay ₦${fullFee.toLocaleString()}`;
-                document.getElementById('pay-monthly-btn').textContent = `Pay ₦${monthlyFee.toLocaleString()}`;
+                const fullAmount = document.getElementById('full-amount');
+                const monthlyAmount = document.getElementById('monthly-amount');
+                const payFullBtn = document.getElementById('pay-full-btn');
+                const payMonthlyBtn = document.getElementById('pay-monthly-btn');
 
-                document.getElementById('loading-state').style.display = 'none';
-                document.getElementById('plans-container').style.display = 'grid';
+                if (fullAmount) fullAmount.textContent = fullFee.toLocaleString();
+                if (monthlyAmount) monthlyAmount.textContent = monthlyFee.toLocaleString();
+                if (payFullBtn) payFullBtn.textContent = `Pay ₦${fullFee.toLocaleString()}`;
+                if (payMonthlyBtn) payMonthlyBtn.textContent = `Pay ₦${monthlyFee.toLocaleString()}`;
 
-                console.log('✅ Fees loaded: Full = ₦' + fullFee + ', Monthly = ₦' + monthlyFee);
+                if (loadingState) loadingState.style.display = 'none';
+                if (plansContainer) plansContainer.style.display = 'grid';
 
             } catch (err) {
                 console.error('Fee load error:', err);
-                // Use fallback defaults
                 fullFee = 20000;
                 monthlyFee = 5000;
-                document.getElementById('full-amount').textContent = '20,000';
-                document.getElementById('monthly-amount').textContent = '5,000';
-                document.getElementById('pay-full-btn').textContent = 'Pay ₦20,000';
-                document.getElementById('pay-monthly-btn').textContent = 'Pay ₦5,000';
-                document.getElementById('loading-state').style.display = 'none';
-                document.getElementById('plans-container').style.display = 'grid';
+                
+                const fullAmount = document.getElementById('full-amount');
+                const monthlyAmount = document.getElementById('monthly-amount');
+                const payFullBtn = document.getElementById('pay-full-btn');
+                const payMonthlyBtn = document.getElementById('pay-monthly-btn');
+                const loadingState = document.getElementById('loading-state');
+                const plansContainer = document.getElementById('plans-container');
+
+                if (fullAmount) fullAmount.textContent = '20,000';
+                if (monthlyAmount) monthlyAmount.textContent = '5,000';
+                if (payFullBtn) payFullBtn.textContent = 'Pay ₦20,000';
+                if (payMonthlyBtn) payMonthlyBtn.textContent = 'Pay ₦5,000';
+                if (loadingState) loadingState.style.display = 'none';
+                if (plansContainer) plansContainer.style.display = 'grid';
                 showToast('Using default fee structure.', 'warning');
             }
         }
@@ -276,12 +282,23 @@
         async function checkUser() {
             try {
                 const user = await window.auth.getCurrentUser();
+                
                 if (!user) {
+                    const pendingData = sessionStorage.getItem('pendingUser');
+                    if (pendingData) {
+                        const pending = JSON.parse(pendingData);
+                        currentUser = null;
+                        const userIdInput = document.getElementById('userId');
+                        if (userIdInput) userIdInput.value = pending.userId;
+                        return;
+                    }
                     window.location.href = 'login.html';
                     return;
                 }
+
                 currentUser = user;
-                document.getElementById('userId').value = user.id;
+                const userIdInput = document.getElementById('userId');
+                if (userIdInput) userIdInput.value = user.id;
 
                 const { data: student, error } = await supabaseClient
                     .from('students')
@@ -289,13 +306,26 @@
                     .eq('user_id', user.id)
                     .maybeSingle();
 
-                if (!error && student && (student.payment_status === 'paid' || student.payment_status === 'monthly_active')) {
-                    showToast('You already have an active payment. Redirecting to dashboard...', 'success');
-                    setTimeout(() => window.location.href = 'student/dashboard.html', 2000);
+                if (error) {
+                    console.error('Student fetch error:', error);
+                    return;
                 }
+
+                if (student && (student.payment_status === 'paid' || student.payment_status === 'monthly_active')) {
+                    showToast('You already have an active payment. Redirecting to dashboard...', 'success');
+                    setTimeout(() => window.location.href = 'student/dashboard.html', 1500);
+                    return;
+                }
+
+                if (!student) {
+                    showToast('Student profile not found. Please register.', 'error');
+                    setTimeout(() => window.location.href = 'register.html', 1500);
+                    return;
+                }
+
             } catch (error) {
                 console.error('User check error:', error);
-                window.location.href = 'login.html';
+                showToast('Error loading your profile. Please refresh.', 'error');
             }
         }
 
@@ -304,15 +334,21 @@
         // ============================================================
         async function handlePayment(plan) {
             try {
-                const userId = document.getElementById('userId').value;
+                const userIdInput = document.getElementById('userId');
+                const userId = userIdInput ? userIdInput.value : null;
+                
                 if (!userId) {
                     showToast('User not found. Please log in again.', 'error');
                     return;
                 }
 
                 const amount = plan === 'full' ? fullFee : monthlyFee;
-                const email = currentUser.email;
-                const fullName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Student';
+                const email = currentUser ? currentUser.email : '';
+                
+                if (!email) {
+                    showToast('User email not found. Please log in again.', 'error');
+                    return;
+                }
 
                 const reference = `CMT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -346,7 +382,7 @@
         }
 
         // ============================================================
-        //  VERIFY THROUGH BACKEND (SECURE)
+        //  VERIFY PAYMENT - GET STUDENT ID FROM BACKEND
         // ============================================================
         async function verifyPaymentBackend(userId, plan, amount, reference) {
             try {
@@ -367,13 +403,56 @@
                     throw new Error(data.error || 'Payment verification failed');
                 }
 
-                // 🟢 SHOW THE BEAUTIFUL SUCCESS MODAL
-                openSuccessModal();
+                const studentId = data.studentId || 'ID generated';
+                showSuccessModal(studentId);
 
             } catch (error) {
                 console.error('Verification error:', error);
                 showToast('Failed to complete verification. Please contact support.', 'error');
             }
+        }
+
+        // ============================================================
+        // SUCCESS MODAL - Show Student ID
+        // ============================================================
+        function showSuccessModal(studentId) {
+            const modal = document.getElementById('successModal');
+            modal.innerHTML = `
+                <div class="success-modal-box">
+                    <div class="icon"><i class="fas fa-check-circle"></i></div>
+                    <h2>Payment Successful! 🎉</h2>
+                    
+                    <div style="background: #f0fdf4; padding: 1rem; border-radius: 12px; margin: 1rem 0; border: 1px solid #bbf7d0;">
+                        <p style="font-size: 0.8rem; color: #15803d; margin: 0; font-weight: 500;">Your Student ID</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: #008751; margin: 0;">${studentId}</p>
+                    </div>
+                    
+                    <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1.5rem;">
+                        You now have full access to your dashboard.
+                    </p>
+                    
+                    <button onclick="goToDashboard()" class="btn">
+                        <i class="fas fa-arrow-right mr-2"></i> Go to Dashboard
+                    </button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        // ============================================================
+        //  PREVENT BACK BUTTON
+        // ============================================================
+        window.addEventListener('popstate', function(event) {
+            const userIdInput = document.getElementById('userId');
+            const userId = userIdInput ? userIdInput.value : null;
+            if (userId) {
+                window.location.href = 'payment.html';
+                showToast('Please complete your payment to access the dashboard.', 'warning');
+            }
+        });
+
+        if (window.history && history.pushState) {
+            history.pushState(null, null, window.location.href);
         }
 
         // ============================================================
@@ -383,15 +462,30 @@
             await checkUser();
             await loadFeeStructure();
 
-            document.getElementById('pay-full-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                handlePayment('full');
-            });
+            const payFullBtn = document.getElementById('pay-full-btn');
+            const payMonthlyBtn = document.getElementById('pay-monthly-btn');
+            const backBtn = document.getElementById('backToDashboardBtn');
 
-            document.getElementById('pay-monthly-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                handlePayment('monthly');
-            });
+            if (payFullBtn) {
+                payFullBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handlePayment('full');
+                });
+            }
+
+            if (payMonthlyBtn) {
+                payMonthlyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handlePayment('monthly');
+                });
+            }
+
+            if (backBtn) {
+                backBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showToast('Please complete your payment first.', 'warning');
+                });
+            }
         });
     </script>
 </body>

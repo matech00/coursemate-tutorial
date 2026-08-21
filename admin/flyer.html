@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CourseMate Flyer</title>
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
+     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            flex-direction: column;
+        }
+
+        /* ===== FLYER CONTAINER ===== */
+        .flyer-container {
+            background: white;
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        /* ===== HEADER WITH LOGO ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 3px solid #008751;
+            padding-bottom: 20px;
+        }
+
+        .header .logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            background: #008751;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .header .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .header .brand-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #008751;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .header .brand-text p {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 2px 0 0;
+            font-weight: 400;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .tagline {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .sub-tagline {
+            text-align: center;
+            font-size: 15px;
+            color: #6b7280;
+            margin-bottom: 28px;
+        }
+
+        /* ===== QR CODE SECTION ===== */
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .qr-section .qr-code {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border: 3px solid #008751;
+            border-radius: 16px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 135, 81, 0.1);
+        }
+
+        .qr-section .qr-code img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .qr-section .scan-text {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .qr-section .scan-text i {
+            color: #008751;
+            margin-right: 6px;
+        }
+
+        /* ===== OR DIVIDER ===== */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0 20px;
+        }
+
+        .divider .line {
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider .or-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== URL SECTION ===== */
+        .url-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+            border: 1px dashed #d1d5db;
+            margin-bottom: 28px;
+        }
+
+        .url-section .url-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .url-section .url-link {
+            font-size: 16px;
+            font-weight: 500;
+            color: #008751;
+            word-break: break-all;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .url-section .url-link:hover {
+            color: #006d3f;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .footer i {
+            color: #008751;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #111827;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+                display: block;
+                min-height: auto;
+            }
+
+            .flyer-container {
+                box-shadow: none;
+                border: none;
+                padding: 30px;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .action-bar {
+                display: none !important;
+            }
+
+            .header .logo {
+                background: #008751 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .qr-section .qr-code {
+                border-color: #008751 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .url-section {
+                background: #f9fafb !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .divider .line {
+                background: #e5e7eb !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .footer {
+                border-top-color: #f3f4f6 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .flyer-container {
+                padding: 24px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .header .brand-text h1 {
+                font-size: 24px;
+            }
+
+            .tagline {
+                font-size: 18px;
+            }
+
+            .qr-section .qr-code {
+                width: 160px;
+                height: 160px;
+            }
+
+            .url-section .url-link {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #008751;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-overlay p {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+        }
+        .loading-overlay .sub-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Generating your flyer...</p>
+        <p class="sub-text">Please wait</p>
+    </div>
+
+    <!-- ===== FLYER CONTENT ===== -->
+    <div class="flyer-container" id="flyerContent">
+
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <div class="logo">
+                <img id="logoImg" src="/assets/images/favicon.png" alt="CourseMate Logo" crossorigin="anonymous" />
+            </div>
+            <div class="brand-text">
+                <h1>CourseMate</h1>
+                <p>Tutorial Management System</p>
+            </div>
+        </div>
+
+        <!-- ===== TAGLINE ===== -->
+        <p class="tagline"> Scan to Register &amp; Access Your Dashboard</p>
+        <p class="sub-tagline">Join CourseMate Tutorial Today <br> Track attendance, make payments, and stay on top of your courses.</p>
+
+        <!-- ===== QR CODE ===== -->
+        <div class="qr-section">
+            <div class="qr-code">
+                <img id="qrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://coursemate-tutorial.vercel.app&color=008751" alt="Scan to access CourseMate" />
+            </div>
+            <p class="scan-text">
+                <i class="fas fa-camera"></i> Scan with your phone camera
+            </p>
+        </div>
+
+        <!-- ===== OR DIVIDER ===== -->
+        <div class="divider">
+            <span class="line"></span>
+            <span class="or-text">or</span>
+            <span class="line"></span>
+        </div>
+
+        <!-- ===== URL SECTION ===== -->
+        <div class="url-section">
+            <p class="url-label"><i class="fas fa-link"></i> Visit directly</p>
+            <a href="https://coursemate-tutorial.vercel.app" target="_blank" class="url-link">
+                https://coursemate-tutorial.vercel.app
+            </a>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="footer">
+            <i class="fas fa-phone-alt"></i> +234 0701 367 3960 &nbsp;·&nbsp;
+            <i class="fas fa-envelope"></i> coursematetutoria@gmail.com &nbsp;&nbsp;
+        </div>
+    </div>
+
+    <!-- ===== ACTION BUTTONS ===== -->
+    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="downloadPDF()" class="btn btn-success">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+        <a href="https://coursemate-tutorial.vercel.app" target="_blank" class="btn btn-secondary">
+            <i class="fas fa-external-link-alt"></i> Open Website
+        </a>
+    </div>
+
+    <script>
+        async function downloadPDF() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('active');
+
+            try {
+                const element = document.getElementById('flyerContent');
+
+                // Wait for images to load
+                const images = element.querySelectorAll('img');
+                await Promise.all([...images].map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                        setTimeout(resolve, 3000);
+                    });
+                }));
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Capture the flyer as canvas
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    allowTaint: true,
+                    useCORS: true,
+                    logging: false,
+                    width: element.scrollWidth,
+                    height: element.scrollHeight
+                });
+
+                // Create PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width / 2, canvas.height / 2]
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+                pdf.save('CourseMate_Flyer.pdf');
+
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                alert('Failed to generate PDF. Please try again.');
+            } finally {
+                overlay.classList.remove('active');
+            }
+        }
+    </script>
+
+</body>
+</html>

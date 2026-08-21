@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
     // 3. Find the student record
     const { data: student, error: fetchError } = await supabase
       .from('students')
-      .select('id')
+      .select('id, student_id')  // ← ADDED: also select existing student_id
       .eq('user_id', user_id)
       .single();
 
@@ -48,12 +48,15 @@ module.exports = async function handler(req, res) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // 4. UPDATE the student record with payment info, ID, and QR code
+    // 4. CHECK: If student already has an ID, KEEP IT
+    const finalStudentId = student.student_id || studentId;
+
+    // 5. UPDATE the student record with payment info, ID, and QR code
     const { error: updateError } = await supabase
       .from('students')
       .update({
         payment_status: status,
-        student_id: studentId,
+        student_id: finalStudentId,  // ← KEEP existing or use new
         qr_code: qrCodeUrl,
         payment_plan: plan,
         paid_at: new Date().toISOString(),
@@ -63,7 +66,7 @@ module.exports = async function handler(req, res) {
 
     if (updateError) throw updateError;
 
-    // 5. Record the payment in the payments table
+    // 6. Record the payment in the payments table
     await supabase.from('payments').insert([{
       user_id: user_id,
       student_id: student.id,
@@ -74,7 +77,11 @@ module.exports = async function handler(req, res) {
       status: 'successful'
     }]);
 
-    return res.status(200).json({ success: true, studentId: studentId });
+    // 7. Return the student ID to frontend
+    return res.status(200).json({ 
+      success: true, 
+      studentId: finalStudentId 
+    });
 
   } catch (error) {
     console.error('Payment verification error:', error);

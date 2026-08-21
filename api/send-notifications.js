@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
                 <p>We noticed you were not able to join today's session (${session_date}).</p>
                 <p>No worries – you can catch up anytime. Check your dashboard for session details.</p>
                 <br/>
-                <p style="color: #6b7280;">— CourseMate Team</p>
+                <p style="color: #6b7280;">  CourseMate Team</p>
               </div>
             `,
           });
@@ -163,7 +163,7 @@ module.exports = async function handler(req, res) {
 
               <div style="border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 15px; font-size: 12px; color: #9ca3af; text-align: center;">
                 <p style="margin: 0;">This is an automated report from CourseMate Tutorial.</p>
-                <p style="margin: 4px 0 0;">— CourseMate Team</p>
+                <p style="margin: 4px 0 0;"> CourseMate Team</p>
               </div>
             </div>
           `,

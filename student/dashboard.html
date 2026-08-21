@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - CourseMate</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -31,7 +33,9 @@
         .main-content { margin-left: 260px; padding: 1.5rem 2rem; min-height: 100vh; transition: background 0.3s; }
         .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light); }
         .topbar .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem; }
-        .notif-wrapper { position: relative; }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrapper { position: relative; display: inline-block; }
         .notif-wrapper .bell-btn { background: none; border: none; font-size: 1.3rem; color: var(--text); cursor: pointer; padding: 0.4rem; border-radius: 50%; transition: background 0.2s; }
         .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
         .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px; display: none; }
@@ -45,23 +49,87 @@
         .notif-item .time { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
         .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
         .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
+
+        /* ===== STATS GRID ===== */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.25rem; box-shadow: var(--shadow); transition: background 0.3s, border 0.3s; }
         .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
         .stat-card .label i { color: var(--primary); font-size: 0.8rem; }
         .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem; }
         .stat-card .sub { font-size: 0.7rem; color: var(--muted); }
+
+        /* ===== BADGES ===== */
         .badge { display: inline-block; padding: 0.15rem 0.75rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
         .badge-paid { background: #d1fae5; color: #065f46; }
         .badge-monthly { background: #fef3c7; color: #92400e; }
         .badge-expired { background: #fee2e2; color: #991b1b; }
         .badge-pending { background: #f3f4f6; color: #6b7280; }
         .badge-verified { background: #dbeafe; color: #1e40af; }
+
+        /* ===== PAYMENT BANNER ===== */
+        .payment-banner {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 640px) {
+            .payment-banner {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .payment-banner > div {
+                justify-content: center;
+            }
+            .payment-banner button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* ===== PROGRESS CARD ===== */
+        .progress-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        body.dark .progress-card {
+            background: var(--card);
+            border-color: var(--border);
+        }
+
+        /* ===== INFO CARD ===== */
         .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.5rem; transition: background 0.3s, border 0.3s; }
         .info-card .icon { color: var(--primary); margin-right: 0.5rem; }
-        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; padding: 1rem; } .topbar .menu-toggle { display: block; } .notif-dropdown { width: 280px; right: -0.5rem; } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .topbar .menu-toggle { display: block; }
+            .notif-dropdown { width: 280px; right: -0.5rem; }
+        }
         @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
-        .text-primary { color: var(--primary); } .text-muted { color: var(--muted); } .hidden { display: none; } .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+
+        .text-primary { color: var(--primary); }
+        .text-muted { color: var(--muted); }
+        .hidden { display: none; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -80,67 +148,383 @@
         <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
         <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </aside>
+
     <div class="main-content">
+        <!-- Topbar -->
         <div class="topbar">
-            <div class="flex-center"><button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><h1 class="text-xl font-bold" style="margin:0;">Dashboard</h1></div>
+            <div class="flex-center">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold" style="margin:0;">Dashboard</h1>
+            </div>
             <div class="notif-wrapper">
                 <button class="bell-btn" id="notificationBell"><i class="fas fa-bell"></i></button>
                 <span class="notif-badge" id="unreadBadge">0</span>
-                <div class="notif-dropdown" id="notificationDropdown"><div id="notificationList"><div class="notif-empty">No notifications</div></div></div>
+                <div class="notif-dropdown" id="notificationDropdown">
+                    <div id="notificationList"><div class="notif-empty">No notifications</div></div>
+                </div>
             </div>
         </div>
+
+        <!-- ===== PAYMENT BANNER ===== -->
+        <div id="paymentBanner" class="payment-banner">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; flex-wrap: wrap;">
+                <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #dc2626; flex-shrink: 0;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h4 style="font-weight: 600; color: #991b1b; margin: 0; font-size: 0.95rem;">Payment Required</h4>
+                    <p style="color: #dc2626; margin: 0; font-size: 0.85rem;">Complete your payment to get your Student ID and access all features.</p>
+                </div>
+            </div>
+            <button onclick="window.location.href='../payment.html'" style="background: #dc2626; color: white; padding: 0.5rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 0.9rem;">
+                <i class="fas fa-credit-card mr-2"></i> Pay Now
+            </button>
+        </div>
+
+        <!-- Welcome -->
         <div class="mb-4">
             <p class="text-lg font-semibold">Welcome back, <span class="text-primary" id="studentNameDisplay">Student</span> 👋</p>
             <p class="text-sm text-muted">Student ID: <span id="studentIdDisplay">Loading...</span></p>
         </div>
+
+        <!-- Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card"><div class="label"><i class="fas fa-calendar-check"></i> Attendance</div><div class="value" id="attendancePercent">0%</div><div class="sub" id="attendanceDetail">0 present / 0 total</div></div>
-            <div class="stat-card"><div class="label"><i class="fas fa-credit-card"></i> Payment Status</div><div class="value" id="paymentBadge" style="font-size:1rem; font-weight:600; color:var(--text);"><span class="badge badge-pending">Loading...</span></div></div>
-            <div class="stat-card"><div class="label"><i class="fas fa-id-card"></i> Student ID</div><div class="value" id="studentIdCard" style="font-size:1.2rem; color:var(--text);">Loading...</div></div>
-            <div class="stat-card"><div class="label"><i class="fas fa-shield-alt"></i> Verification</div><div class="value" id="verificationBadge" style="font-size:1rem; font-weight:600; color:var(--text);"><span class="badge badge-pending">Pending</span></div></div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-calendar-check"></i> Attendance</div>
+                <div class="value" id="attendancePercent">0%</div>
+                <div class="sub" id="attendanceDetail">0 present / 0 total</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-credit-card"></i> Payment Status</div>
+                <div class="value" id="paymentBadge" style="font-size:1rem; font-weight:600; color:var(--text);">
+                    <span class="badge badge-pending">Loading...</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-id-card"></i> Student ID</div>
+                <div class="value" id="studentIdCard" style="font-size:1.2rem; color:var(--text);">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-shield-alt"></i> Verification</div>
+                <div class="value" id="verificationBadge" style="font-size:1rem; font-weight:600; color:var(--text);">
+                    <span class="badge badge-pending">Pending</span>
+                </div>
+            </div>
         </div>
-        <div class="info-card"><p class="text-sm text-muted"><i class="fas fa-info-circle icon"></i> Your attendance and profile are up to date.</p></div>
+
+        <!-- ===== PROGRESS CARD ===== -->
+        <div class="progress-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-chart-line" style="color: var(--primary); font-size: 0.9rem;"></i>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text);">My Progress</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <span id="progressPercentage" style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">0%</span>
+                    <div style="width: 80px; height: 6px; background: var(--border); border-radius: 999px; overflow: hidden;">
+                        <div id="progressBarSmall" style="width: 0%; height: 100%; background: var(--primary); border-radius: 999px; transition: width 0.6s ease;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text);" id="totalSessions">0</div>
+                    <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Sessions</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: #22c55e;" id="presentCount">0</div>
+                    <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Present</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: #eab308;" id="lateCount">0</div>
+                    <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Late</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: #ef4444;" id="absentCount">0</div>
+                    <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">Absent</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text);" id="streakCount">0</div>
+                    <div style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;">🔥 Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="info-card" style="margin-top: 1rem;">
+            <p class="text-sm text-muted"><i class="fas fa-info-circle icon"></i> Your attendance and profile are up to date.</p>
+        </div>
     </div>
+
     <script src="../js/auth.js"></script>
     <script>
+        // ============================================================
+        // SIDEBAR FUNCTIONS
+        // ============================================================
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
         window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
+
+        // ============================================================
+        // THEME FUNCTIONS
+        // ============================================================
         function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
         function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
         document.addEventListener('DOMContentLoaded', loadTheme);
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
         window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
-        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
-        async function fetchNotifications(userId) { try { const { data, error } = await supabaseClient.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { return []; } }
-        function renderNotifications(notifications) { const list = document.getElementById('notificationList'); const badge = document.getElementById('unreadBadge'); const unread = notifications.filter(n => !n.is_read); badge.textContent = unread.length; badge.classList.toggle('show', unread.length > 0); if (!notifications.length) { list.innerHTML = '<div class="notif-empty">No notifications</div>'; return; } list.innerHTML = notifications.map(n => `<div class="notif-item ${!n.is_read ? 'unread' : ''}"><div class="title">${n.title}</div><div class="msg">${n.message}</div><div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}</div>`).join(''); }
-        async function markAsRead(id) { try { await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id); await loadNotifications(); } catch (e) {} }
-        async function loadNotifications() { const user = await window.auth.getCurrentUser(); if (!user) return; const data = await fetchNotifications(user.id); renderNotifications(data); }
-        document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('notificationDropdown').classList.toggle('active'); }); document.addEventListener('click', () => { document.getElementById('notificationDropdown').classList.remove('active'); });
-        document.addEventListener('DOMContentLoaded', async function() {
+
+        // ============================================================
+        // SUPABASE CLIENT
+        // ============================================================
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        async function fetchNotifications(userId) {
+            try {
+                const { data, error } = await supabaseClient.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            } catch (e) { return []; }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('unreadBadge');
+            const unread = notifications.filter(n => !n.is_read);
+            badge.textContent = unread.length;
+            badge.classList.toggle('show', unread.length > 0);
+            if (!notifications.length) {
+                list.innerHTML = '<div class="notif-empty">No notifications</div>';
+                return;
+            }
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${!n.is_read ? 'unread' : ''}">
+                    <div class="title">${n.title}</div>
+                    <div class="msg">${n.message}</div>
+                    <div class="time">${new Date(n.created_at).toLocaleDateString()} ${new Date(n.created_at).toLocaleTimeString()}</div>
+                    ${!n.is_read ? `<span class="mark-read" onclick="markAsRead('${n.id}')">Mark as read</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try {
+                await supabaseClient.from('notifications').update({ is_read: true }).eq('id', id);
+                await loadNotifications();
+            } catch (e) {}
+        }
+
+        async function loadNotifications() {
+            const user = await window.auth.getCurrentUser();
+            if (!user) return;
+            const data = await fetchNotifications(user.id);
+            renderNotifications(data);
+        }
+
+        document.getElementById('notificationBell').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationDropdown').classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationDropdown').classList.remove('active');
+        });
+
+        // ============================================================
+        // LOAD STUDENT DATA
+        // ============================================================
+        async function loadStudentData() {
             try {
                 const user = await window.auth.getCurrentUser();
-                if (!user) { window.location.href = '../login.html'; return; }
-                document.getElementById('studentIdDisplay').textContent = 'Loading...';
-                document.getElementById('studentIdCard').textContent = 'Loading...';
-                const { data: student, error } = await supabaseClient.from('students').select('full_name, student_id, payment_status, qr_code').eq('user_id', user.id).maybeSingle();
-                if (error || !student) {
-                    document.getElementById('studentIdCard').textContent = 'Not found';
-                    document.getElementById('studentIdDisplay').textContent = 'Not found';
-                    document.getElementById('studentNameDisplay').textContent = 'Student';
+                if (!user) {
+                    window.location.href = '../login.html';
                     return;
                 }
-                document.getElementById('studentNameDisplay').textContent = student.full_name || 'Student';
-                document.getElementById('studentIdDisplay').textContent = student.student_id || 'Not assigned';
-                document.getElementById('studentIdCard').textContent = student.student_id || 'Not assigned';
-                if (student.qr_code) { const qrLink = document.querySelector('a[href="qr.html"]'); if (qrLink) { qrLink.innerHTML = `<i class="fas fa-qrcode"></i> My QR Code`; } }
-                const status = student.payment_status || 'pending';
-                const map = { 'paid': { label: 'Fully Paid', cls: 'badge-paid' }, 'monthly_active': { label: 'Monthly Active', cls: 'badge-monthly' }, 'expired': { label: 'Expired', cls: 'badge-expired' }, 'pending': { label: 'Pending', cls: 'badge-pending' } };
-                const info = map[status] || map['pending'];
-                document.getElementById('paymentBadge').innerHTML = `<span class="badge ${info.cls}">${info.label}</span>`;
-                const verifyBadge = document.getElementById('verificationBadge');
-                if (status === 'paid' || status === 'monthly_active') { verifyBadge.innerHTML = '<span class="badge badge-verified">Verified</span>'; } else { verifyBadge.innerHTML = '<span class="badge badge-pending">Pending</span>'; }
+
+                const { data: student, error } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                const paymentBanner = document.getElementById('paymentBanner');
+                const studentIdDisplay = document.getElementById('studentIdDisplay');
+                const studentIdCard = document.getElementById('studentIdCard');
+                const studentNameDisplay = document.getElementById('studentNameDisplay');
+
+                if (!student) {
+                    if (studentNameDisplay) studentNameDisplay.textContent = user.user_metadata?.full_name || 'Student';
+                    if (studentIdDisplay) studentIdDisplay.textContent = 'Not assigned - Please register';
+                    if (studentIdCard) studentIdCard.textContent = 'Not assigned';
+                    if (paymentBanner) paymentBanner.style.display = 'flex';
+                    document.getElementById('paymentBadge').innerHTML = '<span class="badge badge-pending">No Record</span>';
+                    document.getElementById('verificationBadge').innerHTML = '<span class="badge badge-pending">Pending</span>';
+                    return;
+                }
+
+                if (studentNameDisplay) studentNameDisplay.textContent = student.full_name || 'Student';
+
+                const paymentStatus = student.payment_status || 'pending';
+
+                if (paymentStatus === 'pending' || paymentStatus === 'expired') {
+                    if (paymentBanner) paymentBanner.style.display = 'flex';
+                    if (studentIdDisplay) studentIdDisplay.textContent = 'Not assigned - Complete payment';
+                    if (studentIdCard) studentIdCard.textContent = 'Not assigned';
+                    document.getElementById('paymentBadge').innerHTML = `<span class="badge badge-pending">${paymentStatus === 'expired' ? 'Expired' : 'Pending Payment'}</span>`;
+                    document.getElementById('verificationBadge').innerHTML = '<span class="badge badge-pending">Pending</span>';
+                } else if (paymentStatus === 'paid' || paymentStatus === 'monthly_active') {
+                    if (paymentBanner) paymentBanner.style.display = 'none';
+                    if (student.student_id) {
+                        if (studentIdDisplay) studentIdDisplay.textContent = student.student_id;
+                        if (studentIdCard) studentIdCard.textContent = student.student_id;
+                    } else {
+                        if (studentIdDisplay) studentIdDisplay.textContent = 'Generating ID...';
+                        if (studentIdCard) studentIdCard.textContent = 'Generating...';
+                        await generateStudentId(user.id);
+                    }
+                    const statusMap = {
+                        'paid': { label: 'Fully Paid', cls: 'badge-paid' },
+                        'monthly_active': { label: 'Monthly Active', cls: 'badge-monthly' }
+                    };
+                    const info = statusMap[paymentStatus] || { label: 'Paid', cls: 'badge-paid' };
+                    document.getElementById('paymentBadge').innerHTML = `<span class="badge ${info.cls}">${info.label}</span>`;
+                    document.getElementById('verificationBadge').innerHTML = '<span class="badge badge-verified">Verified</span>';
+                }
+
                 await loadNotifications();
-            } catch (err) { console.error(err); document.getElementById('studentNameDisplay').textContent = 'Student'; document.getElementById('studentIdDisplay').textContent = 'Error loading'; document.getElementById('studentIdCard').textContent = 'Error loading'; }
+
+            } catch (error) {
+                console.error('Error loading student data:', error);
+                document.getElementById('studentNameDisplay').textContent = 'Student';
+                document.getElementById('studentIdDisplay').textContent = 'Error loading';
+                document.getElementById('studentIdCard').textContent = 'Error loading';
+            }
+        }
+
+        // ============================================================
+        // GENERATE STUDENT ID
+        // ============================================================
+        async function generateStudentId(userId) {
+            try {
+                const studentIdNumber = `STU${String(Date.now()).slice(-6)}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+                const { error } = await supabaseClient.from('students').update({ student_id: studentIdNumber }).eq('user_id', userId);
+                if (error) throw error;
+                document.getElementById('studentIdDisplay').textContent = studentIdNumber;
+                document.getElementById('studentIdCard').textContent = studentIdNumber;
+            } catch (error) {
+                console.error('Error generating student ID:', error);
+                document.getElementById('studentIdDisplay').textContent = 'Error generating ID';
+                document.getElementById('studentIdCard').textContent = 'Error';
+            }
+        }
+
+        // ============================================================
+        // LOAD STUDENT PROGRESS
+        // ============================================================
+        async function loadStudentProgress() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) return;
+
+                const { data: student, error: studentError } = await supabaseClient
+                    .from('students')
+                    .select('id, student_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (studentError || !student) {
+                    console.log('No student record found');
+                    return;
+                }
+
+                const { data: attendance, error: attendanceError } = await supabaseClient
+                    .from('attendance')
+                    .select('status, session_date')
+                    .eq('student_id', student.id)
+                    .order('session_date', { ascending: false });
+
+                if (attendanceError) {
+                    console.error('Attendance fetch error:', attendanceError);
+                    return;
+                }
+
+                if (!attendance || attendance.length === 0) {
+                    document.getElementById('totalSessions').textContent = '0';
+                    document.getElementById('presentCount').textContent = '0';
+                    document.getElementById('lateCount').textContent = '0';
+                    document.getElementById('absentCount').textContent = '0';
+                    document.getElementById('streakCount').textContent = '0';
+                    document.getElementById('progressPercentage').textContent = '0%';
+                    document.getElementById('progressBarSmall').style.width = '0%';
+                    return;
+                }
+
+                const total = attendance.length;
+                const present = attendance.filter(a => a.status === 'present').length;
+                const late = attendance.filter(a => a.status === 'late').length;
+                const absent = attendance.filter(a => a.status === 'absent').length;
+                const attended = present + late;
+                const percentage = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+                let streak = 0;
+                let today = new Date();
+                const presentDates = attendance
+                    .filter(a => a.status === 'present' || a.status === 'late')
+                    .map(a => new Date(a.session_date))
+                    .sort((a, b) => b - a);
+
+                for (let i = 0; i < presentDates.length; i++) {
+                    const date = presentDates[i];
+                    const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                    if (diffDays === i) {
+                        streak++;
+                    } else if (diffDays > i) {
+                        break;
+                    }
+                }
+
+                document.getElementById('totalSessions').textContent = total;
+                document.getElementById('presentCount').textContent = present;
+                document.getElementById('lateCount').textContent = late;
+                document.getElementById('absentCount').textContent = absent;
+                document.getElementById('streakCount').textContent = streak;
+                document.getElementById('progressPercentage').textContent = `${percentage}%`;
+                document.getElementById('progressBarSmall').style.width = `${Math.min(percentage, 100)}%`;
+
+                const progressBar = document.getElementById('progressBarSmall');
+                if (percentage >= 80) {
+                    progressBar.style.background = '#22c55e';
+                } else if (percentage >= 50) {
+                    progressBar.style.background = '#eab308';
+                } else if (percentage >= 30) {
+                    progressBar.style.background = '#f97316';
+                } else {
+                    progressBar.style.background = '#ef4444';
+                }
+
+            } catch (error) {
+                console.error('Progress load error:', error);
+            }
+        }
+
+        // ============================================================
+        // PAGE INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudentData();
+            loadStudentProgress();
         });
     </script>
 </body>

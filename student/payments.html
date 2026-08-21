@@ -6,6 +6,8 @@
     <title>Payments - CourseMate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://js.paystack.co/v1/inline.js"></script>
@@ -171,149 +173,222 @@
 
     <script src="../js/auth.js"></script>
     <script>
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
-        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
-        window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
-        function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
-        function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
-        document.addEventListener('DOMContentLoaded', loadTheme);
-        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
-        const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
+    // ============================================================
+    // SIDEBAR FUNCTIONS
+    // ============================================================
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
+    window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
 
-        let currentUser = null;
-        let studentData = null;
-        let fullFee = 20000;
-        let monthlyFee = 5000;
+    // ============================================================
+    // THEME FUNCTIONS
+    // ============================================================
+    function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
+    function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
+    document.addEventListener('DOMContentLoaded', loadTheme);
 
-        function getCountdownText(expiresAt) {
-            if (!expiresAt) return { text: 'No expiry set', class: 'countdown-safe' };
-            const now = new Date();
-            const expiry = new Date(expiresAt);
-            const diff = expiry - now;
-            if (diff <= 0) return { text: '⚠️ Payment Overdue!', class: 'countdown-danger' };
-            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            if (days === 0) return { text: 'Due today!', class: 'countdown-warning' };
-            if (days === 1) return { text: 'Due tomorrow!', class: 'countdown-warning' };
-            if (days <= 7) return { text: `Due in ${days} days`, class: 'countdown-warning' };
-            return { text: `Due in ${days} days`, class: 'countdown-safe' };
-        }
+    // ============================================================
+    // LOGOUT
+    // ============================================================
+    window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
 
-        async function loadPaymentsPage() {
-            try {
-                const user = await window.auth.getCurrentUser();
-                if (!user) { window.location.href = '../login.html'; return; }
-                currentUser = user;
+    // ============================================================
+    // SUPABASE CLIENT
+    // ============================================================
+    const supabaseClient = window.supabaseClient || (() => { const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co"; const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA"; return window.supabase.createClient(url, key); })();
 
-                const { data: student, error: stuErr } = await supabaseClient
-                    .from('students')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single();
-                if (stuErr || !student) throw new Error('Student not found');
-                studentData = student;
+    let currentUser = null;
+    let studentData = null;
+    let fullFee = 20000;
+    let monthlyFee = 5000;
 
-                const { data: settings } = await supabaseClient
-                    .from('settings')
-                    .select('*')
-                    .in('key', ['full_fee', 'monthly_fee']);
-                if (settings) {
-                    settings.forEach(s => {
-                        if (s.key === 'full_fee') fullFee = parseInt(s.value) || 20000;
-                        if (s.key === 'monthly_fee') monthlyFee = parseInt(s.value) || 5000;
-                    });
-                }
+    // ============================================================
+    // COUNTDOWN HELPER
+    // ============================================================
+    function getCountdownText(expiresAt) {
+        if (!expiresAt) return { text: 'No expiry set', class: 'countdown-safe' };
+        const now = new Date();
+        const expiry = new Date(expiresAt);
+        const diff = expiry - now;
+        if (diff <= 0) return { text: '⚠️ Payment Overdue!', class: 'countdown-danger' };
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        if (days === 0) return { text: 'Due today!', class: 'countdown-warning' };
+        if (days === 1) return { text: 'Due tomorrow!', class: 'countdown-warning' };
+        if (days <= 7) return { text: `Due in ${days} days`, class: 'countdown-warning' };
+        return { text: `Due in ${days} days`, class: 'countdown-safe' };
+    }
 
-                document.getElementById('full-amount').textContent = fullFee.toLocaleString();
-                document.getElementById('monthly-amount').textContent = monthlyFee.toLocaleString();
+    // ============================================================
+    // LOAD PAYMENTS PAGE
+    // ============================================================
+    async function loadPaymentsPage() {
+        try {
+            const user = await window.auth.getCurrentUser();
+            if (!user) { window.location.href = '../login.html'; return; }
+            currentUser = user;
 
-                const status = student.payment_status || 'pending';
-                const plan = student.payment_plan || 'None';
-                const cls = status === 'paid' ? 'badge-active' : status === 'monthly_active' ? 'badge-active' : status === 'expired' ? 'badge-expired' : 'badge-pending';
-                const label = status === 'paid' ? 'Fully Paid' : status === 'monthly_active' ? 'Monthly Active' : status === 'expired' ? 'Expired' : 'Pending';
-                document.getElementById('status-badge').className = `status-badge ${cls}`;
-                document.getElementById('status-badge').textContent = label;
-                document.getElementById('plan-detail').textContent = `${plan} — ${label}`;
+            const { data: student, error: stuErr } = await supabaseClient
+                .from('students')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+            if (stuErr || !student) throw new Error('Student not found');
+            studentData = student;
 
-                // Countdown
-                const countdownEl = document.getElementById('countdown-container');
-                if (student.expires_at && (status === 'monthly_active' || status === 'expired')) {
-                    const { text, class: clsName } = getCountdownText(student.expires_at);
-                    countdownEl.textContent = text;
-                    countdownEl.className = `countdown-box ${clsName} mt-2`;
-                } else if (status === 'paid') {
-                    countdownEl.textContent = '✅ Fully paid — No expiry';
-                    countdownEl.className = 'countdown-box countdown-safe mt-2';
-                } else {
-                    countdownEl.textContent = '—';
-                    countdownEl.className = 'countdown-box countdown-safe mt-2';
-                }
-
-                // Load payment history
-                const { data: history, error: histErr } = await supabaseClient
-                    .from('payments')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false });
-
-                const tbody = document.getElementById('history-body');
-                if (!histErr && history && history.length > 0) {
-                    tbody.innerHTML = history.map(p => `
-                        <tr>
-                            <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                            <td>${p.plan || '—'}</td>
-                            <td>₦${p.amount?.toLocaleString() || '—'}</td>
-                            <td><span class="status-badge badge-active">${p.status || '—'}</span></td>
-                            <td class="text-muted text-sm">${p.reference || '—'}</td>
-                        </tr>
-                    `).join('');
-                }
-
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('payments-content').classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loading-state').innerHTML = '<p class="text-red-500">Failed to load payment info.</p>';
+            const { data: settings } = await supabaseClient
+                .from('settings')
+                .select('*')
+                .in('key', ['full_fee', 'monthly_fee']);
+            if (settings) {
+                settings.forEach(s => {
+                    if (s.key === 'full_fee') fullFee = parseInt(s.value) || 20000;
+                    if (s.key === 'monthly_fee') monthlyFee = parseInt(s.value) || 5000;
+                });
             }
-        }
 
-        // PAYMENT LOGIC
-        async function handlePayment(plan) {
-            if (!currentUser || !studentData) {
-                alert('Please reload the page.');
-                return;
+            document.getElementById('full-amount').textContent = fullFee.toLocaleString();
+            document.getElementById('monthly-amount').textContent = monthlyFee.toLocaleString();
+
+            const status = student.payment_status || 'pending';
+            const plan = student.payment_plan || 'None';
+            const cls = status === 'paid' ? 'badge-active' : status === 'monthly_active' ? 'badge-active' : status === 'expired' ? 'badge-expired' : 'badge-pending';
+            const label = status === 'paid' ? 'Fully Paid' : status === 'monthly_active' ? 'Monthly Active' : status === 'expired' ? 'Expired' : 'Pending';
+            document.getElementById('status-badge').className = `status-badge ${cls}`;
+            document.getElementById('status-badge').textContent = label;
+            document.getElementById('plan-detail').textContent = `${plan} — ${label}`;
+
+            // Countdown
+            const countdownEl = document.getElementById('countdown-container');
+            if (student.expires_at && (status === 'monthly_active' || status === 'expired')) {
+                const { text, class: clsName } = getCountdownText(student.expires_at);
+                countdownEl.textContent = text;
+                countdownEl.className = `countdown-box ${clsName} mt-2`;
+            } else if (status === 'paid') {
+                countdownEl.textContent = '✅ Fully paid — No expiry';
+                countdownEl.className = 'countdown-box countdown-safe mt-2';
+            } else {
+                countdownEl.textContent = '—';
+                countdownEl.className = 'countdown-box countdown-safe mt-2';
             }
-            const amount = plan === 'full' ? fullFee : monthlyFee;
-            const email = currentUser.email;
-            const reference = `CMT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-            const handler = PaystackPop.setup({
-                key: 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a', // <-- Replace with live key later
-                email: email,
-                amount: amount * 100,
-                currency: 'NGN',
-                ref: reference,
-                metadata: {
-                    custom_fields: [
-                        { display_name: "Plan", variable_name: "plan", value: plan },
-                        { display_name: "User ID", variable_name: "user_id", value: currentUser.id }
-                    ]
-                },
-                callback: function(response) {
-                    alert('Payment successful! Your dashboard will update shortly.');
-                    window.location.href = 'dashboard.html';
-                },
-                onClose: function() {
-                    alert('Payment cancelled.');
-                }
+            // Load payment history
+            const { data: history, error: histErr } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            const tbody = document.getElementById('history-body');
+            if (!histErr && history && history.length > 0) {
+                tbody.innerHTML = history.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td>${p.plan || '—'}</td>
+                        <td>₦${p.amount?.toLocaleString() || '—'}</td>
+                        <td><span class="status-badge badge-active">${p.status || '—'}</span></td>
+                        <td class="text-muted text-sm">${p.reference || '—'}</td>
+                    </tr>
+                `).join('');
+            }
+
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('payments-content').classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('loading-state').innerHTML = '<p class="text-red-500">Failed to load payment info.</p>';
+        }
+    }
+
+    // ============================================================
+    // PAYMENT HANDLER
+    // ============================================================
+    async function handlePayment(plan) {
+        if (!currentUser || !studentData) {
+            alert('Please reload the page.');
+            return;
+        }
+        const amount = plan === 'full' ? fullFee : monthlyFee;
+        const email = currentUser.email;
+        const reference = `CMT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        const handler = PaystackPop.setup({
+            key: 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a',
+            email: email,
+            amount: amount * 100,
+            currency: 'NGN',
+            ref: reference,
+            metadata: {
+                custom_fields: [
+                    { display_name: "Plan", variable_name: "plan", value: plan },
+                    { display_name: "User ID", variable_name: "user_id", value: currentUser.id }
+                ]
+            },
+            callback: function(response) {
+                console.log('Payment successful:', response);
+                verifyPaymentBackend(currentUser.id, plan, amount, response.reference);
+            },
+            onClose: function() {
+                alert('Payment cancelled.');
+            }
+        });
+        handler.openIframe();
+    }
+
+    // ============================================================
+    // VERIFY PAYMENT - GET STUDENT ID FROM BACKEND
+    // ============================================================
+    async function verifyPaymentBackend(userId, plan, amount, reference) {
+        try {
+            // Call backend API to verify payment
+            const response = await fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: userId,
+                    plan: plan,
+                    amount: amount,
+                    reference: reference
+                })
             });
-            handler.openIframe();
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Payment verification failed');
+            }
+
+            // ============================================================
+            // GET STUDENT ID FROM BACKEND RESPONSE
+            // ============================================================
+            const studentId = data.studentId || 'ID generated';
+
+            // ============================================================
+            // Show success with student ID
+            // ============================================================
+            showPaymentSuccess(studentId);
+
+        } catch (error) {
+            console.error('Verification error:', error);
+            alert('Failed to complete verification. Please contact support.');
         }
+    }
 
-        document.getElementById('pay-full-btn').addEventListener('click', () => handlePayment('full'));
-        document.getElementById('pay-monthly-btn').addEventListener('click', () => handlePayment('monthly'));
+    // ============================================================
+    // SUCCESS MESSAGE - Show Student ID
+    // ============================================================
+    function showPaymentSuccess(studentId) {
+        alert(`✅ Payment Successful!\n\nYour Student ID: ${studentId}\n\nYou now have full access to your dashboard.`);
+        window.location.href = 'dashboard.html';
+    }
 
-        document.addEventListener('DOMContentLoaded', loadPaymentsPage);
-    </script>
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    document.getElementById('pay-full-btn').addEventListener('click', () => handlePayment('full'));
+    document.getElementById('pay-monthly-btn').addEventListener('click', () => handlePayment('monthly'));
+
+    document.addEventListener('DOMContentLoaded', loadPaymentsPage);
+</script>
 </body>
 </html>

@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <script>
         tailwind.config = {
             theme: {
@@ -190,146 +191,148 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 
-<script>
-    const supabaseClient = window.supabaseClient;
+    <script>
+        // Use the existing supabaseClient from auth.js
+        const supabaseClient = window.supabaseClient;
 
-    // ============================================================
-    // MODAL HANDLERS
-    // ============================================================
-    function openSuccessModal() {
-        document.getElementById('successModal').classList.add('active');
-    }
-
-    function goToPayment() {
-        window.location.href = 'payment.html';
-    }
-
-    // ============================================================
-    // GOOGLE SIGN-IN FUNCTION (ADDED HERE)
-    // ============================================================
-    window.handleGoogleSignIn = async function() {
-        try {
-            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + '/google-success.html' }
-            });
-            if (error) throw error;
-        } catch (err) {
-            console.error('Google Sign-In error:', err);
-            alert('Google Sign-In failed. Please try again.');
+        // ============================================================
+        // MODAL HANDLERS
+        // ============================================================
+        function openSuccessModal() {
+            document.getElementById('successModal').classList.add('active');
         }
-    };
 
-    // ============================================================
-    // LOAD DROPDOWNS
-    // ============================================================
-    async function loadDropdowns() {
-        try {
-            const { data: departments, error: deptError } = await supabaseClient
-                .from('departments')
-                .select('id, name')
-                .order('name');
-            if (deptError) throw deptError;
+        function goToPayment() {
+            window.location.href = 'payment.html';
+        }
 
-            const deptSelect = document.getElementById('department');
-            deptSelect.innerHTML = '<option value="">Select Department</option>';
-            departments.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id;
-                opt.textContent = d.name;
-                deptSelect.appendChild(opt);
-            });
-
-            const progSelect = document.getElementById('program');
-            document.getElementById('department').addEventListener('change', async function() {
-                const deptId = this.value;
-                progSelect.innerHTML = '<option value="">Select Program</option>';
-                if (!deptId) return;
-                const { data: programs, error: progError } = await supabaseClient
-                    .from('programs')
-                    .select('id, name')
-                    .eq('department_id', deptId)
-                    .order('name');
-                if (progError) throw progError;
-                programs.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = p.name;
-                    progSelect.appendChild(opt);
+        // ============================================================
+        // GOOGLE SIGN-IN FUNCTION
+        // ============================================================
+        window.handleGoogleSignIn = async function() {
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/google-success.html' }
                 });
-            });
-        } catch (err) {
-            console.error('Load error:', err);
-            alert('Could not load departments. Please refresh.');
+                if (error) throw error;
+            } catch (err) {
+                console.error('Google Sign-In error:', err);
+                alert('Google Sign-In failed. Please try again.');
+            }
+        };
+
+        // ============================================================
+        // LOAD DROPDOWNS
+        // ============================================================
+        async function loadDropdowns() {
+            try {
+                const { data: departments, error: deptError } = await supabaseClient
+                    .from('departments')
+                    .select('id, name')
+                    .order('name');
+                if (deptError) throw deptError;
+
+                const deptSelect = document.getElementById('department');
+                deptSelect.innerHTML = '<option value="">Select Department</option>';
+                departments.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    deptSelect.appendChild(opt);
+                });
+
+                const progSelect = document.getElementById('program');
+                document.getElementById('department').addEventListener('change', async function() {
+                    const deptId = this.value;
+                    progSelect.innerHTML = '<option value="">Select Program</option>';
+                    if (!deptId) return;
+                    const { data: programs, error: progError } = await supabaseClient
+                        .from('programs')
+                        .select('id, name')
+                        .eq('department_id', deptId)
+                        .order('name');
+                    if (progError) throw progError;
+                    programs.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.name;
+                        progSelect.appendChild(opt);
+                    });
+                });
+            } catch (err) {
+                console.error('Load error:', err);
+                alert('Could not load departments. Please refresh.');
+            }
         }
-    }
 
-    // ============================================================
-    // PASSWORD TOGGLE LOGIC
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
-        const icon = toggleBtn.querySelector('i');
+        // ============================================================
+        // PASSWORD TOGGLE LOGIC
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const icon = toggleBtn.querySelector('i');
 
-        toggleBtn.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
+            toggleBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                    toggleBtn.classList.add('active');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    toggleBtn.classList.remove('active');
+                }
+            });
+        });
+
+        // ============================================================
+        // REGISTER FORM SUBMIT - USING YOUR ORIGINAL auth.signUpStudent()
+        // ============================================================
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             
-            if (type === 'text') {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-                toggleBtn.classList.add('active');
-            } else {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                toggleBtn.classList.remove('active');
+            const deptText = document.getElementById('department').options[document.getElementById('department').selectedIndex].text;
+            const progText = document.getElementById('program').options[document.getElementById('program').selectedIndex].text;
+            const level = document.getElementById('level').value;
+
+            if (!fullName || !email || !password || !phone || !deptText || !progText || !level) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            try {
+                // THIS IS YOUR ORIGINAL CODE - USING auth.signUpStudent()
+                await window.auth.signUpStudent(email, password, fullName, phone, deptText, progText, level, 'student');
+                openSuccessModal();
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+                console.error(error);
             }
         });
-    });
 
-    // ============================================================
-    // REGISTER FORM SUBMIT
-    // ============================================================
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const fullName = document.getElementById('fullName').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        
-        const deptText = document.getElementById('department').options[document.getElementById('department').selectedIndex].text;
-        const progText = document.getElementById('program').options[document.getElementById('program').selectedIndex].text;
-        const level = document.getElementById('level').value;
-
-        if (!fullName || !email || !password || !phone || !deptText || !progText || !level) {
-            alert('Please fill in all fields.');
-            return;
-        }
-
-        try {
-            await window.auth.signUpStudent(email, password, fullName, phone, deptText, progText, level, 'student');
-            openSuccessModal();
-        } catch (error) {
-            alert('Registration failed: ' + error.message);
-            console.error(error);
-        }
-    });
-
-    // ============================================================
-    // INIT
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', async function() {
-        const user = await window.auth.getCurrentUser();
-        if (user) {
-            window.location.href = 'student/dashboard.html';
-            return;
-        }
-        await loadDropdowns();
-    });
-</script>
+        // ============================================================
+        // INIT - YOUR ORIGINAL CODE
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            const user = await window.auth.getCurrentUser();
+            if (user) {
+                window.location.href = 'student/dashboard.html';
+                return;
+            }
+            await loadDropdowns();
+        });
+    </script>
 </body>
 </html>
