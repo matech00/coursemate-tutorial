@@ -1,179 +1,151 @@
-﻿const { createClient } = require('@supabase/supabase-js');
-const nodemailer = require('nodemailer');
+﻿const nodemailer = require('nodemailer');
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { session_date } = req.body;
-  if (!session_date) {
-    return res.status(400).json({ error: 'Missing session_date' });
-  }
-
-  try {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-
-    if (!supabaseUrl || !supabaseServiceKey || !gmailAppPassword) {
-      return res.status(500).json({ error: 'Missing environment variables' });
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    try {
+        const { type, to, full_name, order_number, logbook_code, logbook_name, amount, pickup_location, pickup_deadline } = req.body;
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'coursematetutorial@gmail.com',
-        pass: gmailAppPassword,
-      },
-    });
-
-    await transporter.verify();
-
-    // ============================================================
-    // 1. GET STUDENTS AND ATTENDANCE
-    // ============================================================
-    const { data: students, error: studentError } = await supabase
-      .from('students')
-      .select('id, user_id, full_name, email, student_id')
-      .in('payment_status', ['paid', 'monthly_active']);
-
-    if (studentError) throw studentError;
-
-    const { data: attendance, error: attError } = await supabase
-      .from('attendance')
-      .select('student_id, status')
-      .eq('session_date', session_date);
-
-    if (attError) throw attError;
-
-    const attendedIds = attendance.map(a => a.student_id);
-    const present = attendance.filter(a => a.status === 'present').length;
-    const late = attendance.filter(a => a.status === 'late').length;
-    const absentStudents = students.filter(s => !attendedIds.includes(s.id));
-    const total = students.length;
-
-    // ============================================================
-    // 2. SEND IN-APP NOTIFICATIONS TO ABSENT STUDENTS
-    // ============================================================
-    for (const student of absentStudents) {
-      if (!student.user_id) continue;
-      await supabase.from('notifications').insert({
-        id: crypto.randomUUID(),
-        user_id: student.user_id,
-        title: `You missed today's session at CourseMate Tutorial`,
-        message: `Hi ${student.full_name}, we noticed you weren't able to join today's session (${session_date}). No worries – you can catch up anytime.`,
-        type: 'warning',
-        link: '/student/attendance.html',
-        is_read: false  // ✅ ADD THIS - so it shows as unread
-      });
-    }
-
-    // ============================================================
-    // 3. SEND IN-APP NOTIFICATIONS TO ADMINS
-    // ============================================================
-    const { data: admins, error: adminError } = await supabase
-      .from('admins')
-      .select('user_id, email');
-
-    if (!adminError && admins) {
-      for (const admin of admins) {
-        if (admin.user_id) {
-          await supabase.from('notifications').insert({
-            id: crypto.randomUUID(),
-            user_id: admin.user_id,
-            title: 'Attendance Summary',
-            message: `Today (${session_date}): ${total} students, ${present} present, ${late} late, ${absentStudents.length} absent.`,
-            type: 'info',
-            link: '/admin/attendance.html',
-            is_read: false  // ✅ ADD THIS - so it shows as unread
-          });
+        if (!type || !to) {
+            return res.status(400).json({ error: 'Missing required fields: type, to' });
         }
-      }
-    }
 
-    const fromEmail = '"CourseMate Tutorial" <coursematetutorial@gmail.com>';
+        const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+        if (!gmailAppPassword) {
+            return res.status(500).json({ error: 'Missing Gmail password' });
+        }
 
-    // ============================================================
-    // 4. SEND GMAIL TO ABSENT STUDENTS
-    // ============================================================
-    for (const student of absentStudents) {
-      if (student.email) {
-        try {
-          await transporter.sendMail({
-            from: fromEmail,
-            to: student.email,
-            subject: 'You missed today\'s session at CourseMate Tutorial',
-            html: `
-              <div style="font-family: 'Helvetica Neue', Arial, sans-serif; color: #333;">
-                <h2 style="color: #008751;">Hello ${student.full_name},</h2>
-                <p>We noticed you were not able to join today's session (${session_date}).</p>
-                <p>No worries – you can catch up anytime. Check your dashboard for session details.</p>
-                <br/>
-                <p style="color: #6b7280;">  CourseMate Team</p>
-              </div>
-            `,
-          });
-        } catch (e) { console.error('Student email failed:', e); }
-      }
-    }
-
-    // ============================================================
-    // 5. SEND PROFESSIONAL REPORT GMAIL TO ADMINS
-    // ============================================================
-    const adminEmails = ['coursematetutorial@gmail.com', 'oluwamatic125@gmail.com'];
-
-    if (adminEmails.length) {
-      const absentList = absentStudents.map(s => `• ${s.full_name} (${s.student_id})`).join('\n');
-      try {
-        await transporter.sendMail({
-          from: fromEmail,
-          to: adminEmails,
-          subject: `Daily Session Report - ${session_date}`,
-          html: `
-            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; color: #333;">
-              <div style="border-bottom: 2px solid #008751; padding-bottom: 10px; margin-bottom: 20px;">
-                <h2 style="color: #008751; margin: 0;">CourseMate Tutorial</h2>
-                <p style="color: #6b7280; font-size: 14px; margin: 4px 0 0;">Daily Attendance Report</p>
-              </div>
-
-              <p style="font-weight: 600; font-size: 14px; color: #374151;">Date: ${session_date}</p>
-
-              <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">
-                A total of <strong style="color: #3b82f6;">${total}</strong> students were enrolled for today's session.
-                Among them, <strong style="color: #22c55e;">${present}</strong> were present,
-                <strong style="color: #eab308;">${late}</strong> arrived late,
-                and <strong style="color: #ef4444;">${absentStudents.length}</strong> were absent.
-              </p>
-
-              ${absentStudents.length > 0 ? `
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 15px; margin-top: 15px;">
-                  <h3 style="color: #dc2626; margin-top: 0; font-size: 16px;">Absent Students</h3>
-                  <ul style="margin: 0; padding-left: 20px; color: #4b5563;">
-                    ${absentStudents.map(s => `<li>${s.full_name} (${s.student_id})</li>`).join('')}
-                  </ul>
-                </div>
-              ` : `
-                <div style="background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 6px; padding: 15px; margin-top: 15px; color: #166534;">
-                  <p style="margin: 0;">All active students were present today.</p>
-                </div>
-              `}
-
-              <div style="border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 15px; font-size: 12px; color: #9ca3af; text-align: center;">
-                <p style="margin: 0;">This is an automated report from CourseMate Tutorial.</p>
-                <p style="margin: 4px 0 0;"> CourseMate Team</p>
-              </div>
-            </div>
-          `,
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'coursematetutorial@gmail.com',
+                pass: gmailAppPassword,
+            },
         });
-      } catch (e) { console.error('Admin summary email failed:', e); }
-    }
 
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('❌ Unhandled error:', error);
-    return res.status(500).json({ error: error.message });
-  }
+        await transporter.verify();
+        const fromEmail = '"CourseMate Logbook" <coursematetutorial@gmail.com>';
+
+        // ============================================================
+        // EMAIL TEMPLATE 1: ORDER RECEIVED
+        // ============================================================
+        if (type === 'order_received') {
+            await transporter.sendMail({
+                from: fromEmail,
+                to: to,
+                subject: `Order Received - ${order_number}`,
+                html: `
+                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div style="background: #008751; padding: 20px; text-align: center;">
+                            <h1 style="color: white; margin: 0; font-size: 20px;">Order Received</h1>
+                        </div>
+                        <div style="padding: 25px; color: #333;">
+                            <p style="font-size: 15px;">Hello <strong>${full_name || 'Student'}</strong>,</p>
+                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">
+                                Thank you for your order. We have received your request and are preparing your logbook.
+                            </p>
+
+                            <div style="background: #f9fafb; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #008751;">
+                                <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Order Summary</p>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Order Number:</strong> ${order_number}</p>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Amount Paid:</strong> ₦${(amount || 0).toLocaleString()}</p>
+                            </div>
+
+                            <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                                    <strong>What's next?</strong><br>
+                                    Your logbook is being prepared. You will receive another email once it is ready for pickup (approximately 48 hours).
+                                </p>
+                            </div>
+
+                            <p style="color: #4b5563; font-size: 14px;">
+                                If you have any questions, please reply to this email or use the feedback form on our website.
+                            </p>
+
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                                Best regards,<br>
+                                <strong>CourseMate Team</strong>
+                            </p>
+                        </div>
+                        <div style="background: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #9ca3af;">
+                            This is an automated message from CourseMate Logbook Service.
+                        </div>
+                    </div>
+                `,
+            });
+        }
+
+        // ============================================================
+        // EMAIL TEMPLATE 2: READY FOR PICKUP
+        // ============================================================
+        else if (type === 'ready_for_pickup') {
+            const pickupDate = new Date();
+            pickupDate.setDate(pickupDate.getDate() + 7);
+            const deadline = pickup_deadline || pickupDate.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            await transporter.sendMail({
+                from: fromEmail,
+                to: to,
+                subject: `Logbook Ready for Pickup - ${order_number}`,
+                html: `
+                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div style="background: #008751; padding: 20px; text-align: center;">
+                            <h1 style="color: white; margin: 0; font-size: 20px;">Your Logbook is Ready</h1>
+                        </div>
+                        <div style="padding: 25px; color: #333;">
+                            <p style="font-size: 15px;">Hello <strong>${full_name || 'Student'}</strong>,</p>
+                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">
+                                Good news! Your logbook has been printed and is now ready for pickup.
+                            </p>
+
+                            <div style="background: #dcfce7; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #16a34a;">
+                                <p style="margin: 0 0 10px 0; font-size: 13px; color: #166534; text-transform: uppercase; font-weight: 600;">Pickup Details</p>
+                                <p style="margin: 5px 0; font-size: 15px;"><strong>Order Number:</strong> ${order_number}</p>
+                                <p style="margin: 5px 0; font-size: 15px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
+                                <p style="margin: 5px 0; font-size: 15px;"><strong>Pickup Location:</strong> ${pickup_location || 'NOUN Study Centre'}</p>
+                                <p style="margin: 5px 0; font-size: 15px;"><strong>Available Until:</strong> ${deadline}</p>
+                            </div>
+
+                            <div style="background: #f9fafb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                                <p style="margin: 0; font-size: 14px; color: #4b5563;">
+                                    <strong>Please bring:</strong><br>
+                                    - Your Matric Number<br>
+                                    - This Order Number (${order_number})
+                                </p>
+                            </div>
+
+                            <p style="color: #4b5563; font-size: 14px;">
+                                If you cannot pick it up within 7 days, please reply to this email or use the feedback form on our website.
+                            </p>
+
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                                Best regards,<br>
+                                <strong>CourseMate Team</strong>
+                            </p>
+                        </div>
+                        <div style="background: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #9ca3af;">
+                            This is an automated message from CourseMate Logbook Service.
+                        </div>
+                    </div>
+                `,
+            });
+        } else {
+            return res.status(400).json({ error: 'Invalid email type. Use "order_received" or "ready_for_pickup".' });
+        }
+
+        return res.status(200).json({ success: true, sentTo: to, type: type });
+
+    } catch (error) {
+        console.error('Email error:', error);
+        return res.status(500).json({ error: error.message });
+    }
 };

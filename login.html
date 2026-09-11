@@ -83,12 +83,10 @@
                 <div class="flex-grow border-t border-gray-300"></div>
             </div>
 
-            <!-- Google Button (Standard) -->
             <button onclick="handleGoogleSignIn()" class="w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium flex items-center justify-center gap-3 transition">
                 <i class="fab fa-google text-red-500 text-lg"></i>Continue with Google
             </button>
 
-            <!-- Hidden Fallback Link (Only used if the button fails) -->
             <div id="forceGoogleLink" style="display: none; margin-top: 20px; text-align: center;">
                 <p class="text-sm text-red-500 mb-2">⚠️ Button failed. Use the direct link below:</p>
                 <a id="directGoogleAuth" href="#" class="text-primary-500 underline text-sm">Force Google Login</a>
@@ -100,14 +98,13 @@
         </div>
     </div>
 
-    <!-- ===== SCRIPTS ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
 
     <script>
         // ============================================================
-        // 1. PASSWORD TOGGLE
+        // PASSWORD TOGGLE
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const toggleBtn = document.getElementById('togglePassword');
@@ -128,7 +125,7 @@
         });
 
         // ============================================================
-        // 2. STANDARD GOOGLE SIGN-IN FUNCTION
+        // GOOGLE SIGN-IN
         // ============================================================
         window.handleGoogleSignIn = async function() {
             try {
@@ -139,7 +136,6 @@
                 if (error) throw error;
             } catch (err) {
                 console.error('Google Sign-In error:', err);
-                // If the button fails, show the hidden fallback link
                 document.getElementById('forceGoogleLink').style.display = 'block';
                 const directLink = document.getElementById('directGoogleAuth');
                 directLink.href = 'https://mbniynyvcxzspjmzgovp.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://coursemate-tutorial.vercel.app/google-success.html';
@@ -149,7 +145,7 @@
         };
 
         // ============================================================
-        // 3. STANDARD LOGIN LOGIC
+        // LOGIN LOGIC - UPDATED WITH REDIRECT SUPPORT
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
@@ -163,12 +159,69 @@
                     if (user) {
                         if (window.toast) window.toast.success('Login successful! Redirecting...');
 
+                        // Check if admin
                         const { data: admin } = await window.supabaseClient.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
                         if (admin) { window.location.href = 'admin/dashboard.html'; return; }
 
-                        const { data: student } = await window.supabaseClient.from('students').select('user_id').eq('user_id', user.id).maybeSingle();
-                        if (student) { window.location.href = 'student/dashboard.html'; } 
-                        else { window.location.href = 'complete-profile.html'; }
+                        // Check student record
+                        const { data: student } = await window.supabaseClient
+                            .from('students')
+                            .select('user_id, is_tutorial_student, payment_status')
+                            .eq('user_id', user.id)
+                            .maybeSingle();
+
+                        // Check redirect parameter
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect');
+
+                        // If redirect is for logbook shop
+                        if (redirect === 'logbook/shop') {
+                            window.location.href = 'student/logbook/shop.html';
+                            return;
+                        }
+
+                        // If redirect is for dashboard
+                        if (redirect === 'dashboard') {
+                            window.location.href = 'student/dashboard.html';
+                            return;
+                        }
+
+                        // If redirect is for tutorial enrollment
+                        if (redirect === 'enroll-tutorial') {
+                            if (student) {
+                                if (student.is_tutorial_student === true) {
+                                    // Already a tutorial student
+                                    if (student.payment_status === 'pending' || student.payment_status === 'expired') {
+                                        window.location.href = 'payment.html';
+                                    } else {
+                                        window.location.href = 'student/dashboard.html';
+                                    }
+                                } else {
+                                    // Logbook buyer wants to enroll
+                                    window.location.href = 'complete-profile.html?source=tutorial';
+                                }
+                            } else {
+                                window.location.href = 'complete-profile.html?source=tutorial';
+                            }
+                            return;
+                        }
+
+                        // Default redirect based on user type
+                        if (student) {
+                            if (student.is_tutorial_student === true) {
+                                // Tutorial student
+                                if (student.payment_status === 'pending' || student.payment_status === 'expired') {
+                                    window.location.href = 'payment.html';
+                                } else {
+                                    window.location.href = 'student/dashboard.html';
+                                }
+                            } else {
+                                // Logbook buyer
+                                window.location.href = 'student/logbook/shop.html';
+                            }
+                        } else {
+                            window.location.href = 'complete-profile.html';
+                        }
                     }
                 } catch (error) {
                     if (window.toast) window.toast.error('Login failed: ' + error.message);

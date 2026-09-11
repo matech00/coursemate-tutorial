@@ -4,17 +4,13 @@
 const SUPABASE_URL = "https://mbniynyvcxzspjmzgovp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
 
-// Create client
 const _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// 👇 MAKE THE CLIENT AVAILABLE GLOBALLY
 window.supabaseClient = _supabaseClient;
 
 // ============================================
 // AUTH FUNCTIONS
 // ============================================
 
-// ---------- Sign Up (only auth) ----------
 async function signUp(email, password, fullName, phone, role) {
     const { data, error } = await _supabaseClient.auth.signUp({
         email,
@@ -27,63 +23,114 @@ async function signUp(email, password, fullName, phone, role) {
     return data;
 }
 
-// ---------- Sign Up with Student Details ----------
 async function signUpStudent(email, password, fullName, phone, department, program, level, role) {
-    const { data, error } = await _supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-            data: { full_name: fullName, phone, role: role || 'student' }
+    try {
+        const { data, error } = await _supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { full_name: fullName, phone, role: role || 'student' }
+            }
+        });
+
+        if (error) {
+            if (error.message.includes('already registered')) {
+                const { data: signInData, error: signInError } = await _supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (signInError) {
+                    throw new Error('Account exists but login failed. Please reset your password.');
+                }
+
+                const user = signInData.user;
+                
+                const { data: recheckStudent } = await _supabaseClient
+                    .from('students')
+                    .select('user_id')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (recheckStudent) {
+                    throw new Error('Account exists. Please login.');
+                }
+
+                const isTutorialStudent = !!(department && program && level);
+                
+                const { error: insertError } = await _supabaseClient
+                    .from('students')
+                    .insert({
+                        user_id: user.id,
+                        full_name: fullName,
+                        email: email,
+                        phone: phone || '',
+                        department: department || '',
+                        program: program || '',
+                        level: level || '',
+                        payment_status: isTutorialStudent ? 'pending' : null,
+                        is_tutorial_student: isTutorialStudent
+                    });
+
+                if (insertError) {
+                    console.error('Insert error:', insertError);
+                    throw new Error('Account exists but profile could not be created: ' + insertError.message);
+                }
+
+                return { user: user, isNew: false };
+            }
+            throw error;
         }
-    });
-    if (error) throw error;
 
-    const user = data.user;
-    if (!user) throw new Error('User creation failed');
+        const user = data.user;
+        if (!user) throw new Error('User creation failed');
 
-    const { error: insertError } = await _supabaseClient
-        .from('students')
-        .insert([{
-            user_id: user.id,
-            full_name: fullName,
-            email: email,
-            phone: phone,
-            department: department,
-            program: program,
-            level: level,
-            payment_status: 'pending'
-        }]);
+        const isTutorialStudent = !!(department && program && level);
 
-    if (insertError) {
-        console.error('Failed to save student details:', insertError);
-        throw new Error('Account created but profile details could not be saved. Please contact admin.');
+        const { error: insertError } = await _supabaseClient
+            .from('students')
+            .insert({
+                user_id: user.id,
+                full_name: fullName,
+                email: email,
+                phone: phone || '',
+                department: department || '',
+                program: program || '',
+                level: level || '',
+                payment_status: isTutorialStudent ? 'pending' : null,
+                is_tutorial_student: isTutorialStudent
+            });
+
+        if (insertError) {
+            console.error('Insert error:', insertError);
+            throw new Error('Account created but profile could not be saved: ' + insertError.message);
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('signUpStudent error:', error);
+        throw error;
     }
-
-    return data;
 }
 
-// ---------- Sign In ----------
 async function signIn(email, password) {
     const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
 }
 
-// ---------- Sign Out ----------
 async function signOut() {
     const { error } = await _supabaseClient.auth.signOut();
     if (error) throw error;
 }
 
-// ---------- Get Current User (FIXED: Uses local storage instantly) ----------
 async function getCurrentUser() {
-    // 🟢 FIX: Read from local storage immediately (0ms network delay)
     const { data: { session }, error } = await _supabaseClient.auth.getSession();
     if (error) throw error;
     return session?.user ?? null;
 }
 
-// ---------- Require Auth ----------
 async function requireAuth(redirectTo = '../login.html') {
     const user = await getCurrentUser().catch(() => null);
     if (!user) {
@@ -93,7 +140,6 @@ async function requireAuth(redirectTo = '../login.html') {
     return user;
 }
 
-// ---------- Redirect Based on Role ----------
 function redirectBasedOnRole(user) {
     const role = user?.user_metadata?.role || 'student';
     const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
@@ -102,7 +148,6 @@ function redirectBasedOnRole(user) {
     else window.location.href = base + '/student/dashboard.html';
 }
 
-// ---------- Reset Password ----------
 async function resetPassword(email) {
     const { error } = await _supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password.html'
@@ -111,14 +156,12 @@ async function resetPassword(email) {
     return true;
 }
 
-// ---------- Update Password ----------
 async function updatePassword(newPassword) {
     const { error } = await _supabaseClient.auth.updateUser({ password: newPassword });
     if (error) throw error;
     return true;
 }
 
-// ---------- Google Sign In ----------
 async function signInWithGoogle() {
     const { data, error } = await _supabaseClient.auth.signInWithOAuth({
         provider: 'google',
@@ -130,9 +173,6 @@ async function signInWithGoogle() {
     return data;
 }
 
-// ============================================
-// EXPOSE TO GLOBAL SCOPE
-// ============================================
 window.auth = {
     signUp,
     signUpStudent,
@@ -146,9 +186,6 @@ window.auth = {
     signInWithGoogle
 };
 
-// ============================================================
-//  SHOW / HIDE SUPER ADMIN LINK BASED ON ROLE
-// ============================================================
 async function updateSidebarForRole() {
     try {
         const user = await window.auth.getCurrentUser();
@@ -168,7 +205,6 @@ async function updateSidebarForRole() {
             superLink.style.display = isSuper ? 'flex' : 'none';
         }
     } catch (err) {
-        // ✅ SILENTLY IGNORE "Auth session missing" errors on public pages
         if (err.message && err.message.includes('Auth session missing')) {
             return; 
         }
@@ -178,5 +214,4 @@ async function updateSidebarForRole() {
     }
 }
 
-// Call it on page load
 document.addEventListener('DOMContentLoaded', updateSidebarForRole);

@@ -144,6 +144,7 @@
             <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
             <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
             <a href="id-card.html"><i class="fas fa-id-card"></i> ID Card</a>
+            <a href="logbook/shop.html"><i class="fas fa-book"></i> Buy Logbook</a>  
         </nav>
         <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
         <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -259,6 +260,68 @@
 
     <script src="../js/auth.js"></script>
     <script>
+// ============================================================
+// VERIFY DASHBOARD ACCESS
+// ============================================================
+async function verifyDashboardAccess() {
+    try {
+        const user = await window.auth.getCurrentUser();
+        if (!user) {
+            window.location.href = '../login.html';
+            return;
+        }
+
+        const { data: student, error } = await supabaseClient
+            .from('students')
+            .select('is_tutorial_student, payment_status')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        // If not a tutorial student or payment not complete, redirect
+        if (!student || student.is_tutorial_student !== true || student.payment_status !== 'paid') {
+            // Redirect to logbook shop or payment
+            if (student && student.is_tutorial_student === true) {
+                // Tutorial student but not paid - go to payment
+                window.location.href = '../payment.html';
+            } else {
+                // Logbook only user - go to shop
+                window.location.href = 'logbook/shop.html';
+            }
+            return;
+        }
+
+        // User has access - load the page
+        loadStudentData();
+        loadStudentProgress();
+        loadNotifications();
+
+    } catch (error) {
+        console.error('Dashboard verification error:', error);
+        window.location.href = '../login.html';
+    }
+}
+
+// Replace the existing DOMContentLoaded with this:
+document.addEventListener('DOMContentLoaded', function() {
+    verifyDashboardAccess();
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // ============================================================
         // SIDEBAR FUNCTIONS
         // ============================================================

@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <script>
         tailwind.config = {
             theme: {
@@ -26,7 +25,6 @@
 </head>
 <body>
 
-    <!-- ===== MINIMAL HEADER ===== -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-8 shadow-sm">
         <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
             <a href="index.html" class="text-2xl font-bold text-primary-500">
@@ -39,7 +37,6 @@
         </div>
     </nav>
 
-    <!-- ===== PROFILE FORM ===== -->
     <div class="bg-gradient-to-b from-primary-50 to-white min-h-screen flex items-center justify-center px-4 pt-20 pb-10">
         <div class="bg-white max-w-md w-full rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
             <div class="text-center mb-8">
@@ -47,36 +44,32 @@
                     <i class="fas fa-user-edit"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-900">Complete Your Profile</h2>
-                <p class="text-gray-600 mt-1 text-sm">Tell us a bit more about you</p>
+                <p class="text-gray-600 mt-1 text-sm">Tell us a bit more about you to continue with tutorial enrollment.</p>
             </div>
 
             <form id="profileForm">
-                <!-- Phone Number -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
                     <input type="tel" id="phone" placeholder="080 123 4567" 
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow" required />
                 </div>
 
-                <!-- Department Dropdown -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                    <select id="department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Department <span class="text-red-500">*</span></label>
+                    <select id="department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white" required>
                         <option value="">Select Department</option>
                     </select>
                 </div>
 
-                <!-- Program Dropdown -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Program</label>
-                    <select id="program" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Program <span class="text-red-500">*</span></label>
+                    <select id="program" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white" required>
                         <option value="">Select Program</option>
                     </select>
                 </div>
 
-                <!-- Level Dropdown -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Level <span class="text-red-500">*</span></label>
                     <select id="level" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow bg-white" required>
                         <option value="">Select Level</option>
                         <option value="100L">100 Level</option>
@@ -91,47 +84,62 @@
                     <i class="fas fa-save"></i> Save & Continue
                 </button>
             </form>
-
-            <div class="text-center mt-6 text-sm text-gray-500">
-                <a href="login.html" class="hover:text-primary-500"><i class="fas fa-arrow-left mr-1"></i> Back to Login</a>
-            </div>
         </div>
     </div>
 
-    <!-- ===== SCRIPTS ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
 
     <script>
-        // ============================================================
-        //  SUPABASE CLIENT
-        // ============================================================
         const supabaseClient = window.supabaseClient;
 
         // ============================================================
-        //  1. CHECK USER AUTH
+        // GET SOURCE
         // ============================================================
-        async function checkUser() {
-            try {
-                const user = await window.auth.getCurrentUser();
-                if (!user) {
-                    window.location.href = 'login.html';
-                    return null;
-                }
-                return user;
-            } catch (e) {
-                window.location.href = 'login.html';
-                return null;
-            }
+        function getSource() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('source') || 'tutorial';
         }
 
         // ============================================================
-        //  2. LOAD DEPARTMENTS & PROGRAMS
+        // CHECK USER - ALLOW LOGBOOK BUYERS TO ENROLL
+        // ============================================================
+        async function checkUserType(user) {
+            const { data: student } = await supabaseClient
+                .from('students')
+                .select('is_tutorial_student, phone, department, program, level')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            const source = getSource();
+
+            // Logbook buyers CAN enroll in tutorial (source = tutorial)
+            // Only redirect if they're a logbook buyer AND NOT coming from tutorial enrollment
+            if (student && student.is_tutorial_student === false && source !== 'tutorial') {
+                window.location.href = 'student/logbook/shop.html';
+                return false;
+            }
+
+            // If user is already a tutorial student, redirect to dashboard or payment
+            if (student && student.is_tutorial_student === true) {
+                // Check if profile is complete
+                if (!student.phone || !student.department || !student.program || !student.level) {
+                    return true; // Stay on this page
+                }
+                // Profile complete, go to payment
+                window.location.href = 'payment.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // ============================================================
+        // LOAD DROPDOWNS
         // ============================================================
         async function loadDropdowns() {
             try {
-                // Load Departments
                 const { data: departments, error: deptError } = await supabaseClient
                     .from('departments')
                     .select('id, name')
@@ -140,7 +148,6 @@
 
                 const deptSelect = document.getElementById('department');
                 deptSelect.innerHTML = '<option value="">Select Department</option>';
-                
                 departments.forEach(d => {
                     const opt = document.createElement('option');
                     opt.value = d.id;
@@ -148,21 +155,17 @@
                     deptSelect.appendChild(opt);
                 });
 
-                // Load Programs (Triggered when Department changes)
                 const progSelect = document.getElementById('program');
-                
                 document.getElementById('department').addEventListener('change', async function() {
                     const deptId = this.value;
                     progSelect.innerHTML = '<option value="">Select Program</option>';
                     if (!deptId) return;
-
                     const { data: programs, error: progError } = await supabaseClient
                         .from('programs')
                         .select('id, name')
                         .eq('department_id', deptId)
                         .order('name');
                     if (progError) throw progError;
-
                     programs.forEach(p => {
                         const opt = document.createElement('option');
                         opt.value = p.id;
@@ -170,7 +173,6 @@
                         progSelect.appendChild(opt);
                     });
                 });
-
             } catch (err) {
                 console.error('Load error:', err);
                 alert('Could not load departments. Please refresh.');
@@ -178,7 +180,29 @@
         }
 
         // ============================================================
-        //  3. SAVE PROFILE (WITH DUPLICATE CHECK)
+        // PRE-FILL EXISTING DATA
+        // ============================================================
+        async function preFillData(user) {
+            try {
+                const { data: student } = await supabaseClient
+                    .from('students')
+                    .select('phone, department, program, level')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (student) {
+                    if (student.phone) document.getElementById('phone').value = student.phone;
+                    // Note: Department, program, level are dropdowns
+                    // We'll need to match the text, which is more complex
+                    // For now, only pre-fill phone
+                }
+            } catch (err) {
+                console.error('Pre-fill error:', err);
+            }
+        }
+
+        // ============================================================
+        // SAVE PROFILE
         // ============================================================
         document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -187,12 +211,13 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             try {
-                const user = await checkUser();
-                if (!user) return;
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
 
                 const phone = document.getElementById('phone').value.trim();
-                
-                // Get the displayed text, NOT the UUID
                 const department = document.getElementById('department').options[document.getElementById('department').selectedIndex].text;
                 const program = document.getElementById('program').options[document.getElementById('program').selectedIndex].text;
                 const level = document.getElementById('level').value;
@@ -204,35 +229,33 @@
                     return;
                 }
 
-                // 🔥 FIX: Check if student already exists
-                const { data: existingStudent, error: checkError } = await supabaseClient
+                // Check if student already exists
+                const { data: existingStudent } = await supabaseClient
                     .from('students')
                     .select('id')
                     .eq('user_id', user.id)
                     .maybeSingle();
 
-                if (checkError) throw checkError;
-
                 let result;
 
                 if (existingStudent) {
-                    // ✅ UPDATE existing record
+                    // Update existing record - set is_tutorial_student to true
                     result = await supabaseClient
                         .from('students')
                         .update({
-                            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
-                            email: user.email,
                             phone: phone,
                             department: department,
                             program: program,
-                            level: level
+                            level: level,
+                            is_tutorial_student: true,
+                            payment_status: 'pending'
                         })
                         .eq('user_id', user.id);
                 } else {
-                    // ✅ INSERT new record
+                    // Insert new record
                     result = await supabaseClient
                         .from('students')
-                        .insert([{
+                        .insert({
                             user_id: user.id,
                             full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
                             email: user.email,
@@ -240,13 +263,14 @@
                             department: department,
                             program: program,
                             level: level,
-                            payment_status: 'pending'
-                        }]);
+                            payment_status: 'pending',
+                            is_tutorial_student: true
+                        });
                 }
 
                 if (result.error) throw result.error;
 
-                // Redirect to Payment
+                // Redirect to payment
                 window.location.href = 'payment.html';
 
             } catch (err) {
@@ -258,12 +282,19 @@
         });
 
         // ============================================================
-        //  INIT
+        // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', async function() {
-            const user = await checkUser();
-            if (user) {
+            const user = await window.auth.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const isValid = await checkUserType(user);
+            if (isValid) {
                 await loadDropdowns();
+                await preFillData(user);
             }
         });
     </script>
