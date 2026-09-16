@@ -28,7 +28,7 @@
         .order-details .row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .order-details .row:last-child { border-bottom: none; }
         .order-details .label { color: var(--muted); font-weight: 500; }
-        .order-details .value { font-weight: 600; color: var(--text); text-align: right; }
+        .order-details .value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; }
         .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; font-size: 0.9rem; touch-action: manipulation; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
@@ -46,7 +46,7 @@
         .section-title i { color: var(--primary); }
         .history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .history-table th { text-align: left; padding: 0.6rem 0.5rem; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; border-bottom: 1px solid var(--border); font-weight: 600; }
-        .history-table td { padding: 0.7rem 0.5rem; border-bottom: 1px solid var(--border); }
+        .history-table td { padding: 0.7rem 0.5rem; border-bottom: 1px solid var(--border); word-break: break-word; }
         .history-table tr:last-child td { border-bottom: none; }
         .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
         .badge-accepted { background: #dcfce7; color: #166534; }
@@ -64,12 +64,39 @@
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+
+        /* ============================================================ */
+        /* MOBILE RESPONSIVE STYLES */
+        /* ============================================================ */
         @media (max-width: 640px) {
-            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
-            .container { padding: 1rem; }
-            .card { padding: 1.25rem; }
-            .order-details .row { flex-direction: column; gap: 0.2rem; }
-            .order-details .value { text-align: left; }
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; flex-wrap: wrap; }
+            .navbar .nav-links a { font-size: 0.8rem; }
+            .container { padding: 1rem; max-width: 100%; }
+            .card { padding: 1.25rem; border-radius: 12px; }
+            h1 { font-size: 1.3rem; }
+            .subtitle { font-size: 0.85rem; }
+            .success-icon { width: 60px; height: 60px; font-size: 2rem; }
+            .order-details { padding: 1rem; }
+            .order-details .row { flex-direction: column; gap: 0.15rem; padding: 0.6rem 0; }
+            .order-details .label { font-size: 0.75rem; text-transform: uppercase; }
+            .order-details .value { text-align: left; font-size: 0.9rem; }
+            .status-steps { justify-content: flex-start; gap: 0.5rem; padding: 0.5rem 0; }
+            .status-steps .step { min-width: 60px; }
+            .status-steps .step .circle { width: 30px; height: 30px; font-size: 0.75rem; }
+            .status-steps .step .label { font-size: 0.6rem; }
+            .actions { flex-direction: column; gap: 0.5rem; }
+            .actions .btn { width: 100%; justify-content: center; padding: 0.75rem; }
+            .history-table th { display: none; }
+            .history-table tr { display: flex; flex-direction: column; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+            .history-table td { display: flex; justify-content: space-between; padding: 0.25rem 0; border: none; }
+            .history-table td::before { content: attr(data-label); font-weight: 600; color: var(--muted); font-size: 0.75rem; margin-right: 1rem; flex-shrink: 0; }
+            .history-table td:last-child { border-bottom: none; }
+            .modal-content { padding: 1.25rem; max-width: 95%; }
+            .modal-content h2 { font-size: 1.1rem; }
+            .form-group input, .form-group textarea { font-size: 0.9rem; padding: 0.65rem; }
+            .modal-actions { flex-direction: column-reverse; gap: 0.5rem; }
+            .modal-actions .btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -160,6 +187,7 @@
             var navLinks = document.getElementById('navLinks');
             var studentEmail = localStorage.getItem('studentEmail');
             var adminEmail = localStorage.getItem('adminEmail');
+            var isMobile = window.innerWidth < 640;
             var html = '';
 
             if (adminEmail) {
@@ -169,14 +197,24 @@
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
             navLinks.innerHTML = html;
         })();
+
+        function logout() {
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('adminEmail');
+            sessionStorage.clear();
+            window.location.href = '../../index.html';
+        }
 
         // ============================================================
         // STATUS CONFIG
@@ -271,7 +309,7 @@
         }
 
         // ============================================================
-        // LOAD MY ORDERS (all history)
+        // LOAD MY ORDERS (history, no order number, responsive)
         // ============================================================
         function loadMyOrders() {
             var email = null;
@@ -284,7 +322,8 @@
                 return;
             }
 
-            supabaseClient.from('logbook_orders').select('order_number, logbook_code, logbook_name, amount, status, order_date')
+            supabaseClient.from('logbook_orders')
+                .select('order_number, logbook_code, logbook_name, amount, status, order_date')
                 .eq('email', email).order('order_date', { ascending: false })
                 .then(function(result) {
                     var orders = result.data || [];
@@ -292,22 +331,23 @@
                         document.getElementById('myOrdersContent').innerHTML = '<p style="color: var(--muted); text-align: center; font-size: 0.9rem;">You have no previous orders.</p>';
                         return;
                     }
-                    var html = '<table class="history-table"><thead><tr><th>Order #</th><th>Logbook</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                    var html = '<table class="history-table"><thead><tr><th>Logbook</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>';
                     orders.forEach(function(o) {
                         var badge = STATUS_BADGE[o.status] || 'badge-accepted';
                         var label = STATUS_LABELS[o.status] || o.status;
+                        var logbookText = (o.logbook_code || '---') + (o.logbook_name ? ' - ' + o.logbook_name : '');
                         html += '<tr>' +
-                            '<td><strong>' + o.order_number + '</strong></td>' +
-                            '<td>' + (o.logbook_code || '---') + '</td>' +
-                            '<td>₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</td>' +
-                            '<td>' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</td>' +
-                            '<td><span class="badge ' + badge + '">' + label + '</span></td>' +
+                            '<td data-label="Logbook">' + logbookText + '</td>' +
+                            '<td data-label="Amount">₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</td>' +
+                            '<td data-label="Date">' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</td>' +
+                            '<td data-label="Status"><span class="badge ' + badge + '">' + label + '</span></td>' +
                         '</tr>';
                     });
                     html += '</tbody></table>';
                     document.getElementById('myOrdersContent').innerHTML = html;
                 })
-                .catch(function() {
+                .catch(function(err) {
+                    console.error('My orders error:', err);
                     document.getElementById('myOrdersContent').innerHTML = '<p style="color: var(--muted); text-align: center; font-size: 0.9rem;">Failed to load history.</p>';
                 });
         }

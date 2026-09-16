@@ -14,7 +14,7 @@
         :root {
             --bg: #f9fafb; --card: #ffffff; --text: #111827;
             --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
-            --hover-bg: #f3f4f6; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+            --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
         }
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
@@ -34,12 +34,11 @@
         .form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
         .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; transition: border 0.2s; font-family: inherit; }
         .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
-        .form-group small { color: var(--muted); font-size: 0.75rem; display: block; margin-top: 0.25rem; }
         .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #008751; animation: spin 0.8s linear infinite; vertical-align: middle; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #008751; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
         .text-center { text-align: center; }
@@ -55,6 +54,8 @@
         .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
         @media (max-width: 640px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; flex-wrap: wrap; }
+            .navbar .nav-links a { font-size: 0.8rem; }
             .container { padding: 1rem; }
             .checkout-card { padding: 1.25rem; }
         }
@@ -91,8 +92,7 @@
                 </div>
                 <div class="form-group">
                     <label for="matricNumber">Matric Number <span style="color: #dc2626;">*</span></label>
-                    <input type="text" id="matricNumber" placeholder="e.g., NOU20251234" required />
-                    <small>Must be 9-12 alphanumeric characters.</small>
+                    <input type="text" id="matricNumber" placeholder="e.g., NOU123456789" required />
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address <span style="color: #dc2626;">*</span></label>
@@ -108,7 +108,7 @@
                 </div>
                 <div class="form-group">
                     <label for="level">Level <span style="color: #dc2626;">*</span></label>
-                    <input type="text" id="level" placeholder="e.g., 100" required />
+                    <input type="text" id="level" placeholder="e.g., 100 Level" required />
                 </div>
                 <div class="form-group">
                     <label for="group">Group <span style="color: #dc2626;">*</span></label>
@@ -120,7 +120,7 @@
                 </div>
                 <div class="form-group">
                     <label for="studyCentre">Study Centre</label>
-                    <input type="text" id="studyCentre" placeholder="e.g., Lagos Study Centre" />
+                    <input type="text" id="studyCentre" placeholder="e.g., Ikorodu Study Centre" />
                 </div>
 
                 <button type="submit" id="payBtn" class="btn btn-primary">
@@ -136,23 +136,18 @@
     </div>
 
     <script>
-        // ============================================================
-        // CONFIG
-        // ============================================================
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         var PAYSTACK_KEY = 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a';
 
-        // ============================================================
-        // SMART NAVBAR
-        // ============================================================
+        // Smart navbar
         (function() {
             var navLinks = document.getElementById('navLinks');
             var studentEmail = localStorage.getItem('studentEmail');
             var adminEmail = localStorage.getItem('adminEmail');
+            var isMobile = window.innerWidth < 640;
             var html = '';
-
             if (adminEmail) {
                 html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
@@ -160,38 +155,64 @@
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
             navLinks.innerHTML = html;
         })();
 
-        // ============================================================
-        // TOAST
-        // ============================================================
+        function logout() {
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('adminEmail');
+            sessionStorage.clear();
+            window.location.href = '../../index.html';
+        }
+
         function showToast(message, type) {
             type = type || 'info';
             var container = document.getElementById('toastContainer');
             var toast = document.createElement('div');
             toast.className = 'toast ' + type;
             var icons = { success: 'fas fa-check-circle', error: 'fas fa-exclamation-circle', warning: 'fas fa-exclamation-triangle', info: 'fas fa-info-circle' };
-            var iconClass = icons[type] || icons.info;
-            toast.innerHTML = '<i class="' + iconClass + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+            toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
             container.appendChild(toast);
             setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
         }
 
-        // ============================================================
-        // LOAD SELECTED LOGBOOK
-        // ============================================================
+        // Auto-normalize on blur
+        function normalizeLevel(el) {
+            var v = el.value.trim();
+            if (v && !/level/i.test(v)) {
+                v = v.replace(/\s*level\s*/i, '').trim();
+                el.value = v + ' Level';
+            }
+        }
+        function normalizeGroup(el) {
+            var v = el.value.trim();
+            if (v && !/group/i.test(v)) {
+                v = v.replace(/\s*group\s*/i, '').trim();
+                el.value = 'Group ' + v;
+            }
+        }
+        function normalizeCentre(el) {
+            var v = el.value.trim();
+            if (v && !/study\s*cent(re|er)/i.test(v)) {
+                v = v.replace(/\s*study\s*cent(re|er)\s*/i, '').trim();
+                el.value = v + ' Study Centre';
+            }
+        }
+
         function loadSelectedLogbook() {
             try {
                 var data = sessionStorage.getItem('selectedLogbook');
                 if (!data) {
-                    showToast('No logbook selected. Redirecting to shop...', 'warning');
+                    showToast('No logbook selected. Redirecting...', 'warning');
                     setTimeout(function() { window.location.href = 'shop.html'; }, 2000);
                     return null;
                 }
@@ -199,7 +220,6 @@
                 document.getElementById('logbookDisplay').textContent = book.code + ' - ' + book.name;
                 document.getElementById('amountDisplay').textContent = '₦' + book.price.toLocaleString();
 
-                // Pre-fill email from localStorage if user logged in
                 var savedEmail = localStorage.getItem('studentEmail');
                 var savedName = localStorage.getItem('studentName');
                 if (savedEmail) document.getElementById('email').value = savedEmail;
@@ -213,9 +233,6 @@
             }
         }
 
-        // ============================================================
-        // GENERATE ORDER NUMBER
-        // ============================================================
         function generateOrderNumber() {
             var date = new Date();
             var year = date.getFullYear();
@@ -225,9 +242,6 @@
             return 'CMT-' + year + month + day + '-' + random;
         }
 
-        // ============================================================
-        // SUBMIT ORDER
-        // ============================================================
         document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -235,23 +249,30 @@
             if (!book) return;
 
             var studentName = document.getElementById('studentName').value.trim();
-            var matricNumber = document.getElementById('matricNumber').value.trim();
+            var matricNumber = document.getElementById('matricNumber').value.trim().toUpperCase();
             var email = document.getElementById('email').value.trim();
             var phone = document.getElementById('phone').value.trim();
             var department = document.getElementById('department').value.trim();
-            var studyCentre = document.getElementById('studyCentre').value.trim();
             var programme = document.getElementById('programme').value.trim();
+
+            // Auto-normalize on submit (in case user didn't blur)
+            normalizeLevel(document.getElementById('level'));
+            normalizeGroup(document.getElementById('group'));
+            normalizeCentre(document.getElementById('studyCentre'));
+
             var level = document.getElementById('level').value.trim();
             var group = document.getElementById('group').value.trim();
+            var studyCentre = document.getElementById('studyCentre').value.trim();
 
             if (!studentName || !matricNumber || !email || !phone || !programme || !level || !group) {
                 showToast('Please fill in all required fields.', 'error');
                 return;
             }
 
-            var matricRegex = /^[a-zA-Z0-9]{9,12}$/;
+            // NOUN matric format: NOU + 9 digits = 12 chars
+            var matricRegex = /^NOU\d{9}$/;
             if (!matricRegex.test(matricNumber)) {
-                showToast('Invalid Matric Number. Must be 9-12 letters/numbers.', 'error');
+                showToast('Invalid Matric Number. Format must be NOU followed by 9 digits (e.g., NOU123456789).', 'error');
                 return;
             }
 
@@ -289,9 +310,7 @@
                 .select()
                 .single()
                 .then(function(result) {
-                    if (result.error) {
-                        throw result.error;
-                    }
+                    if (result.error) throw result.error;
 
                     var reference = 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
 
@@ -304,14 +323,10 @@
                         metadata: {
                             custom_fields: [
                                 { display_name: "Order Number", variable_name: "order_number", value: orderNumber },
-                                { display_name: "Logbook", variable_name: "logbook", value: book.code },
-                                { display_name: "Student Name", variable_name: "student_name", value: studentName },
-                                { display_name: "Matric Number", variable_name: "matric_number", value: matricNumber }
+                                { display_name: "Logbook", variable_name: "logbook", value: book.code }
                             ]
                         },
                         callback: function(response) {
-                            console.log('Payment successful:', response);
-
                             supabaseClient
                                 .from('logbook_orders')
                                 .update({
@@ -320,7 +335,6 @@
                                 })
                                 .eq('order_number', orderNumber)
                                 .then(function() {
-                                    // ✅ Save FULL order info for confirmation page + history
                                     sessionStorage.setItem('lastOrder', JSON.stringify({
                                         orderNumber: orderNumber,
                                         studentName: studentName,
@@ -331,17 +345,11 @@
                                         orderDate: new Date().toLocaleDateString(),
                                         deliveryDate: deliveryDate.toLocaleDateString()
                                     }));
-
-                                    // ✅ Persist email + name so my-orders.html and confirmation.html can find them
                                     localStorage.setItem('studentEmail', email);
                                     localStorage.setItem('studentName', studentName);
-
-                                    sessionStorage.setItem('orderMessage', 'Order #' + orderNumber + ' placed successfully!');
                                     window.location.href = 'confirmation.html';
                                 })
-                                .catch(function(err) {
-                                    console.error('Update error:', err);
-                                    // Still save & redirect even if update failed (payment went through)
+                                .catch(function() {
                                     sessionStorage.setItem('lastOrder', JSON.stringify({
                                         orderNumber: orderNumber,
                                         studentName: studentName,
@@ -357,7 +365,7 @@
                                 });
                         },
                         onClose: function() {
-                            showToast('Payment cancelled. You can try again.', 'warning');
+                            showToast('Payment cancelled. Try again.', 'warning');
                             payBtn.disabled = false;
                             payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
                             statusDiv.classList.add('hidden');
@@ -365,11 +373,10 @@
                     });
 
                     handler.openIframe();
-
                 })
                 .catch(function(error) {
                     console.error('Order error:', error);
-                    showToast('Failed to place order: ' + (error.message || error.error_description || 'Unknown error'), 'error');
+                    showToast('Failed to place order: ' + (error.message || 'Unknown error'), 'error');
                     payBtn.disabled = false;
                     payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
                     statusDiv.classList.add('hidden');
@@ -378,6 +385,9 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadSelectedLogbook();
+            document.getElementById('level').addEventListener('blur', function() { normalizeLevel(this); });
+            document.getElementById('group').addEventListener('blur', function() { normalizeGroup(this); });
+            document.getElementById('studyCentre').addEventListener('blur', function() { normalizeCentre(this); });
         });
     </script>
 </body>

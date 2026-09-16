@@ -13,6 +13,7 @@ module.exports = async function handler(req, res) {
     try {
         const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
         if (!gmailAppPassword) {
+            console.error('Missing GMAIL_APP_PASSWORD env var');
             return res.status(500).json({ error: 'Missing Gmail password' });
         }
 
@@ -27,12 +28,15 @@ module.exports = async function handler(req, res) {
         await transporter.verify();
         const fromEmail = '"CourseMate Tutorial" <coursematetutorial@gmail.com>';
 
-        const { type, to, full_name, order_number, logbook_code, logbook_name, amount, pickup_location, email, subject, message } = req.body;
+        const body = req.body || {};
+        const type = body.type;
 
         // ============================================================
         // FEEDBACK EMAIL
         // ============================================================
         if (type === 'feedback') {
+            const { full_name, email, subject, message } = body;
+
             if (!subject || !message) {
                 return res.status(400).json({ error: 'Missing feedback fields' });
             }
@@ -40,8 +44,8 @@ module.exports = async function handler(req, res) {
             await transporter.sendMail({
                 from: fromEmail,
                 to: 'coursematetutorial@gmail.com',
-                replyTo: email,
-                subject: `New Feedback: ${subject}`,
+                replyTo: email || 'noreply@coursemate.com',
+                subject: 'New Feedback: ' + subject,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; color: #333;">
                         <div style="border-bottom: 2px solid #008751; padding-bottom: 10px; margin-bottom: 20px;">
@@ -52,6 +56,9 @@ module.exports = async function handler(req, res) {
                         <p style="color: #6b7280; font-size: 13px;">Email: ${email || 'Not provided'}</p>
                         <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin: 15px 0;">
                             <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${message}</p>
+                        </div>
+                        <div style="border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 15px; font-size: 12px; color: #9ca3af; text-align: center;">
+                            <p style="margin: 0;">This is an automated notification from CourseMate Tutorial.</p>
                         </div>
                     </div>
                 `,
@@ -64,6 +71,8 @@ module.exports = async function handler(req, res) {
         // ORDER RECEIVED
         // ============================================================
         if (type === 'order_received') {
+            const { to, full_name, order_number, logbook_code, logbook_name, amount } = body;
+
             if (!to || !order_number) {
                 return res.status(400).json({ error: 'Missing order details' });
             }
@@ -71,7 +80,7 @@ module.exports = async function handler(req, res) {
             await transporter.sendMail({
                 from: fromEmail,
                 to: to,
-                subject: `Order Received - ${order_number}`,
+                subject: 'Order Received - ' + order_number,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <div style="background: #008751; padding: 20px; text-align: center;">
@@ -107,6 +116,8 @@ module.exports = async function handler(req, res) {
         // READY FOR PICKUP
         // ============================================================
         if (type === 'ready_for_pickup') {
+            const { to, full_name, order_number, logbook_code, logbook_name, pickup_location } = body;
+
             if (!to || !order_number) {
                 return res.status(400).json({ error: 'Missing order details' });
             }
@@ -118,7 +129,7 @@ module.exports = async function handler(req, res) {
             await transporter.sendMail({
                 from: fromEmail,
                 to: to,
-                subject: `Logbook Ready for Pickup - ${order_number}`,
+                subject: 'Logbook Ready for Pickup - ' + order_number,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <div style="background: #008751; padding: 20px; text-align: center;">
@@ -156,6 +167,6 @@ module.exports = async function handler(req, res) {
 
     } catch (error) {
         console.error('Email error:', error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message || 'Unknown error' });
     }
 };

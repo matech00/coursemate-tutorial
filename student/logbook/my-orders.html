@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
+        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-dark: #006d3f; }
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
@@ -29,15 +29,14 @@
         .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; touch-action: manipulation; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
-        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-        .order-card { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; transition: all 0.2s; }
-        .order-card:hover { border-color: var(--primary); }
-        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+        .order-card { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; background: var(--card); }
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
         .order-number { font-weight: 700; font-size: 1rem; }
-        .order-detail { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.9rem; }
-        .order-detail .label { color: var(--muted); }
-        .order-detail .value { font-weight: 500; }
-        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .order-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
+        .order-field { display: flex; flex-direction: column; gap: 0.2rem; }
+        .order-field .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+        .order-field .value { font-size: 0.9rem; font-weight: 500; color: var(--text); word-break: break-word; overflow-wrap: anywhere; }
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .badge-accepted { background: #dcfce7; color: #166534; }
         .badge-processing { background: #fef3c7; color: #92400e; }
         .badge-ready { background: #ede9fe; color: #5b21b6; }
@@ -46,8 +45,14 @@
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: var(--primary); }
         @media (max-width: 640px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; }
+            .navbar .nav-links a { font-size: 0.8rem; }
             .container { padding: 1rem; }
             .card { padding: 1.25rem; }
+            .card h1 { font-size: 1.2rem; }
+            .search-row { flex-direction: column; }
+            .search-row button { width: 100%; justify-content: center; }
+            .order-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -64,16 +69,16 @@
             <p style="color: var(--muted); margin: 0;">Track all your logbook orders in one place.</p>
 
             <div class="search-row">
-                <input type="text" id="searchInput" placeholder="Enter your email OR matric number..." />
+                <input type="text" id="searchInput" placeholder="Enter email, matric number, or course code..." />
                 <button class="btn btn-primary" onclick="searchOrders()"><i class="fas fa-search"></i> Search</button>
             </div>
-            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">We use this to look up your order history. Only you can see your orders.</p>
+            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">Search by email, matric number (e.g., NOU123456789), or course code (e.g., PHY191).</p>
         </div>
 
         <div id="resultsContainer">
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <p>Enter your email or matric number above to view your orders.</p>
+                <p>Enter your email, matric number, or course code above to view your orders.</p>
             </div>
         </div>
     </div>
@@ -83,37 +88,27 @@
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        var STATUS_LABELS = {
-            'accepted': 'Order Received',
-            'processing': 'Being Prepared',
-            'ready': 'Ready for Pickup',
-            'picked_up': 'Picked Up'
-        };
-        var STATUS_BADGE = {
-            'accepted': 'badge-accepted',
-            'processing': 'badge-processing',
-            'ready': 'badge-ready',
-            'picked_up': 'badge-picked_up'
-        };
+        var STATUS_LABELS = { 'accepted': 'Order Received', 'processing': 'Being Prepared', 'ready': 'Ready for Pickup', 'picked_up': 'Picked Up' };
+        var STATUS_BADGE = { 'accepted': 'badge-accepted', 'processing': 'badge-processing', 'ready': 'badge-ready', 'picked_up': 'badge-picked_up' };
 
         function renderNavbar() {
             var navLinks = document.getElementById('navLinks');
             var studentEmail = localStorage.getItem('studentEmail');
             var adminEmail = localStorage.getItem('adminEmail');
+            var isMobile = window.innerWidth < 640;
             var html = '';
-
             if (adminEmail) {
-                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>';
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
-                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else if (studentEmail) {
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
-                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
             navLinks.innerHTML = html;
         }
@@ -122,17 +117,13 @@
             localStorage.removeItem('studentEmail');
             localStorage.removeItem('studentName');
             localStorage.removeItem('adminEmail');
-            localStorage.removeItem('adminUser');
             sessionStorage.clear();
             window.location.href = '../../index.html';
         }
 
         async function searchOrders() {
             var query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                alert('Please enter your email or matric number.');
-                return;
-            }
+            if (!query) { alert('Please enter email, matric number, or course code.'); return; }
 
             var container = document.getElementById('resultsContainer');
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Searching...</p></div>';
@@ -140,10 +131,11 @@
             var result = await supabaseClient
                 .from('logbook_orders')
                 .select('*')
-                .or('email.eq.' + query + ',matric_number.eq.' + query)
+                .or('email.eq.' + query + ',matric_number.eq.' + query + ',logbook_code.ilike.%' + query + '%,logbook_name.ilike.%' + query + '%')
                 .order('order_date', { ascending: false });
 
             if (result.error) {
+                console.error('Search error:', result.error);
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to search. Please try again.</p></div>';
                 return;
             }
@@ -154,10 +146,7 @@
                 return;
             }
 
-            // Save for future visits
-            if (query.includes('@')) {
-                localStorage.setItem('studentEmail', query);
-            }
+            if (query.includes('@')) localStorage.setItem('studentEmail', query);
 
             var html = '<div style="margin-bottom: 1rem; color: var(--muted); font-size: 0.9rem;">Found ' + orders.length + ' order(s)</div>';
             orders.forEach(function(o) {
@@ -168,11 +157,14 @@
                         '<span class="order-number">' + o.order_number + '</span>' +
                         '<span class="badge ' + badge + '">' + label + '</span>' +
                     '</div>' +
-                    '<div class="order-detail"><span class="label">Logbook</span><span class="value">' + (o.logbook_code || '---') + ' - ' + (o.logbook_name || '---') + '</span></div>' +
-                    '<div class="order-detail"><span class="label">Amount Paid</span><span class="value">&#8358;' + (o.amount ? o.amount.toLocaleString() : '0') + '</span></div>' +
-                    '<div class="order-detail"><span class="label">Order Date</span><span class="value">' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</span></div>' +
-                    '<div class="order-detail"><span class="label">Programme</span><span class="value">' + (o.programme || '---') + '</span></div>' +
-                    '<div class="order-detail"><span class="label">Level / Group</span><span class="value">' + (o.level || '---') + ' / ' + (o.student_group || '---') + '</span></div>' +
+                    '<div class="order-grid">' +
+                        '<div class="order-field"><span class="label">Logbook</span><span class="value">' + (o.logbook_code || '---') + (o.logbook_name ? ' - ' + o.logbook_name : '') + '</span></div>' +
+                        '<div class="order-field"><span class="label">Amount</span><span class="value">&#8358;' + (o.amount ? o.amount.toLocaleString() : '0') + '</span></div>' +
+                        '<div class="order-field"><span class="label">Order Date</span><span class="value">' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</span></div>' +
+                        '<div class="order-field"><span class="label">Student</span><span class="value">' + (o.student_name || '---') + '</span></div>' +
+                        '<div class="order-field"><span class="label">Matric</span><span class="value">' + (o.matric_number || '---') + '</span></div>' +
+                        '<div class="order-field"><span class="label">Level / Group</span><span class="value">' + (o.level || '---') + ' / ' + (o.student_group || '---') + '</span></div>' +
+                    '</div>' +
                 '</div>';
             });
             container.innerHTML = html;
@@ -180,15 +172,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderNavbar();
-
-            // Auto-fill from localStorage
             var savedEmail = localStorage.getItem('studentEmail');
-            if (savedEmail) {
-                document.getElementById('searchInput').value = savedEmail;
-                searchOrders();
-            }
-
-            // Allow Enter key to search
+            if (savedEmail) document.getElementById('searchInput').value = savedEmail;
             document.getElementById('searchInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchOrders();
             });
