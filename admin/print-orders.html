@@ -12,7 +12,7 @@
     <style>
         :root {
             --bg: #f9fafb; --card: #ffffff; --text: #111827;
-            --border: #e5e7eb; --muted: #6b7280; --shadow: 0 1px 3px rgba(0,0,0,0.06);
+            --border: #e5e7eb; --muted: #6b7280;
             --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
         }
         * { box-sizing: border-box; }
@@ -20,15 +20,19 @@
         .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
         .navbar .brand span { font-weight: 300; color: var(--text); }
-        .navbar .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .navbar .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
         .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
         .navbar a:hover { color: var(--primary); }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
-
         .page-header { margin-bottom: 1.5rem; }
         .page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.6rem; }
         .page-header h1 i { color: var(--primary); }
         .page-header p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+        .search-box { position: relative; margin-bottom: 1.5rem; max-width: 460px; }
+        .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); }
+        .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.9rem; font-family: inherit; background: var(--card); color: var(--text); }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
 
         .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); overflow-x: auto; }
         .tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; font-weight: 600; font-size: 0.9rem; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem; }
@@ -36,7 +40,7 @@
         .tab-btn:hover { color: var(--primary); }
         .tab-btn .count { background: var(--primary-light); color: var(--primary-dark); border-radius: 10px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 700; }
 
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
 
@@ -50,13 +54,13 @@
         .student-cell .name { font-weight: 600; color: var(--text); }
         .student-cell .meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
 
-        .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .badge-accepted { background: #dcfce7; color: #166534; }
         .badge-processing { background: #fef3c7; color: #92400e; }
         .badge-ready { background: #ede9fe; color: #5b21b6; }
         .badge-picked_up { background: #e5e7eb; color: #374151; }
 
-        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-decoration: none; }
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
@@ -87,10 +91,16 @@
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 1rem; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--card); border-radius: 16px; padding: 1.75rem; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-content { background: var(--card); border-radius: 16px; padding: 1.75rem; max-width: 460px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
         .modal-content h3 { font-size: 1.15rem; margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem; }
         .modal-content p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin: 0 0 1.25rem 0; }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        .modal-content input { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; font-family: inherit; margin-bottom: 1rem; }
+        .modal-content input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
+        .modal-info { background: var(--bg); border-radius: 8px; padding: 0.85rem; margin-bottom: 1rem; font-size: 0.85rem; }
+        .modal-info .row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+        .modal-info .row span:first-child { color: var(--muted); }
+        .modal-info .row span:last-child { font-weight: 600; }
 
         @media (max-width: 768px) {
             .navbar { padding: 0.75rem 1rem; }
@@ -119,6 +129,11 @@
             <p>Manage, print, and deliver student logbook orders.</p>
         </div>
 
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by name or matric number..." oninput="filterTables()" />
+        </div>
+
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('new')">
                 <i class="fas fa-inbox"></i> New Orders <span class="count" id="countNew">0</span>
@@ -133,7 +148,7 @@
 
         <div class="card">
             <div id="paneNew" class="tab-pane active">
-                <div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading new orders...</p></div>
+                <div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div>
             </div>
             <div id="paneProcessing" class="tab-pane">
                 <div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div>
@@ -144,7 +159,29 @@
         </div>
     </div>
 
-    <!-- Confirm Modal -->
+    <!-- CONFIRM PICKUP MODAL -->
+    <div id="pickupModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-box-open" style="color: var(--primary);"></i> Confirm Pickup</h3>
+            <p>Verify the student's identity before confirming pickup.</p>
+
+            <div class="modal-info">
+                <div class="row"><span>Student:</span><span id="pickupStudent">---</span></div>
+                <div class="row"><span>Order #:</span><span id="pickupOrder">---</span></div>
+                <div class="row"><span>Matric No:</span><span id="pickupMatric">---</span></div>
+            </div>
+
+            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">Type matric number to verify:</label>
+            <input type="text" id="verifyMatric" placeholder="Enter matric number..." autocomplete="off" />
+
+            <div class="modal-actions">
+                <button class="btn btn-outline btn-sm" onclick="closePickupModal()">Cancel</button>
+                <button class="btn btn-success btn-sm" onclick="confirmPickup()"><i class="fas fa-check"></i> Confirm Pickup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM GENERIC MODAL -->
     <div id="confirmModal" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fas fa-question-circle" style="color: var(--primary);"></i> <span id="modalTitle">Confirm</span></h3>
@@ -163,15 +200,23 @@
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Backend API URL (your Vercel deployment)
         var API_URL = window.location.origin + '/api/send-email';
-
-        // Pickup settings
         var PICKUP_LOCATION = "NOUN Study Centre";
-        var PICKUP_DEADLINE_DAYS = 7;
-
         var CURRENT_ADMIN_EMAIL = localStorage.getItem('adminEmail') || 'coursematetutorial@gmail.com';
+
+        var STATUS_LABELS = {
+            'accepted': 'New Order',
+            'processing': 'Ready to Print',
+            'ready': 'Awaiting Pickup',
+            'picked_up': 'Completed'
+        };
+
+        var STATUS_BADGE = {
+            'accepted': 'badge-accepted',
+            'processing': 'badge-processing',
+            'ready': 'badge-ready',
+            'picked_up': 'badge-picked_up'
+        };
 
         // ============================================================
         // HELPERS
@@ -215,26 +260,28 @@
             }
         }
 
+        function filterTables() {
+            var query = document.getElementById('searchInput').value.toLowerCase().trim();
+            document.querySelectorAll('.tab-pane table tbody tr').forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = (query === '' || text.includes(query)) ? '' : 'none';
+            });
+        }
+
         // ============================================================
         // LOAD: NEW ORDERS (status = accepted)
         // ============================================================
         async function loadNewOrders() {
-            var result = await supabaseClient
-                .from('logbook_orders')
-                .select('*')
-                .eq('status', 'accepted')
-                .order('order_date', { ascending: false });
-
+            var result = await supabaseClient.from('logbook_orders').select('*').eq('status', 'accepted').order('order_date', { ascending: false });
             if (result.error) {
-                document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load orders.</p></div>';
+                document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load.</p></div>';
                 return;
             }
-
             var orders = result.data || [];
             document.getElementById('countNew').textContent = orders.length;
 
             if (orders.length === 0) {
-                document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No new orders right now. Check back later.</p></div>';
+                document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No new orders right now.</p></div>';
                 return;
             }
 
@@ -251,23 +298,18 @@
             });
             html += '</tbody></table>';
             document.getElementById('paneNew').innerHTML = html;
+            filterTables();
         }
 
         // ============================================================
         // LOAD: READY TO PRINT (status = processing)
         // ============================================================
         async function loadProcessingOrders() {
-            var result = await supabaseClient
-                .from('logbook_orders')
-                .select('*')
-                .eq('status', 'processing')
-                .order('order_date', { ascending: false });
-
+            var result = await supabaseClient.from('logbook_orders').select('*').eq('status', 'processing').order('order_date', { ascending: false });
             if (result.error) {
-                document.getElementById('paneProcessing').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load orders.</p></div>';
+                document.getElementById('paneProcessing').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load.</p></div>';
                 return;
             }
-
             var orders = result.data || [];
             document.getElementById('countProcessing').textContent = orders.length;
 
@@ -284,30 +326,23 @@
                     '<td><strong>' + escapeHtml(o.logbook_code) + '</strong><br><span style="font-size:0.75rem; color:var(--muted);">' + escapeHtml(o.logbook_name) + '</span></td>' +
                     '<td>' + escapeHtml(o.programme) + '<br><span style="font-size:0.75rem; color:var(--muted);">Level ' + escapeHtml(o.level) + ' | ' + escapeHtml(o.student_group) + '</span></td>' +
                     '<td>' + formatDate(o.order_date) + '</td>' +
-                    '<td>' +
-                        '<button class="btn btn-warning btn-sm" onclick="printAndMarkReady(\'' + o.order_number + '\')"><i class="fas fa-print"></i> Print & Mark Ready</button>' +
-                    '</td>' +
+                    '<td><button class="btn btn-warning btn-sm" onclick="printAndMarkReady(\'' + o.order_number + '\')"><i class="fas fa-print"></i> Print & Mark Ready</button></td>' +
                 '</tr>';
             });
             html += '</tbody></table>';
             document.getElementById('paneProcessing').innerHTML = html;
+            filterTables();
         }
 
         // ============================================================
         // LOAD: COMPLETED (status = ready or picked_up)
         // ============================================================
         async function loadCompletedOrders() {
-            var result = await supabaseClient
-                .from('logbook_orders')
-                .select('*')
-                .in('status', ['ready', 'picked_up'])
-                .order('printed_at', { ascending: false });
-
+            var result = await supabaseClient.from('logbook_orders').select('*').in('status', ['ready', 'picked_up']).order('printed_at', { ascending: false });
             if (result.error) {
-                document.getElementById('paneCompleted').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load orders.</p></div>';
+                document.getElementById('paneCompleted').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load.</p></div>';
                 return;
             }
-
             var orders = result.data || [];
             document.getElementById('countCompleted').textContent = orders.length;
 
@@ -318,170 +353,171 @@
 
             var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook</th><th>Printed By</th><th>Printed At</th><th>Status</th><th>Action</th></tr></thead><tbody>';
             orders.forEach(function(o) {
-                var badgeClass = o.status === 'ready' ? 'badge-ready' : 'badge-picked_up';
-                var statusLabel = o.status === 'ready' ? 'Ready for Pickup' : 'Picked Up';
+                var badgeClass = STATUS_BADGE[o.status] || 'badge-picked_up';
+                var statusLabel = STATUS_LABELS[o.status] || o.status;
+                var actionBtn = '';
+                if (o.status === 'ready') {
+                    actionBtn = '<button class="btn btn-success btn-sm" onclick="openPickupModal(\'' + o.order_number + '\', \'' + escapeHtml(o.student_name) + '\', \'' + escapeHtml(o.matric_number) + '\')"><i class="fas fa-box-open"></i> Confirm Pickup</button>';
+                } else {
+                    actionBtn = '<button class="btn btn-outline btn-sm" onclick="reprint(\'' + o.order_number + '\')"><i class="fas fa-redo"></i> Re-print</button>';
+                }
+
                 html += '<tr>' +
                     '<td><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
                     '<td><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.matric_number) + '</span></div></td>' +
                     '<td><strong>' + escapeHtml(o.logbook_code) + '</strong></td>' +
                     '<td>' + escapeHtml(o.printed_by || '---') + '</td>' +
                     '<td>' + formatDate(o.printed_at) + '</td>' +
-                    '<td><span class="badge ' + badgeClass + '"><i class="fas fa-circle" style="font-size:0.5rem;"></i> ' + statusLabel + '</span></td>' +
-                    '<td>' +
-                        '<button class="btn btn-outline btn-sm" onclick="reprint(\'' + o.order_number + '\')"><i class="fas fa-redo"></i> Re-print</button>' +
-                    '</td>' +
+                    '<td><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
+                    '<td>' + actionBtn + '</td>' +
                 '</tr>';
             });
             html += '</tbody></table>';
             document.getElementById('paneCompleted').innerHTML = html;
+            filterTables();
         }
 
         // ============================================================
-        // ACTION: START PROCESSING (accepted -> processing)
+        // ACTION: START PROCESSING
         // ============================================================
         function startProcessing(orderNumber) {
             showModal('Start Processing', 'Move this order to "Ready to Print"?', async function() {
                 closeModal();
-                var result = await supabaseClient
-                    .from('logbook_orders')
-                    .update({ status: 'processing' })
-                    .eq('order_number', orderNumber);
-
-                if (result.error) {
-                    showToast('Failed to update order.', 'error');
-                    return;
-                }
-                showToast('Order moved to "Ready to Print".', 'success');
+                var result = await supabaseClient.from('logbook_orders').update({ status: 'processing' }).eq('order_number', orderNumber);
+                if (result.error) { showToast('Failed to update order.', 'error'); return; }
+                showToast('Order moved to Ready to Print.', 'success');
                 loadAll();
             });
         }
 
         // ============================================================
-        // ACTION: PRINT & MARK READY (processing -> ready + send email)
+        // ACTION: PRINT & MARK READY
         // ============================================================
         function printAndMarkReady(orderNumber) {
-            showModal(
-                'Print & Notify Student',
-                'This will open the print dialog and send the "Ready for Pickup" email to the student. Continue?',
-                async function() {
-                    closeModal();
+            showModal('Print & Notify Student', 'This will print the logbook and send the "Ready for Pickup" email to the student. Continue?', async function() {
+                closeModal();
+                var result = await supabaseClient.from('logbook_orders').select('*').eq('order_number', orderNumber).single();
+                if (result.error || !result.data) { showToast('Order not found.', 'error'); return; }
+                var order = result.data;
 
-                    // 1. Fetch full order
-                    var result = await supabaseClient
-                        .from('logbook_orders')
-                        .select('*')
-                        .eq('order_number', orderNumber)
-                        .single();
-
-                    if (result.error || !result.data) {
-                        showToast('Failed to fetch order.', 'error');
-                        return;
+                // Generate PDF
+                try {
+                    var pdfUrl = await generateOrderPDF(order);
+                    var printWin = window.open(pdfUrl);
+                    if (printWin) printWin.onload = function() { printWin.print(); };
+                    else {
+                        var a = document.createElement('a');
+                        a.href = pdfUrl;
+                        a.download = 'logbook_' + order.order_number + '.pdf';
+                        a.click();
                     }
-                    var order = result.data;
+                } catch (err) { console.error('PDF error:', err); showToast('PDF generation failed, continuing...', 'warning'); }
 
-                    // 2. Generate PDF
-                    try {
-                        var pdfUrl = await generateOrderPDF(order);
+                // Update status
+                var updateResult = await supabaseClient.from('logbook_orders').update({
+                    status: 'ready',
+                    printed_by: CURRENT_ADMIN_EMAIL,
+                    printed_at: new Date().toISOString(),
+                    print_count: (order.print_count || 0) + 1
+                }).eq('order_number', orderNumber);
 
-                        // 3. Trigger print dialog
-                        var printWin = window.open(pdfUrl);
-                        if (printWin) {
-                            printWin.onload = function() { printWin.print(); };
-                        } else {
-                            // Fallback: download
-                            var a = document.createElement('a');
-                            a.href = pdfUrl;
-                            a.download = 'logbook_' + order.order_number + '.pdf';
-                            a.click();
-                        }
-                    } catch (err) {
-                        console.error('PDF error:', err);
-                        showToast('PDF generation failed, but continuing...', 'warning');
-                    }
+                if (updateResult.error) { showToast('Failed to update status.', 'error'); return; }
 
-                    // 4. Update status to 'ready'
-                    var updateResult = await supabaseClient
-                        .from('logbook_orders')
-                        .update({
-                            status: 'ready',
-                            printed_by: CURRENT_ADMIN_EMAIL,
-                            printed_at: new Date().toISOString(),
-                            print_count: (order.print_count || 0) + 1
+                // Send email
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'ready_for_pickup',
+                            to: order.email,
+                            full_name: order.student_name,
+                            order_number: order.order_number,
+                            logbook_code: order.logbook_code,
+                            logbook_name: order.logbook_name,
+                            pickup_location: PICKUP_LOCATION
                         })
-                        .eq('order_number', orderNumber);
-
-                    if (updateResult.error) {
-                        showToast('Failed to update status.', 'error');
-                        return;
-                    }
-
-                    // 5. Send "Ready for Pickup" email
-                    try {
-                        await fetch(API_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: 'ready_for_pickup',
-                                to: order.email,
-                                full_name: order.student_name,
-                                order_number: order.order_number,
-                                logbook_code: order.logbook_code,
-                                logbook_name: order.logbook_name,
-                                pickup_location: PICKUP_LOCATION
-                            })
-                        });
-                        showToast('Order marked Ready. Student notified via email.', 'success');
-                    } catch (emailErr) {
-                        console.error('Email error:', emailErr);
-                        showToast('Order ready, but email failed to send.', 'warning');
-                    }
-
-                    loadAll();
+                    });
+                    showToast('Order ready. Student notified by email.', 'success');
+                } catch (e) {
+                    console.error('Email error:', e);
+                    showToast('Order ready, but email failed.', 'warning');
                 }
-            );
+
+                loadAll();
+            });
         }
 
         // ============================================================
-        // ACTION: RE-PRINT (from completed tab)
+        // ACTION: CONFIRM PICKUP (with matric verification)
+        // ============================================================
+        var pickupOrderData = null;
+
+        function openPickupModal(orderNumber, studentName, matricNumber) {
+            pickupOrderData = { orderNumber: orderNumber, studentName: studentName, matricNumber: matricNumber };
+            document.getElementById('pickupStudent').textContent = studentName;
+            document.getElementById('pickupOrder').textContent = orderNumber;
+            document.getElementById('pickupMatric').textContent = matricNumber;
+            document.getElementById('verifyMatric').value = '';
+            document.getElementById('pickupModal').classList.add('active');
+            setTimeout(function() { document.getElementById('verifyMatric').focus(); }, 100);
+        }
+
+        function closePickupModal() {
+            document.getElementById('pickupModal').classList.remove('active');
+            pickupOrderData = null;
+        }
+
+        async function confirmPickup() {
+            if (!pickupOrderData) return;
+            var typed = document.getElementById('verifyMatric').value.trim();
+            if (typed.toLowerCase() !== pickupOrderData.matricNumber.toLowerCase()) {
+                showToast('Matric number does not match. Pickup not confirmed.', 'error');
+                return;
+            }
+
+            var result = await supabaseClient.from('logbook_orders').update({
+                status: 'picked_up',
+                picked_up_at: new Date().toISOString(),
+                picked_up_by: CURRENT_ADMIN_EMAIL
+            }).eq('order_number', pickupOrderData.orderNumber);
+
+            if (result.error) { showToast('Failed to confirm pickup.', 'error'); return; }
+            showToast('Pickup confirmed. Order completed.', 'success');
+            closePickupModal();
+            loadAll();
+        }
+
+        // ============================================================
+        // ACTION: RE-PRINT
         // ============================================================
         async function reprint(orderNumber) {
             showModal('Re-print Order', 'Print this logbook again?', async function() {
                 closeModal();
-                var result = await supabaseClient
-                    .from('logbook_orders')
-                    .select('*')
-                    .eq('order_number', orderNumber)
-                    .single();
-
-                if (result.error || !result.data) {
-                    showToast('Order not found.', 'error');
-                    return;
-                }
+                var result = await supabaseClient.from('logbook_orders').select('*').eq('order_number', orderNumber).single();
+                if (result.error || !result.data) { showToast('Order not found.', 'error'); return; }
 
                 try {
                     var pdfUrl = await generateOrderPDF(result.data);
                     var printWin = window.open(pdfUrl);
-                    if (printWin) {
-                        printWin.onload = function() { printWin.print(); };
-                    } else {
+                    if (printWin) printWin.onload = function() { printWin.print(); };
+                    else {
                         var a = document.createElement('a');
                         a.href = pdfUrl;
                         a.download = 'logbook_' + orderNumber + '.pdf';
                         a.click();
                     }
                     showToast('Print dialog opened.', 'success');
-                } catch (err) {
-                    showToast('Failed to generate PDF.', 'error');
-                }
+                } catch (err) { showToast('Failed to generate PDF.', 'error'); }
             });
         }
 
         // ============================================================
-        // PDF GENERATION (Clean, code-based template)
+        // PDF GENERATION
         // ============================================================
         async function generateOrderPDF(order) {
             var pdfDoc = await PDFLib.PDFDocument.create();
-            var page = pdfDoc.addPage([595, 842]); // A4 size
+            var page = pdfDoc.addPage([595, 842]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
             var fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
 
@@ -490,35 +526,16 @@
             var mutedColor = PDFLib.rgb(0.42, 0.45, 0.5);
 
             // Header band
-            page.drawRectangle({
-                x: 0, y: 742, width: 595, height: 100,
-                color: primaryColor
-            });
-
-            // Header text
-            page.drawText('NATIONAL OPEN UNIVERSITY OF NIGERIA', {
-                x: 50, y: 800, size: 14, font: fontBold, color: PDFLib.rgb(1, 1, 1)
-            });
-            page.drawText('FACULTY OF SCIENCE', {
-                x: 50, y: 782, size: 11, font: font, color: PDFLib.rgb(0.9, 1, 0.95)
-            });
-            page.drawText('PHYSICS LABORATORY MANUAL', {
-                x: 50, y: 755, size: 16, font: fontBold, color: PDFLib.rgb(1, 1, 1)
-            });
+            page.drawRectangle({ x: 0, y: 742, width: 595, height: 100, color: primaryColor });
+            page.drawText('NATIONAL OPEN UNIVERSITY OF NIGERIA', { x: 50, y: 800, size: 14, font: fontBold, color: PDFLib.rgb(1, 1, 1) });
+            page.drawText('FACULTY OF SCIENCE', { x: 50, y: 782, size: 11, font: font, color: PDFLib.rgb(0.9, 1, 0.95) });
+            page.drawText('PHYSICS LABORATORY MANUAL', { x: 50, y: 755, size: 16, font: fontBold, color: PDFLib.rgb(1, 1, 1) });
 
             // Course info
-            page.drawText('COURSE CODE: ' + (order.logbook_code || ''), {
-                x: 50, y: 690, size: 12, font: fontBold, color: textColor
-            });
-            page.drawText('COURSE TITLE: ' + (order.logbook_name || ''), {
-                x: 50, y: 670, size: 12, font: fontBold, color: textColor
-            });
+            page.drawText('COURSE CODE: ' + (order.logbook_code || ''), { x: 50, y: 690, size: 12, font: fontBold, color: textColor });
+            page.drawText('COURSE TITLE: ' + (order.logbook_name || ''), { x: 50, y: 670, size: 12, font: fontBold, color: textColor });
 
-            // Divider
-            page.drawLine({
-                start: { x: 50, y: 650 }, end: { x: 545, y: 650 },
-                thickness: 1, color: PDFLib.rgb(0.9, 0.9, 0.9)
-            });
+            page.drawLine({ start: { x: 50, y: 650 }, end: { x: 545, y: 650 }, thickness: 1, color: PDFLib.rgb(0.9, 0.9, 0.9) });
 
             // Student details
             var startY = 600;
@@ -537,36 +554,16 @@
 
             fields.forEach(function(field, i) {
                 var y = startY - (i * lineSpacing);
-
-                // Label
-                page.drawText(field.label, {
-                    x: labelX, y: y, size: 11, font: fontBold, color: textColor
-                });
-
-                // Value
-                page.drawText(field.value || '________________', {
-                    x: valueX, y: y, size: 11, font: font, color: textColor
-                });
-
-                // Underline
-                page.drawLine({
-                    start: { x: valueX, y: y - 4 },
-                    end: { x: 545, y: y - 4 },
-                    thickness: 0.5, color: PDFLib.rgb(0.7, 0.7, 0.7)
-                });
+                page.drawText(field.label, { x: labelX, y: y, size: 11, font: fontBold, color: textColor });
+                page.drawText(field.value || '________________', { x: valueX, y: y, size: 11, font: font, color: textColor });
+                page.drawLine({ start: { x: valueX, y: y - 4 }, end: { x: 545, y: y - 4 }, thickness: 0.5, color: PDFLib.rgb(0.7, 0.7, 0.7) });
             });
 
-            // Footer
-            page.drawText('Generated by CourseMate on ' + new Date().toLocaleString('en-NG'), {
-                x: 50, y: 50, size: 8, font: font, color: mutedColor
-            });
-            page.drawText('Order: ' + (order.order_number || ''), {
-                x: 50, y: 38, size: 8, font: font, color: mutedColor
-            });
+            page.drawText('Generated by CourseMate on ' + new Date().toLocaleString('en-NG'), { x: 50, y: 50, size: 8, font: font, color: mutedColor });
+            page.drawText('Order: ' + (order.order_number || ''), { x: 50, y: 38, size: 8, font: font, color: mutedColor });
 
             var pdfBytes = await pdfDoc.save();
-            var blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            return URL.createObjectURL(blob);
+            return URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
         }
 
         // ============================================================
@@ -576,16 +573,13 @@
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
             document.getElementById('confirmModal').classList.add('active');
-
             var confirmBtn = document.getElementById('modalConfirmBtn');
             var newBtn = confirmBtn.cloneNode(true);
             confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
             newBtn.addEventListener('click', onConfirm);
         }
 
-        function closeModal() {
-            document.getElementById('confirmModal').classList.remove('active');
-        }
+        function closeModal() { document.getElementById('confirmModal').classList.remove('active'); }
 
         // ============================================================
         // LOGOUT
@@ -607,7 +601,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAll();
-            setInterval(loadAll, 60000); // Auto-refresh every 60s
+            setInterval(loadAll, 60000);
         });
     </script>
 </body>

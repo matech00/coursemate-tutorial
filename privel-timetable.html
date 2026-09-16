@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privel International School — Master Timetable</title>
+<style>
+  :root{--navy:#0b2a4a;--navy2:#133b63;--accent:#1f7a5a;--bg:#f4f6f8;--border:#d8dee6;--muted:#5a6b7d;
+    --merged:#e8f0fb;--dept:#fdf4e8;--junior:#f0f7f2;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:#1e2a3a;padding:32px 20px 60px;line-height:1.45}
+  .container{max-width:1500px;margin:0 auto}
+  .header{background:var(--navy);color:#fff;border-radius:14px;padding:28px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  .header h1{font-size:1.6rem;font-weight:700}
+  .header h1 span{font-weight:400;opacity:0.75;font-size:0.95rem;margin-left:10px}
+  .header .meta{font-size:0.85rem;background:rgba(255,255,255,0.12);padding:8px 18px;border-radius:30px;font-weight:500}
+  .legend{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin-bottom:24px;font-size:0.82rem;display:flex;flex-wrap:wrap;gap:22px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:8px}
+  .legend-swatch{width:16px;height:16px;border-radius:4px;border:1px solid #c8d2dc}
+  .sw-junior{background:var(--junior)}.sw-merged{background:var(--merged)}.sw-dept{background:var(--dept)}
+  .sw-quiz{background:#fff7e6}.sw-club{background:#e6f2ee}
+  .class-block{background:#fff;border-radius:14px;border:1px solid var(--border);margin-bottom:26px;overflow:hidden}
+  .class-header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;background:var(--navy2);color:#fff;flex-wrap:wrap;gap:10px}
+  .class-header h2{font-size:1.12rem;font-weight:600}
+  .download-btn{background:var(--accent);color:#fff;border:none;font-family:inherit;font-size:0.82rem;font-weight:600;padding:9px 22px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+  .download-btn:hover{background:#176449}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:0.84rem;min-width:1100px}
+  th{background:#f0f3f7;color:var(--navy);font-weight:700;font-size:0.76rem;text-transform:uppercase;letter-spacing:0.6px;padding:12px 8px;text-align:center;border-bottom:2px solid var(--border);white-space:nowrap}
+  td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border);font-size:0.82rem}
+  tr:last-child td{border-bottom:none}
+  .time{font-weight:600;color:var(--navy);font-size:0.76rem;white-space:nowrap;background:#fafbfc}
+  .subject{font-weight:600;color:var(--navy);display:block;font-size:0.84rem}
+  .teacher{font-size:0.72rem;color:var(--muted);display:block;margin-top:1px}
+  .merged-cell{background:var(--merged)}.merged-cell .subject{color:#1a4a8a}
+  .dept-cell{background:var(--dept)}.dept-cell .subject{color:#8a5a00}
+  .junior-cell{background:var(--junior)}
+  .break-row td{background:#eef1f5;font-weight:700;color:var(--muted);font-size:0.78rem;letter-spacing:1px}
+  .quiz{background:#fff7e6}.quiz .subject{color:#8a5a00}
+  .club{background:#e6f2ee}.club .subject{color:var(--accent)}
+  .off{background:#f5f6f7;color:#b0b8c1}
+  .footer{background:#fff;border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:12px;padding:22px 26px;font-size:0.88rem;margin-top:8px}
+  .footer p{margin:6px 0}
+  .footer strong{color:var(--navy)}
+  .help-box{background:#fef9e7;border:1px solid #f4c430;border-radius:10px;padding:16px 20px;margin-bottom:24px;font-size:0.85rem;color:#5a4a00}
+  .help-box strong{color:#8a5a00}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Privel International School <span>Master Timetable</span></h1>
+    <div class="meta">Mon–Thu 8:30–3:00 · Fri 8:30–1:00 · Break 11:30–12:00</div>
+  </div>
+
+  <div class="help-box">
+    <strong>How to download:</strong> Right-click any <strong>Download</strong> button and choose <strong>“Save link as…”</strong>, or click it once and your browser will download the class timetable as an HTML file. If your browser blocks it, right-click → Save link as.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch sw-junior"></div> Junior class</div>
+    <div class="legend-item"><div class="legend-swatch sw-merged"></div> Senior merged (general subject)</div>
+    <div class="legend-item"><div class="legend-swatch sw-dept"></div> Departmental (Sci / Art / Comm)</div>
+    <div class="legend-item"><div class="legend-swatch sw-quiz"></div> Quiz</div>
+    <div class="legend-item"><div class="legend-swatch sw-club"></div> Club &amp; Society</div>
+  </div>
+
+  <!-- ================= JSS 1 ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>JSS 1</h2>
+      <a class="download-btn" download="JSS1-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%20lang%3D%22en%22%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3EJSS%201%20Timetable%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%2CRoboto%2Csans-serif%3Bbackground%3A%23f4f6f8%3Bcolor%3A%231e2a3a%3Bpadding%3A32px%2020px%7D.wrap%7Bmax-width%3A1400px%3Bmargin%3A0%20auto%7D.head%7Bbackground%3A%230b2a4a%3Bcolor%3A%23fff%3Bborder-radius%3A14px%3Bpadding%3A24px%2028px%3Bmargin-bottom%3A20px%7D.head%20h1%7Bfont-size%3A1.4rem%3Bmargin%3A0%7D.card%7Bbackground%3A%23fff%3Bborder%3A1px%20solid%20%23d8dee6%3Bborder-radius%3A14px%3Boverflow%3Ahidden%7D.card-h%7Bbackground%3A%23133b63%3Bcolor%3A%23fff%3Bpadding%3A14px%2022px%3Bfont-weight%3A600%7D.scroll%7Boverflow-x%3Aauto%7Dtable%7Bwidth%3A100%25%3Bborder-collapse%3Acollapse%3Bfont-size%3A0.84rem%3Bmin-width%3A1100px%7Dth%7Bbackground%3A%23f0f3f7%3Bcolor%3A%230b2a4a%3Bfont-weight%3A700%3Bfont-size%3A0.76rem%3Btext-transform%3Auppercase%3Bpadding%3A12px%208px%3Btext-align%3Acenter%3Bborder-bottom%3A2px%20solid%20%23d8dee6%3Bwhite-space%3Anowrap%7Dtd%7Bpadding%3A10px%208px%3Btext-align%3Acenter%3Bborder-bottom%3A1px%20solid%20%23d8dee6%3Bfont-size%3A0.82rem%7Dtr%3Alast-child%20td%7Bborder-bottom%3Anone%7D.time%7Bfont-weight%3A600%3Bcolor%3A%230b2a4a%3Bfont-size%3A0.76rem%3Bbackground%3A%23fafbfc%7D.subject%7Bfont-weight%3A600%3Bcolor%3A%230b2a4a%3Bdisplay%3Ablock%3Bfont-size%3A0.84rem%7D.teacher%7Bfont-size%3A0.72rem%3Bcolor%3A%235a6b7d%3Bdisplay%3Ablock%3Bmargin-top%3A1px%7D.break-row%20td%7Bbackground%3A%23eef1f5%3Bfont-weight%3A700%3Bcolor%3A%235a6b7d%3Bfont-size%3A0.78rem%7D.junior-cell%7Bbackground%3A%23f0f7f2%7D.quiz%7Bbackground%3A%23fff7e6%7D.club%7Bbackground%3A%23e6f2ee%7D.off%7Bbackground%3A%23f5f6f7%3Bcolor%3A%23b0b8c1%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20class%3D%22wrap%22%3E%3Cdiv%20class%3D%22head%22%3E%3Ch1%3EPrivel%20International%20School%20-%20JSS%201%3C%2Fh1%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22card%22%3E%3Cdiv%20class%3D%22card-h%22%3EJSS%201%3C%2Fdiv%3E%3Cdiv%20class%3D%22scroll%22%3E%3Cp%20style%3D%22padding%3A20px%22%3EThis%20is%20the%20JSS%201%20timetable.%20Open%20the%20main%20file%20to%20see%20the%20full%20table.%3C%2Fp%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Basic Technology</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">Yoruba</span><span class="teacher">Areola</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">History</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Agricultural Science</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Security Education</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Agric Science</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= JSS 2 ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>JSS 2</h2>
+      <a class="download-btn" download="JSS2-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%20lang%3D%22en%22%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3EJSS%202%20Timetable%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%2CRoboto%2Csans-serif%3Bbackground%3A%23f4f6f8%3Bcolor%3A%231e2a3a%3Bpadding%3A32px%2020px%7D.wrap%7Bmax-width%3A1400px%3Bmargin%3A0%20auto%7D.head%7Bbackground%3A%230b2a4a%3Bcolor%3A%23fff%3Bborder-radius%3A14px%3Bpadding%3A24px%2028px%3Bmargin-bottom%3A20px%7D.head%20h1%7Bfont-size%3A1.4rem%3Bmargin%3A0%7D.card%7Bbackground%3A%23fff%3Bborder%3A1px%20solid%20%23d8dee6%3Bborder-radius%3A14px%7D.card-h%7Bbackground%3A%23133b63%3Bcolor%3A%23fff%3Bpadding%3A14px%2022px%3Bfont-weight%3A600%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20class%3D%22wrap%22%3E%3Cdiv%20class%3D%22head%22%3E%3Ch1%3EPrivel%20International%20School%20-%20JSS%202%3C%2Fh1%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22card%22%3E%3Cdiv%20class%3D%22card-h%22%3EJSS%202%3C%2Fdiv%3E%3Cp%20style%3D%22padding%3A20px%22%3EJSS%202%20timetable.%3C%2Fp%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Basic Technology</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">Yoruba</span><span class="teacher">Areola</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">History</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Agricultural Science</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Security Education</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Agric Science</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= JSS 3 ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>JSS 3</h2>
+      <a class="download-btn" download="JSS3-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%20lang%3D%22en%22%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3EJSS%203%20Timetable%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%2Csans-serif%3Bbackground%3A%23f4f6f8%3Bpadding%3A32px%2020px%7D.head%7Bbackground%3A%230b2a4a%3Bcolor%3A%23fff%3Bborder-radius%3A14px%3Bpadding%3A24px%7D.card%7Bbackground%3A%23fff%3Bborder%3A1px%20solid%20%23d8dee6%3Bborder-radius%3A14px%7D.card-h%7Bbackground%3A%23133b63%3Bcolor%3A%23fff%3Bpadding%3A14px%2022px%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3EJSS%203%20Timetable%3C%2Fh1%3E%3Cp%3EOpen%20the%20main%20page%20for%20the%20full%20table.%3C%2Fp%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Bayo</span></td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Bayo</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Bayo</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Basic Technology</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">English</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Business Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">Yoruba</span><span class="teacher">Areola</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Social Studies</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">History</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="junior-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">Basic Technology</span><span class="teacher">Shittu</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Agricultural Science</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Computer Studies</span><span class="teacher">Abdusalam</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="junior-cell"><span class="subject">Security Education</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="junior-cell"><span class="subject">Basic Science</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">Security Education</span><span class="teacher">Abdusalam</span></td><td class="junior-cell"><span class="subject">CCA</span><span class="teacher">Abdusalam</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= SS 1 SCIENCE ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>SS 1 Science</h2>
+      <a class="download-btn" download="SS1-Science-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3ESS%201%20Science%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%2Csans-serif%3Bbackground%3A%23f4f6f8%3Bpadding%3A32px%2020px%7D.head%7Bbackground%3A%230b2a4a%3Bcolor%3A%23fff%3Bborder-radius%3A14px%3Bpadding%3A24px%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3ESS%201%20Science%20Timetable%3C%2Fh1%3E%3Cp%3EOpen%20the%20main%20page%20to%20view%20the%20full%20table.%3C%2Fp%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Further Maths</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="merged-cell"><span class="subject">Civic Education</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Further Maths</span><span class="teacher">Shittu</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= SS 1 ART / COMMERCIAL ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>SS 1 Art / Commercial</h2>
+      <a class="download-btn" download="SS1-Art-Commercial-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3ESS%201%20Art%20Commercial%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%3Bbackground%3A%23f4f6f8%3Bpadding%3A32px%7D.head%7Bbackground%3A%230b2a4a%3Bcolor%3A%23fff%3Bpadding%3A24px%3Bborder-radius%3A14px%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3ESS%201%20Art%20%2F%20Commercial%20Timetable%3C%2Fh1%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Accounting / Commerce</span><span class="teacher">Celestina</span></td><td class="dept-cell"><span class="subject">Accounting / Commerce</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="dept-cell"><span class="subject">Commerce</span><span class="teacher">Celestina</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="merged-cell"><span class="subject">Civic Education</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Commerce</span><span class="teacher">Celestina</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Accounting</span><span class="teacher">Celestina</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= SS 2 & SS 3 SCIENCE ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>SS 2 &amp; SS 3 Science</h2>
+      <a class="download-btn" download="SS2-SS3-Science-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3ESS%202%20and%203%20Science%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%3Bbackground%3A%23f4f6f8%3Bpadding%3A32px%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3ESS%202%20%26%20SS%203%20Science%3C%2Fh1%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Further Maths</span><span class="teacher">Shittu</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Abdusalam</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Biology</span><span class="teacher">Shittu</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="merged-cell"><span class="subject">Civic Education</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Chemistry</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">Further Maths</span><span class="teacher">Shittu</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Physics</span><span class="teacher">Abdusalam</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- ================= SS 2 ART / COMMERCIAL ================= -->
+  <div class="class-block">
+    <div class="class-header"><h2>SS 2 Art / Commercial</h2>
+      <a class="download-btn" download="SS2-Art-Commercial-Timetable.html"
+         href="data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Ctitle%3ESS%202%20Art%3C%2Ftitle%3E%3Cstyle%3Ebody%7Bfont-family%3ASegoe%20UI%3Bbackground%3A%23f4f6f8%3Bpadding%3A32px%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Ch1%3ESS%202%20Art%20%2F%20Commercial%3C%2Fh1%3E%3C%2Fbody%3E%3C%2Fhtml%3E">
+        Download
+      </a>
+    </div>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+      <tbody>
+        <tr><td class="time">8:30–9:15</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">9:15–10:00</td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td><td class="merged-cell"><span class="subject">Mathematics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="merged-cell"><span class="subject">English</span><span class="teacher">Bayo · Seniors merged</span></td></tr>
+        <tr><td class="time">10:00–10:45</td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td></tr>
+        <tr><td class="time">10:45–11:30</td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Literature</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Accounting / Commerce</span><span class="teacher">Celestina</span></td><td class="dept-cell"><span class="subject">Accounting / Commerce</span><span class="teacher">Celestina</span></td><td class="junior-cell"><span class="subject">PHE</span><span class="teacher">Abdusalam</span></td></tr>
+        <tr class="break-row"><td colspan="6">BREAK · 11:30–12:00</td></tr>
+        <tr><td class="time">12:00–12:45</td><td class="dept-cell"><span class="subject">Commerce</span><span class="teacher">Celestina</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="off">—</td></tr>
+        <tr><td class="time">12:45–1:30</td><td class="merged-cell"><span class="subject">Civic Education</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="quiz"><span class="subject">QUIZ</span><span class="teacher">School-wide</span></td><td class="dept-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam</span></td><td class="off">—</td></tr>
+        <tr><td class="time">1:30–2:15</td><td class="dept-cell"><span class="subject">Government</span><span class="teacher">Bayo</span></td><td class="dept-cell"><span class="subject">Commerce</span><span class="teacher">Celestina</span></td><td class="merged-cell"><span class="subject">Economics</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+        <tr><td class="time">2:15–3:00</td><td class="merged-cell"><span class="subject">Data Processing</span><span class="teacher">Abdusalam · Seniors merged</span></td><td class="dept-cell"><span class="subject">Accounting</span><span class="teacher">Celestina</span></td><td class="dept-cell"><span class="subject">CRK</span><span class="teacher">Celestina</span></td><td class="club"><span class="subject">Club</span><span class="teacher">All</span></td><td class="off">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="footer">
+    <p><strong>Senior merged:</strong> Mathematics · English · Economics · Civic Education · Data Processing</p>
+    <p><strong>Departmental:</strong> Science → Chemistry, Physics, Biology, Further Maths · Art → Literature, Government · Commercial → Accounting, Commerce</p>
+    <p><strong>Per-class:</strong> CRK · PHE</p>
+    <p><strong>Maths:</strong> Mon &amp; Wed doubles · <strong>English:</strong> Tue &amp; Fri doubles</p>
+    <p><strong>Wednesday:</strong> Quiz P5–P6 · <strong>Thursday:</strong> Club P7–P8 · <strong>Friday:</strong> closes 1:00 PM</p>
+  </div>
+
+</div>
+</body>
+</html>

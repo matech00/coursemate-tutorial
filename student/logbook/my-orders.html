@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Orders - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .navbar .brand span { font-weight: 300; color: var(--text); }
+        .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .navbar a:hover { color: var(--primary); }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+        .card h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.6rem; }
+        .card h1 i { color: var(--primary); }
+        .search-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .search-row input { flex: 1; min-width: 200px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; font-family: inherit; }
+        .search-row input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; touch-action: manipulation; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .order-card { border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; transition: all 0.2s; }
+        .order-card:hover { border-color: var(--primary); }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+        .order-number { font-weight: 700; font-size: 1rem; }
+        .order-detail { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.9rem; }
+        .order-detail .label { color: var(--muted); }
+        .order-detail .value { font-weight: 500; }
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .badge-accepted { background: #dcfce7; color: #166534; }
+        .badge-processing { background: #fef3c7; color: #92400e; }
+        .badge-ready { background: #ede9fe; color: #5b21b6; }
+        .badge-picked_up { background: #e5e7eb; color: #374151; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: var(--primary); }
+        @media (max-width: 640px) {
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .container { padding: 1rem; }
+            .card { padding: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="../../index.html" class="brand">Course<span>Mate</span></a>
+        <div class="nav-links" id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h1><i class="fas fa-list"></i> My Orders</h1>
+            <p style="color: var(--muted); margin: 0;">Track all your logbook orders in one place.</p>
+
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Enter your email OR matric number..." />
+                <button class="btn btn-primary" onclick="searchOrders()"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">We use this to look up your order history. Only you can see your orders.</p>
+        </div>
+
+        <div id="resultsContainer">
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <p>Enter your email or matric number above to view your orders.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        var STATUS_LABELS = {
+            'accepted': 'Order Received',
+            'processing': 'Being Prepared',
+            'ready': 'Ready for Pickup',
+            'picked_up': 'Picked Up'
+        };
+        var STATUS_BADGE = {
+            'accepted': 'badge-accepted',
+            'processing': 'badge-processing',
+            'ready': 'badge-ready',
+            'picked_up': 'badge-picked_up'
+        };
+
+        function renderNavbar() {
+            var navLinks = document.getElementById('navLinks');
+            var studentEmail = localStorage.getItem('studentEmail');
+            var adminEmail = localStorage.getItem('adminEmail');
+            var html = '';
+
+            if (adminEmail) {
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else if (studentEmail) {
+                html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else {
+                html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+            }
+            navLinks.innerHTML = html;
+        }
+
+        function logout() {
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminUser');
+            sessionStorage.clear();
+            window.location.href = '../../index.html';
+        }
+
+        async function searchOrders() {
+            var query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Please enter your email or matric number.');
+                return;
+            }
+
+            var container = document.getElementById('resultsContainer');
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Searching...</p></div>';
+
+            var result = await supabaseClient
+                .from('logbook_orders')
+                .select('*')
+                .or('email.eq.' + query + ',matric_number.eq.' + query)
+                .order('order_date', { ascending: false });
+
+            if (result.error) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to search. Please try again.</p></div>';
+                return;
+            }
+
+            var orders = result.data || [];
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found for "' + query + '".</p></div>';
+                return;
+            }
+
+            // Save for future visits
+            if (query.includes('@')) {
+                localStorage.setItem('studentEmail', query);
+            }
+
+            var html = '<div style="margin-bottom: 1rem; color: var(--muted); font-size: 0.9rem;">Found ' + orders.length + ' order(s)</div>';
+            orders.forEach(function(o) {
+                var badge = STATUS_BADGE[o.status] || 'badge-accepted';
+                var label = STATUS_LABELS[o.status] || o.status;
+                html += '<div class="order-card">' +
+                    '<div class="order-header">' +
+                        '<span class="order-number">' + o.order_number + '</span>' +
+                        '<span class="badge ' + badge + '">' + label + '</span>' +
+                    '</div>' +
+                    '<div class="order-detail"><span class="label">Logbook</span><span class="value">' + (o.logbook_code || '---') + ' - ' + (o.logbook_name || '---') + '</span></div>' +
+                    '<div class="order-detail"><span class="label">Amount Paid</span><span class="value">&#8358;' + (o.amount ? o.amount.toLocaleString() : '0') + '</span></div>' +
+                    '<div class="order-detail"><span class="label">Order Date</span><span class="value">' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</span></div>' +
+                    '<div class="order-detail"><span class="label">Programme</span><span class="value">' + (o.programme || '---') + '</span></div>' +
+                    '<div class="order-detail"><span class="label">Level / Group</span><span class="value">' + (o.level || '---') + ' / ' + (o.student_group || '---') + '</span></div>' +
+                '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNavbar();
+
+            // Auto-fill from localStorage
+            var savedEmail = localStorage.getItem('studentEmail');
+            if (savedEmail) {
+                document.getElementById('searchInput').value = savedEmail;
+                searchOrders();
+            }
+
+            // Allow Enter key to search
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchOrders();
+            });
+        });
+    </script>
+</body>
+</html>

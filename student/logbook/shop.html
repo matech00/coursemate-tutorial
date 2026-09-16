@@ -5,73 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buy Logbook - CourseMate</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../../css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg: #f9fafb;
-            --card: #ffffff;
-            --text: #111827;
-            --border: #e5e7eb;
-            --muted: #6b7280;
-            --shadow: 0 2px 8px rgba(0,0,0,0.02);
-            --hover-bg: #f3f4f6;
-            --primary: #008751;
-            --primary-light: #E8F5E9;
-            --primary-dark: #006d3f;
-        }
-        body.dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --muted: #94a3b8; --shadow: 0 2px 8px rgba(0,0,0,0.3); --hover-bg: #2d3748; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
-
+        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
         .navbar .brand span { font-weight: 300; color: var(--text); }
-        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
         .navbar a:hover { color: var(--primary); }
-
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
-
         .page-header { text-align: center; margin-bottom: 2.5rem; }
-        .page-header h1 { font-size: 2rem; font-weight: 700; color: var(--text); }
+        .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0; }
         .page-header p { color: var(--muted); font-size: 1rem; margin-top: 0.25rem; }
-
         .logbook-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .logbook-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .logbook-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: all 0.3s ease; position: relative; overflow: hidden; }
         .logbook-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary); opacity: 0; transition: opacity 0.3s ease; }
         .logbook-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.10); }
         .logbook-card:hover::before { opacity: 1; }
-        .logbook-card .code { font-size: 1.5rem; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
-        .logbook-card .name { font-size: 1rem; color: var(--text); margin: 0.25rem 0 0.5rem; }
-        .logbook-card .price { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-        .logbook-card .price span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
-        .logbook-card .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.65rem; font-weight: 600; background: var(--primary-light); color: var(--primary); margin-top: 0.25rem; }
-        .logbook-card .btn { width: 100%; padding: 0.6rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .logbook-card .code { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .logbook-card .name { font-size: 1rem; margin: 0.25rem 0 0.5rem; }
+        .logbook-card .price { font-size: 1.25rem; font-weight: 700; }
+        .logbook-card .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.65rem; font-weight: 600; background: var(--primary-light); color: var(--primary); }
+        .logbook-card .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.95rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .logbook-card .btn-primary { background: var(--primary); color: white; }
-        .logbook-card .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,135,81,0.25); }
         .logbook-card .btn-primary:active { transform: scale(0.97); }
-        .logbook-card .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
         .loader { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
-        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; font-size: 0.9rem; }
+        .toast.success { border-left-color: #22c55e; }
         .toast.error { border-left-color: #dc2626; }
         .toast.warning { border-left-color: #f59e0b; }
-        .toast.success { border-left-color: #22c55e; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; }
-
         .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .text-muted { color: var(--muted); }
-        .mt-2 { margin-top: 0.5rem; }
-        .mt-4 { margin-top: 1rem; }
-        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
-
         @media (max-width: 768px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
             .page-header h1 { font-size: 1.5rem; }
@@ -81,65 +53,80 @@
 </head>
 <body>
 
-    <!-- ===== NAVBAR ===== -->
     <nav class="navbar">
         <a href="../../index.html" class="brand">Course<span>Mate</span></a>
-        <div class="nav-links" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="../../index.html"><i class="fas fa-home"></i> Home</a>
-            <a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>
+        <div class="nav-links" id="navLinks">
+            <!-- Filled by JavaScript based on login status -->
         </div>
     </nav>
 
-    <!-- ===== TOAST CONTAINER ===== -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- ===== MAIN CONTENT ===== -->
     <div class="container">
         <div class="page-header">
             <h1><i class="fas fa-book-open" style="color: var(--primary);"></i> Practical Logbooks</h1>
             <p>Select a logbook below and place your order. Delivery within 48 hours.</p>
         </div>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-12">
+        <div id="loadingState" style="text-align: center; padding: 3rem 0;">
             <div class="loader"></div>
-            <p class="text-muted mt-2">Loading available logbooks...</p>
+            <p style="color: var(--muted); margin-top: 0.5rem;">Loading available logbooks...</p>
         </div>
 
-        <!-- Logbook Grid -->
         <div id="logbookGrid" class="logbook-grid hidden"></div>
 
-        <!-- Order Message -->
         <div id="orderMessage" class="hidden" style="margin-top: 2rem; padding: 1rem; background: var(--primary-light); border-radius: 12px; text-align: center;">
-            <p style="color: var(--primary); font-weight: 600;" id="orderMessageText"></p>
+            <p style="color: var(--primary); font-weight: 600; margin: 0;" id="orderMessageText"></p>
         </div>
     </div>
 
-    <script src="../../js/auth.js"></script>
     <script>
         // ============================================================
-        // SUPABASE CLIENT
+        // CONFIG
         // ============================================================
-        const supabaseClient = window.supabaseClient || (() => {
-            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
-            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
-            return window.supabase.createClient(url, key);
-        })();
+        var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // ============================================================
-        // TOAST
+        // SMART NAVBAR
         // ============================================================
-        function showToast(message, type) {
-            type = type || 'info';
-            var container = document.getElementById('toastContainer');
-            var toast = document.createElement('div');
-            toast.className = 'toast ' + type;
-            var icons = { success: 'fas fa-check-circle', error: 'fas fa-exclamation-circle', warning: 'fas fa-exclamation-triangle', info: 'fas fa-info-circle' };
-            var iconClass = icons[type] || icons.info;
-            toast.innerHTML = '<i class="' + iconClass + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
-            container.appendChild(toast);
-            setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
+        function renderNavbar() {
+            var navLinks = document.getElementById('navLinks');
+            var studentEmail = localStorage.getItem('studentEmail');
+            var adminEmail = localStorage.getItem('adminEmail');
+
+            var html = '';
+
+            if (adminEmail) {
+                // Admin logged in
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>';
+                html += '<a href="/admin/print-orders.html"><i class="fas fa-print"></i> Print Queue</a>';
+                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else if (studentEmail) {
+                // Student logged in
+                html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else {
+                // Guest (public user)
+                html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+                html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
+            }
+
+            navLinks.innerHTML = html;
+        }
+
+        function logout() {
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminUser');
+            sessionStorage.clear();
+            window.location.href = '../../index.html';
         }
 
         // ============================================================
@@ -150,114 +137,78 @@
                 var loadingState = document.getElementById('loadingState');
                 var logbookGrid = document.getElementById('logbookGrid');
 
-                loadingState.classList.remove('hidden');
-                logbookGrid.classList.add('hidden');
-
-                var response = await supabaseClient
-                    .from('logbooks')
-                    .select('*')
-                    .order('code');
-
+                var response = await supabaseClient.from('logbooks').select('*').order('code');
                 if (response.error) throw response.error;
 
                 var data = response.data;
-
                 if (!data || data.length === 0) {
-                    loadingState.innerHTML = '<p style="color: var(--muted);">No logbooks available at the moment.</p><p style="font-size: 0.9rem; color: var(--muted);">Please check back later.</p>';
+                    loadingState.innerHTML = '<p style="color: var(--muted);">No logbooks available at the moment.</p>';
                     return;
                 }
 
                 renderLogbooks(data);
-
                 loadingState.classList.add('hidden');
                 logbookGrid.classList.remove('hidden');
-
             } catch (error) {
-                console.error('Load logbooks error:', error);
-                document.getElementById('loadingState').innerHTML = '<p style="color: #dc2626;">Failed to load logbooks: ' + error.message + '</p><button onclick="loadLogbooks()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>';
+                console.error('Load error:', error);
+                document.getElementById('loadingState').innerHTML = '<p style="color: #dc2626;">Failed to load logbooks.</p><button onclick="loadLogbooks()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>';
             }
         }
 
-        // ============================================================
-        // RENDER LOGBOOKS
-        // ============================================================
         function renderLogbooks(logbooks) {
             var grid = document.getElementById('logbookGrid');
             var html = '';
-
             for (var i = 0; i < logbooks.length; i++) {
                 var book = logbooks[i];
-                html += '<div class="logbook-card">';
-                html += '    <div class="code">' + book.code + '</div>';
-                html += '    <div class="name">' + book.name + '</div>';
-                html += '    <div style="display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0;">';
-                html += '        <span class="badge">Practical Logbook</span>';
-                html += '    </div>';
-                html += '    <div style="margin: 0.5rem 0;">';
-                html += '        <span class="price">&#8358;' + book.price.toLocaleString() + '</span>';
-                html += '        <span style="font-size: 0.85rem; color: var(--muted);"> one-time</span>';
-                html += '    </div>';
-                html += '    <p style="font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0;">' + (book.description || '') + '</p>';
-                html += '    <button onclick="buyLogbook(\'' + book.code + '\', \'' + book.name + '\', ' + book.price + ')" class="btn btn-primary">';
-                html += '        <i class="fas fa-shopping-cart"></i> Buy Now';
-                html += '    </button>';
-                html += '</div>';
+                var safeName = (book.name || '').replace(/'/g, "\\'");
+                html += '<div class="logbook-card">' +
+                    '<div class="code">' + book.code + '</div>' +
+                    '<div class="name">' + book.name + '</div>' +
+                    '<div style="margin: 0.25rem 0;"><span class="badge">Practical Logbook</span></div>' +
+                    '<div style="margin: 0.5rem 0;"><span class="price">&#8358;' + book.price.toLocaleString() + '</span><span style="font-size: 0.85rem; color: var(--muted);"> one-time</span></div>' +
+                    '<p style="font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0;">' + (book.description || '') + '</p>' +
+                    '<button type="button" onclick="buyLogbook(\'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')" class="btn btn-primary">' +
+                        '<i class="fas fa-shopping-cart"></i> Buy Now' +
+                    '</button>' +
+                '</div>';
             }
-
             grid.innerHTML = html;
         }
 
         // ============================================================
-        // BUY LOGBOOK - FIXED
+        // BUY LOGBOOK - FIXED FOR MOBILE
         // ============================================================
         function buyLogbook(code, name, price) {
-            // Store selected logbook in session
+            // Save selected logbook
             sessionStorage.setItem('selectedLogbook', JSON.stringify({
                 code: code,
                 name: name,
                 price: price
             }));
 
-            // Check if user is logged in
-            window.auth.getCurrentUser().then(function(user) {
-                if (user) {
-                    // User is logged in, go to checkout
-                    window.location.href = 'checkout.html';
-                } else {
-                    // User not logged in, redirect to login
-                    showToast('Please login to continue with your order.', 'warning');
-                    sessionStorage.setItem('redirectAfterLogin', 'student/logbook/checkout.html');
-                    setTimeout(function() {
-                        window.location.href = '../../login.html?redirect=student/logbook/checkout.html';
-                    }, 1000);
-                }
-            }).catch(function() {
-                sessionStorage.setItem('redirectAfterLogin', 'student/logbook/checkout.html');
-                window.location.href = '../../login.html?redirect=student/logbook/checkout.html';
-            });
+            // Save email to session if logged in (for pre-fill)
+            var studentEmail = localStorage.getItem('studentEmail');
+            if (studentEmail) {
+                sessionStorage.setItem('prefillEmail', studentEmail);
+            }
+
+            // Navigate directly to checkout — no auth check, works on all devices
+            window.location.href = 'checkout.html';
         }
 
-        // ============================================================
-        // CHECK ORDER MESSAGE
-        // ============================================================
         function checkOrderMessage() {
             var message = sessionStorage.getItem('orderMessage');
             if (message) {
                 var msgEl = document.getElementById('orderMessage');
-                var textEl = document.getElementById('orderMessageText');
-                textEl.textContent = message;
+                document.getElementById('orderMessageText').textContent = message;
                 msgEl.classList.remove('hidden');
                 sessionStorage.removeItem('orderMessage');
-                setTimeout(function() {
-                    msgEl.classList.add('hidden');
-                }, 8000);
+                setTimeout(function() { msgEl.classList.add('hidden'); }, 8000);
             }
         }
 
-        // ============================================================
-        // INIT
-        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            renderNavbar();
             loadLogbooks();
             checkOrderMessage();
         });

@@ -6,7 +6,7 @@
     <title>Checkout - Buy Logbook</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="icon" href="../assets/images/favicon.png" type="image/png" />
+    <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,28 +16,30 @@
             --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
             --hover-bg: #f3f4f6; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
         .navbar .brand span { font-weight: 300; color: var(--text); }
-        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
         .navbar a:hover { color: var(--primary); }
         .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; }
         .checkout-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow); }
-        .checkout-card .title { font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; }
+        .checkout-card .title { font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .checkout-card .summary { background: var(--primary-light); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
         .checkout-card .summary .label { color: var(--muted); font-size: 0.85rem; }
         .checkout-card .summary .value { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
-        .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; transition: border 0.2s; box-sizing: border-box; }
+        .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; transition: border 0.2s; font-family: inherit; }
         .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
         .form-group small { color: var(--muted); font-size: 0.75rem; display: block; margin-top: 0.25rem; }
-        .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem; }
+        .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #008751; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #008751; animation: spin 0.8s linear infinite; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
         .text-center { text-align: center; }
@@ -45,12 +47,12 @@
         .mt-2 { margin-top: 0.5rem; }
         .mt-4 { margin-top: 1rem; }
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
-        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; font-size: 0.9rem; }
         .toast.error { border-left-color: #dc2626; }
         .toast.warning { border-left-color: #f59e0b; }
         .toast.success { border-left-color: #22c55e; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; }
+        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
         @media (max-width: 640px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
             .container { padding: 1rem; }
@@ -61,11 +63,8 @@
 <body>
 
     <nav class="navbar">
-        <a href="../index.html" class="brand">Course<span>Mate</span></a>
-        <div class="nav-links" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <a href="../index.html"><i class="fas fa-home"></i> Home</a>
-            <a href="shop.html"><i class="fas fa-arrow-left"></i> Back to Shop</a>
-        </div>
+        <a href="../../index.html" class="brand">Course<span>Mate</span></a>
+        <div class="nav-links" id="navLinks"></div>
     </nav>
 
     <div id="toastContainer" class="toast-container"></div>
@@ -137,13 +136,42 @@
     </div>
 
     <script>
-        // SUPABASE CLIENT
+        // ============================================================
+        // CONFIG
+        // ============================================================
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
         var PAYSTACK_KEY = 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a';
 
+        // ============================================================
+        // SMART NAVBAR
+        // ============================================================
+        (function() {
+            var navLinks = document.getElementById('navLinks');
+            var studentEmail = localStorage.getItem('studentEmail');
+            var adminEmail = localStorage.getItem('adminEmail');
+            var html = '';
+
+            if (adminEmail) {
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+            } else if (studentEmail) {
+                html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+            } else {
+                html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+            }
+            navLinks.innerHTML = html;
+        })();
+
+        // ============================================================
+        // TOAST
+        // ============================================================
         function showToast(message, type) {
             type = type || 'info';
             var container = document.getElementById('toastContainer');
@@ -156,17 +184,27 @@
             setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
         }
 
+        // ============================================================
+        // LOAD SELECTED LOGBOOK
+        // ============================================================
         function loadSelectedLogbook() {
             try {
                 var data = sessionStorage.getItem('selectedLogbook');
                 if (!data) {
-                    showToast('No logbook selected. Please go back to shop.', 'warning');
+                    showToast('No logbook selected. Redirecting to shop...', 'warning');
                     setTimeout(function() { window.location.href = 'shop.html'; }, 2000);
                     return null;
                 }
                 var book = JSON.parse(data);
                 document.getElementById('logbookDisplay').textContent = book.code + ' - ' + book.name;
                 document.getElementById('amountDisplay').textContent = '₦' + book.price.toLocaleString();
+
+                // Pre-fill email from localStorage if user logged in
+                var savedEmail = localStorage.getItem('studentEmail');
+                var savedName = localStorage.getItem('studentName');
+                if (savedEmail) document.getElementById('email').value = savedEmail;
+                if (savedName) document.getElementById('studentName').value = savedName;
+
                 return book;
             } catch (error) {
                 console.error('Error loading logbook:', error);
@@ -175,6 +213,9 @@
             }
         }
 
+        // ============================================================
+        // GENERATE ORDER NUMBER
+        // ============================================================
         function generateOrderNumber() {
             var date = new Date();
             var year = date.getFullYear();
@@ -184,6 +225,9 @@
             return 'CMT-' + year + month + day + '-' + random;
         }
 
+        // ============================================================
+        // SUBMIT ORDER
+        // ============================================================
         document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -207,7 +251,7 @@
 
             var matricRegex = /^[a-zA-Z0-9]{9,12}$/;
             if (!matricRegex.test(matricNumber)) {
-                showToast('Invalid Matric Number. It must be 9-12 letters/numbers.', 'error');
+                showToast('Invalid Matric Number. Must be 9-12 letters/numbers.', 'error');
                 return;
             }
 
@@ -267,7 +311,7 @@
                         },
                         callback: function(response) {
                             console.log('Payment successful:', response);
-                            
+
                             supabaseClient
                                 .from('logbook_orders')
                                 .update({
@@ -276,19 +320,39 @@
                                 })
                                 .eq('order_number', orderNumber)
                                 .then(function() {
-                                    sessionStorage.setItem('orderMessage', 'Order #' + orderNumber + ' placed successfully!');
+                                    // ✅ Save FULL order info for confirmation page + history
                                     sessionStorage.setItem('lastOrder', JSON.stringify({
                                         orderNumber: orderNumber,
                                         studentName: studentName,
+                                        email: email,
                                         logbook: book.code,
+                                        logbookName: book.name,
                                         amount: book.price,
+                                        orderDate: new Date().toLocaleDateString(),
                                         deliveryDate: deliveryDate.toLocaleDateString()
                                     }));
+
+                                    // ✅ Persist email + name so my-orders.html and confirmation.html can find them
+                                    localStorage.setItem('studentEmail', email);
+                                    localStorage.setItem('studentName', studentName);
+
+                                    sessionStorage.setItem('orderMessage', 'Order #' + orderNumber + ' placed successfully!');
                                     window.location.href = 'confirmation.html';
                                 })
                                 .catch(function(err) {
                                     console.error('Update error:', err);
-                                    sessionStorage.setItem('orderMessage', 'Order #' + orderNumber + ' placed successfully!');
+                                    // Still save & redirect even if update failed (payment went through)
+                                    sessionStorage.setItem('lastOrder', JSON.stringify({
+                                        orderNumber: orderNumber,
+                                        studentName: studentName,
+                                        email: email,
+                                        logbook: book.code,
+                                        logbookName: book.name,
+                                        amount: book.price,
+                                        orderDate: new Date().toLocaleDateString()
+                                    }));
+                                    localStorage.setItem('studentEmail', email);
+                                    localStorage.setItem('studentName', studentName);
                                     window.location.href = 'confirmation.html';
                                 });
                         },
