@@ -549,7 +549,6 @@
             <div class="card">
                 <div class="card-title"><i class="fas fa-graduation-cap text-primary-500"></i>Courses &amp; Programs</div>
                 <div class="course-grid">
-                    <!-- Departments Box -->
                     <div class="course-box">
                         <div class="box-title">
                             <span><i class="fas fa-building text-primary-500 mr-1"></i>Departments</span>
@@ -564,7 +563,6 @@
                         </div>
                     </div>
 
-                    <!-- Programs Box -->
                     <div class="course-box">
                         <div class="box-title">
                             <span><i class="fas fa-book-open text-primary-500 mr-1"></i>Programs</span>
@@ -660,6 +658,16 @@
                         <p class="text-sm text-red-600">Delete ALL attendance records (dangerous)</p>
                         <button onclick="confirmDelete('deleteAllAttendance')" class="btn btn-danger mt-2">Delete All Attendance</button>
                     </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-red-700">Logbook Orders (Completed)</h4>
+                        <p class="text-sm text-red-600">Delete picked-up logbook orders older than 6 months</p>
+                        <button onclick="confirmDelete('deleteOldLogbookOrders')" class="btn btn-danger mt-2">Delete Old Logbook Orders</button>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-red-700">All Logbook Orders</h4>
+                        <p class="text-sm text-red-600">Delete ALL logbook orders (dangerous)</p>
+                        <button onclick="confirmDelete('deleteAllLogbookOrders')" class="btn btn-danger mt-2">Delete All Logbook Orders</button>
+                    </div>
                 </div>
             </div>
 
@@ -699,7 +707,7 @@
     <script src="../js/auth.js"></script>
     <script>
         // ============================================================
-        //  ENSURE VALID SESSION – prevents 401 errors
+        //  ENSURE VALID SESSION
         // ============================================================
         async function ensureValidSession() {
             try {
@@ -729,13 +737,14 @@
         function confirmDelete(actionName) {
             const modal = document.getElementById('confirmModal');
             const message = document.getElementById('confirmMessage');
-            const yesBtn = document.getElementById('confirmYesBtn');
 
             const messages = {
                 'deleteOldAttendance': 'This will delete all attendance records older than 6 months. This action cannot be undone.',
                 'deleteOldNotifications': 'This will delete all notifications older than 30 days. This action cannot be undone.',
                 'deleteAllFeedback': 'This will delete ALL feedback messages. This action cannot be undone.',
-                'deleteAllAttendance': '🚨 WARNING: This will delete ALL attendance records. This action cannot be undone.'
+                'deleteAllAttendance': '🚨 WARNING: This will delete ALL attendance records. This action cannot be undone.',
+                'deleteOldLogbookOrders': 'This will delete picked-up logbook orders older than 6 months. This action cannot be undone.',
+                'deleteAllLogbookOrders': '🚨 WARNING: This will delete ALL logbook orders (past and present). This action cannot be undone.'
             };
             message.textContent = messages[actionName] || 'This action cannot be undone.';
 
@@ -743,7 +752,9 @@
                 'deleteOldAttendance': window.deleteOldAttendance,
                 'deleteOldNotifications': window.deleteOldNotifications,
                 'deleteAllFeedback': window.deleteAllFeedback,
-                'deleteAllAttendance': window.deleteAllAttendance
+                'deleteAllAttendance': window.deleteAllAttendance,
+                'deleteOldLogbookOrders': window.deleteOldLogbookOrders,
+                'deleteAllLogbookOrders': window.deleteAllLogbookOrders
             };
             pendingDeleteFn = actions[actionName] || null;
 
@@ -829,6 +840,40 @@
                     .not('id', 'is', null);
                 if (error) throw error;
                 showToast('✅ All attendance records deleted.', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Error: ' + err.message, 'error');
+            }
+        };
+
+        window.deleteOldLogbookOrders = async function() {
+            if (!(await ensureValidSession())) return;
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            const dateStr = sixMonthsAgo.toISOString();
+            try {
+                const { error } = await window.supabaseClient
+                    .from('logbook_orders')
+                    .delete()
+                    .eq('status', 'picked_up')
+                    .lt('order_date', dateStr);
+                if (error) throw error;
+                showToast(`✅ Deleted picked-up logbook orders older than ${dateStr.split('T')[0]}.`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Error: ' + err.message, 'error');
+            }
+        };
+
+        window.deleteAllLogbookOrders = async function() {
+            if (!(await ensureValidSession())) return;
+            try {
+                const { error } = await window.supabaseClient
+                    .from('logbook_orders')
+                    .delete()
+                    .not('id', 'is', null);
+                if (error) throw error;
+                showToast('✅ All logbook orders deleted.', 'success');
             } catch (err) {
                 console.error(err);
                 showToast('Error: ' + err.message, 'error');
