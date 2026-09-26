@@ -515,6 +515,7 @@
                 <a href="analytics.html"><i class="fas fa-chart-bar"></i> Progress</a>
                 <a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
                 <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+                <a href="/admin/print-orders.html"><i class="fas fa-print"></i> Logbook Print Queue</a>
                 <a href="super-settings.html" class="active"><i class="fas fa-crown"></i> Super Admin</a>
             </nav>
             <button class="theme-toggle" onclick="toggleTheme()">
@@ -544,7 +545,7 @@
                 </div>
             </div>
 
-            <!-- ===== COURSES & PROGRAMS (Improved Mobile Layout) ===== -->
+            <!-- ===== COURSES & PROGRAMS ===== -->
             <div class="card">
                 <div class="card-title"><i class="fas fa-graduation-cap text-primary-500"></i>Courses &amp; Programs</div>
                 <div class="course-grid">
@@ -690,7 +691,7 @@
                     <div id="profile-message" class="mt-2 text-sm"></div>
                 </form>
             </div>
-        </main>
+        </div>
     </div>
 
     <!-- ===== SCRIPTS ===== -->
@@ -1040,7 +1041,6 @@
             const name = document.getElementById('newDepartment').value.trim();
             if (!name) { showToast('Enter a department name.', 'error'); return; }
 
-            // Check if department already exists
             const exists = departmentsCache.some(d => d.name.toLowerCase() === name.toLowerCase());
             if (exists) {
                 showToast(`Department "${name}" already exists.`, 'warning');
@@ -1113,7 +1113,6 @@
             if (!deptId) { showToast('Select a department.', 'error'); return; }
             if (!name) { showToast('Enter a program name.', 'error'); return; }
 
-            // Check if program already exists in this department
             const exists = programsCache.some(p => 
                 p.department_id === deptId && p.name.toLowerCase() === name.toLowerCase()
             );
