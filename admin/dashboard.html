@@ -43,16 +43,9 @@
         }
         /* ===== SIDEBAR ===== */
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 260px;
-            height: 100%;
-            background: var(--card);
-            border-right: 1px solid var(--border);
-            padding: 1.5rem;
-            overflow-y: auto;
-            z-index: 100;
+            position: fixed; top: 0; left: 0; width: 260px; height: 100%;
+            background: var(--card); border-right: 1px solid var(--border);
+            padding: 1.5rem; overflow-y: auto; z-index: 100;
             transition: background 0.3s, border 0.3s, transform 0.3s ease;
         }
         .sidebar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; }
@@ -61,46 +54,34 @@
             display: flex; align-items: center; gap: 0.75rem;
             padding: 0.6rem 1rem; border-radius: 10px;
             color: var(--text); text-decoration: none;
-            transition: background 0.2s, color 0.2s;
-            font-size: 0.95rem;
+            transition: background 0.2s, color 0.2s; font-size: 0.95rem;
         }
         .sidebar nav a:hover { background: var(--primary-light); color: var(--primary); }
         .sidebar nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
         .sidebar nav a i { width: 1.25rem; text-align: center; }
         .sidebar .logout-btn, .sidebar .theme-toggle {
-            margin-top: 0.5rem;
-            width: 100%;
+            margin-top: 0.5rem; width: 100%;
             display: flex; align-items: center; gap: 0.75rem;
             padding: 0.6rem 1rem; border-radius: 10px;
             background: none; border: none; cursor: pointer;
-            font-size: 0.95rem; color: var(--text);
-            transition: background 0.2s;
+            font-size: 0.95rem; color: var(--text); transition: background 0.2s;
         }
         .sidebar .logout-btn:hover { background: #fee2e2; color: #dc2626; }
         .sidebar .theme-toggle:hover { background: var(--hover-bg); }
         .sidebar-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 99;
-            display: none;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            z-index: 99; display: none;
         }
         .sidebar-overlay.active { display: block; }
         /* ===== MAIN ===== */
-        .main-content {
-            margin-left: 260px;
-            padding: 1.5rem 2rem;
-            min-height: 100vh;
-            transition: background 0.3s;
-        }
+        .main-content { margin-left: 260px; padding: 1.5rem 2rem; min-height: 100vh; transition: background 0.3s; }
         .topbar {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light);
         }
         .topbar .menu-toggle {
-            display: none;
-            background: none; border: none; font-size: 1.5rem;
+            display: none; background: none; border: none; font-size: 1.5rem;
             color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem;
         }
         /* ===== NOTIFICATION BELL ===== */
@@ -126,10 +107,7 @@
             border: 1px solid var(--border); display: none; z-index: 50;
         }
         .notif-dropdown.active { display: block; }
-        .notif-item {
-            padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
-            cursor: default;
-        }
+        .notif-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: default; }
         .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
         .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
         .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
@@ -140,81 +118,102 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 1rem; margin-bottom: 1.5rem;
         }
         .stat-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1rem 1.25rem;
-            box-shadow: var(--shadow);
-            transition: background 0.3s, border 0.3s;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1rem 1.25rem;
+            box-shadow: var(--shadow); transition: background 0.3s, border 0.3s;
         }
         .stat-card .label {
             font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
-            color: var(--muted);
+            color: var(--muted); display: flex; align-items: center; gap: 0.4rem;
+        }
+        .stat-card .label i { color: var(--primary); font-size: 0.8rem; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .stat-card .sub-text { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+
+        /* ===== LOGBOOK REVENUE SECTION ===== */
+        .revenue-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border 0.3s;
+        }
+        .revenue-section .section-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
-        .stat-card .label i {
+        .revenue-section .section-title i { color: var(--primary); }
+        .revenue-section .section-title .total-badge {
+            margin-left: auto;
+            font-size: 1rem;
+            font-weight: 700;
             color: var(--primary);
-            font-size: 0.8rem;
+            background: var(--primary-light);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
         }
-        .stat-card .value {
-            font-size: 1.8rem; font-weight: 700; color: var(--primary);
+        .revenue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
         }
-        .stat-card .sub-text {
+        .revenue-item {
+            padding: 0.75rem;
+            border-radius: 10px;
+            background: var(--bg);
+            border-left: 3px solid var(--primary);
+        }
+        .revenue-item .rv-label {
             font-size: 0.7rem;
             color: var(--muted);
-            margin-top: 0.15rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+        }
+        .revenue-item .rv-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 0.2rem;
+        }
+        .revenue-item .rv-sub {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 0.1rem;
         }
 
         /* ===== TOP STUDENTS ===== */
         .top-students-list {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem;
-            box-shadow: var(--shadow);
-            transition: background 0.3s, border 0.3s;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.25rem;
+            box-shadow: var(--shadow); transition: background 0.3s, border 0.3s;
         }
         .top-students-list .section-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 600; font-size: 0.95rem; color: var(--text);
+            margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
         }
         .top-student-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.3rem 0;
-            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.3rem 0; border-bottom: 1px solid var(--border);
         }
-        .top-student-item:last-child {
-            border-bottom: none;
-        }
-        .top-student-item .rank {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 0.8rem;
-            min-width: 28px;
-        }
-        .top-student-item .name {
-            flex: 1;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
+        .top-student-item:last-child { border-bottom: none; }
+        .top-student-item .rank { font-weight: 700; color: var(--primary); font-size: 0.8rem; min-width: 28px; }
+        .top-student-item .name { flex: 1; font-size: 0.85rem; color: var(--text); }
         .top-student-item .attendance-badge {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 0.1rem 0.6rem;
-            border-radius: 999px;
+            font-size: 0.65rem; font-weight: 600;
+            padding: 0.1rem 0.6rem; border-radius: 999px;
         }
         .top-student-item .attendance-badge.high { background: #d1fae5; color: #065f46; }
         .top-student-item .attendance-badge.medium { background: #fef3c7; color: #92400e; }
@@ -222,60 +221,31 @@
 
         /* ===== RECENT ACTIVITY ===== */
         .recent-activity-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem;
-            box-shadow: var(--shadow);
-            transition: background 0.3s, border 0.3s;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.25rem;
+            box-shadow: var(--shadow); transition: background 0.3s, border 0.3s;
         }
         .recent-activity-section .section-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 600; font-size: 0.95rem; color: var(--text);
+            margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
         }
         .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.4rem 0;
-            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.4rem 0; border-bottom: 1px solid var(--border);
         }
-        .activity-item:last-child {
-            border-bottom: none;
-        }
+        .activity-item:last-child { border-bottom: none; }
         .activity-item .activity-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--primary-light);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            flex-shrink: 0;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--primary-light); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; flex-shrink: 0;
         }
-        .activity-item .activity-content {
-            flex: 1;
-        }
-        .activity-item .activity-content .activity-text {
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-        .activity-item .activity-content .activity-time {
-            font-size: 0.7rem;
-            color: var(--muted);
-        }
+        .activity-item .activity-content { flex: 1; }
+        .activity-item .activity-content .activity-text { font-size: 0.85rem; color: var(--text); }
+        .activity-item .activity-content .activity-time { font-size: 0.7rem; color: var(--muted); }
         .activity-item .activity-status {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 0.1rem 0.5rem;
-            border-radius: 999px;
+            font-size: 0.65rem; font-weight: 600;
+            padding: 0.1rem 0.5rem; border-radius: 999px;
         }
         .activity-item .activity-status.present { background: #d1fae5; color: #065f46; }
         .activity-item .activity-status.late { background: #fef3c7; color: #92400e; }
@@ -283,10 +253,8 @@
 
         /* ===== INFO CARDS ===== */
         .info-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1rem 1.5rem;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1rem 1.5rem;
             transition: background 0.3s, border 0.3s;
         }
         .info-card .icon { color: var(--primary); margin-right: 0.5rem; }
@@ -301,6 +269,8 @@
             .notif-dropdown { width: 280px; right: -0.5rem; }
             .grid-2 { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
+            .revenue-grid { grid-template-columns: 1fr 1fr; }
+            .revenue-section { padding: 1rem; }
         }
         @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
 
@@ -335,8 +305,8 @@
             <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
             <a href="flyer.html"><i class="fas fa-print"></i> Print Flyer</a>
             <a href="/admin/print-orders.html" class="menu-item">
-    <i class="fas fa-print"></i> Logbook Print Queue
-</a>
+                <i class="fas fa-print"></i> Logbook Print Queue
+            </a>
             <a href="super-settings.html" id="superSettingsLink" style="display: none;">
                 <i class="fas fa-crown"></i> Super Admin
             </a>
@@ -395,9 +365,9 @@
             </div>
             <!-- Revenue - Hidden for Regular Admins -->
             <div class="stat-card" id="revenueCard">
-                <div class="label"><i class="fas fa-coins"></i> Revenue</div>
+                <div class="label"><i class="fas fa-coins"></i> Tutorial Revenue</div>
                 <div class="value" id="totalRevenue">₦0</div>
-                <div class="sub-text">Total collected</div>
+                <div class="sub-text">Total tutorial collected</div>
             </div>
             <!-- Regular Admin Replacement - Top Student -->
             <div class="stat-card" id="topStudentCard" style="display:none;">
@@ -407,9 +377,38 @@
             </div>
         </div>
 
+        <!-- ===== LOGBOOK REVENUE SECTION (Super Admin Only) ===== -->
+        <div class="revenue-section" id="logbookRevenueSection" style="display:none;">
+            <div class="section-title">
+                <i class="fas fa-book"></i> Logbook Revenue
+                <span class="total-badge" id="logbookTotalDisplay">₦0</span>
+            </div>
+            <div class="revenue-grid">
+                <div class="revenue-item">
+                    <div class="rv-label">Today</div>
+                    <div class="rv-value" id="logbookToday">₦0</div>
+                    <div class="rv-sub" id="logbookTodayCount">0 orders</div>
+                </div>
+                <div class="revenue-item">
+                    <div class="rv-label">This Week</div>
+                    <div class="rv-value" id="logbookWeek">₦0</div>
+                    <div class="rv-sub" id="logbookWeekCount">0 orders</div>
+                </div>
+                <div class="revenue-item">
+                    <div class="rv-label">This Month</div>
+                    <div class="rv-value" id="logbookMonth">₦0</div>
+                    <div class="rv-sub" id="logbookMonthCount">0 orders</div>
+                </div>
+                <div class="revenue-item">
+                    <div class="rv-label">All Time</div>
+                    <div class="rv-value" id="logbookAllTime">₦0</div>
+                    <div class="rv-sub" id="logbookAllTimeCount">0 orders</div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== GRID: Top Students + Recent Activity ===== -->
         <div class="grid-2">
-            <!-- Top Students -->
             <div class="top-students-list">
                 <div class="section-title">
                     <i class="fas fa-trophy text-primary"></i> Top Students
@@ -419,7 +418,6 @@
                 </div>
             </div>
 
-            <!-- Recent Activity -->
             <div class="recent-activity-section">
                 <div class="section-title">
                     <i class="fas fa-clock text-primary"></i> Recent Activity
@@ -522,25 +520,24 @@
                 const isSuper = currentUserRole === 'super_admin';
 
                 const superLink = document.getElementById('superSettingsLink');
-                if (superLink) {
-                    superLink.style.display = isSuper ? 'flex' : 'none';
-                }
+                if (superLink) superLink.style.display = isSuper ? 'flex' : 'none';
 
                 const revenueCard = document.getElementById('revenueCard');
                 const topStudentCard = document.getElementById('topStudentCard');
-                
+                const logbookRevenueSection = document.getElementById('logbookRevenueSection');
+
                 if (isSuper) {
                     revenueCard.style.display = 'block';
                     topStudentCard.style.display = 'none';
+                    logbookRevenueSection.style.display = 'block';
                 } else {
                     revenueCard.style.display = 'none';
                     topStudentCard.style.display = 'block';
+                    logbookRevenueSection.style.display = 'none';
                 }
 
                 const roleEl = document.getElementById('adminRole');
-                if (roleEl) {
-                    roleEl.textContent = isSuper ? 'Super Admin' : 'Admin';
-                }
+                if (roleEl) roleEl.textContent = isSuper ? 'Super Admin' : 'Admin';
 
             } catch (err) {
                 console.warn('Could not fetch role – defaulting to admin.', err);
@@ -548,6 +545,70 @@
                 if (superLink) superLink.style.display = 'none';
                 document.getElementById('revenueCard').style.display = 'none';
                 document.getElementById('topStudentCard').style.display = 'block';
+                document.getElementById('logbookRevenueSection').style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // LOGBOOK REVENUE (Super Admin Only)
+        // ============================================================
+        async function loadLogbookRevenue() {
+            if (currentUserRole !== 'super_admin') return;
+
+            try {
+                const { data: orders, error } = await supabaseClient
+                    .from('logbook_orders')
+                    .select('amount, order_date, status');
+
+                if (error) throw error;
+                if (!orders || orders.length === 0) {
+                    document.getElementById('logbookTotalDisplay').textContent = '₦0';
+                    document.getElementById('logbookToday').textContent = '₦0';
+                    document.getElementById('logbookWeek').textContent = '₦0';
+                    document.getElementById('logbookMonth').textContent = '₦0';
+                    document.getElementById('logbookAllTime').textContent = '₦0';
+                    return;
+                }
+
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+                // Only count orders that are accepted (paid) or beyond
+                const validOrders = orders.filter(o => 
+                    ['accepted', 'processing', 'ready', 'picked_up'].includes(o.status)
+                );
+
+                let todayTotal = 0, todayCount = 0;
+                let weekTotal = 0, weekCount = 0;
+                let monthTotal = 0, monthCount = 0;
+                let allTotal = 0;
+
+                validOrders.forEach(o => {
+                    const amt = Number(o.amount) || 0;
+                    const d = new Date(o.order_date);
+                    allTotal += amt;
+
+                    if (d >= todayStart) { todayTotal += amt; todayCount++; }
+                    if (d >= weekStart) { weekTotal += amt; weekCount++; }
+                    if (d >= monthStart) { monthTotal += amt; monthCount++; }
+                });
+
+                const fmt = (n) => '₦' + n.toLocaleString();
+
+                document.getElementById('logbookTotalDisplay').textContent = fmt(allTotal);
+                document.getElementById('logbookToday').textContent = fmt(todayTotal);
+                document.getElementById('logbookTodayCount').textContent = todayCount + ' order' + (todayCount !== 1 ? 's' : '');
+                document.getElementById('logbookWeek').textContent = fmt(weekTotal);
+                document.getElementById('logbookWeekCount').textContent = weekCount + ' order' + (weekCount !== 1 ? 's' : '');
+                document.getElementById('logbookMonth').textContent = fmt(monthTotal);
+                document.getElementById('logbookMonthCount').textContent = monthCount + ' order' + (monthCount !== 1 ? 's' : '');
+                document.getElementById('logbookAllTime').textContent = fmt(allTotal);
+                document.getElementById('logbookAllTimeCount').textContent = validOrders.length + ' order' + (validOrders.length !== 1 ? 's' : '');
+
+            } catch (err) {
+                console.error('Logbook revenue error:', err);
             }
         }
 
@@ -616,7 +677,7 @@
         });
 
         // ============================================================
-        // DASHBOARD STATS
+        // DASHBOARD STATS (Tutorial Revenue)
         // ============================================================
         async function loadStats() {
             try {
@@ -684,10 +745,7 @@
                         .gte('session_date', startStr)
                         .lte('session_date', today);
 
-                    studentAttendance.push({
-                        ...student,
-                        attended: attended || 0
-                    });
+                    studentAttendance.push({ ...student, attended: attended || 0 });
                 }
 
                 studentAttendance.sort((a, b) => b.attended - a.attended);
@@ -705,9 +763,8 @@
                 let listHTML = '';
                 top5.forEach((s, index) => {
                     let badgeClass = 'high';
-                    let badgeText = 'Excellent';
-                    if (s.attended < 3) { badgeClass = 'low'; badgeText = 'Low'; }
-                    else if (s.attended < 6) { badgeClass = 'medium'; badgeText = 'Good'; }
+                    if (s.attended < 3) badgeClass = 'low';
+                    else if (s.attended < 6) badgeClass = 'medium';
 
                     listHTML += `
                         <div class="top-student-item">
@@ -759,9 +816,7 @@
 
                     listHTML += `
                         <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-user-check"></i>
-                            </div>
+                            <div class="activity-icon"><i class="fas fa-user-check"></i></div>
                             <div class="activity-content">
                                 <div class="activity-text">${studentName} checked in</div>
                                 <div class="activity-time">${time}</div>
@@ -813,14 +868,13 @@
                 loadTopStudents(),
                 loadRecentActivity(),
                 loadSessionStatus(),
-                loadNotifications()
+                loadNotifications(),
+                loadLogbookRevenue()
             ]);
             const btn = document.querySelector('[onclick="reloadDashboard()"]');
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-check text-primary"></i>';
-                setTimeout(() => {
-                    btn.innerHTML = '<i class="fas fa-sync"></i>';
-                }, 1500);
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-sync"></i>'; }, 1500);
             }
         };
 
@@ -841,6 +895,7 @@
                 await loadRecentActivity();
                 await loadSessionStatus();
                 await loadNotifications();
+                await loadLogbookRevenue(); // Only runs for super admin
 
             } catch (e) {
                 console.warn('Init error:', e);
