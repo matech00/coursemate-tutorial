@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Template Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; margin: 0; padding: 2rem; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #111827; text-align: center; margin: 0 0 0.5rem; font-size: 1.8rem; }
+        .subtitle { text-align: center; color: #6b7280; margin: 0 0 2rem; font-size: 0.95rem; }
+        .info-box { background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; color: #92400e; font-size: 0.9rem; }
+        .info-box strong { color: #78350f; }
+        .buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        button { padding: 1.25rem 1rem; border: none; border-radius: 12px; background: #008751; color: white; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 12px rgba(0,135,81,0.2); }
+        button:hover { background: #006d3f; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        .data-preview { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .data-preview h2 { font-size: 1rem; color: #111827; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+        .data-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed #f3f4f6; font-size: 0.9rem; }
+        .data-row:last-child { border-bottom: none; }
+        .data-label { color: #6b7280; font-weight: 500; }
+        .data-value { color: #111827; font-weight: 600; }
+        .status { text-align: center; color: #6b7280; font-size: 0.85rem; margin-top: 1rem; min-height: 1.2rem; }
+        .status.success { color: #16a34a; }
+        .status.error { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>PDF Template Test</h1>
+        <p class="subtitle">Click a button below to preview each logbook template</p>
+
+        <div class="info-box">
+            <strong>ℹ️ Test Data Used:</strong> Sample student data — so you can see what each logbook cover looks like when printed.
+        </div>
+
+        <div class="buttons">
+            <button onclick="generateTemplate('PHY191')">PHY 191<br><small style="font-weight: 400; opacity: 0.9;">Physics</small></button>
+            <button onclick="generateTemplate('CIT104')">CIT 104<br><small style="font-weight: 400; opacity: 0.9;">Computer Science</small></button>
+            <button onclick="generateTemplate('IFT191')">IFT 191<br><small style="font-weight: 400; opacity: 0.9;">Info Tech</small></button>
+            <button onclick="generateTemplate('BIO191')">BIO 191<br><small style="font-weight: 400; opacity: 0.9;">Biology</small></button>
+            <button onclick="generateTemplate('MTH101')">MTH 101<br><small style="font-weight: 400; opacity: 0.9;">Mathematics</small></button>
+        </div>
+
+        <div class="data-preview">
+            <h2>📋 Sample Student Data (used in all PDFs)</h2>
+            <div class="data-row"><span class="data-label">Full Name</span><span class="data-value">JOHN DOE ADEWALE</span></div>
+            <div class="data-row"><span class="data-label">Matric Number</span><span class="data-value">NOU123456789</span></div>
+            <div class="data-row"><span class="data-label">Programme</span><span class="data-value">INFORMATION TECHNOLOGY</span></div>
+            <div class="data-row"><span class="data-label">Level</span><span class="data-value">200</span></div>
+            <div class="data-row"><span class="data-label">Group</span><span class="data-value">GROUP A</span></div>
+            <div class="data-row"><span class="data-label">Department</span><span class="data-value">COMPUTER SCIENCE</span></div>
+            <div class="data-row"><span class="data-label">Study Centre</span><span class="data-value">LAGOS STUDY CENTRE</span></div>
+        </div>
+
+        <p class="status" id="status"></p>
+    </div>
+
+    <script>
+        var LOGO_PATH = 'noun-logo.png';
+
+        var SAMPLE_ORDER = {
+            student_name: 'JOHN DOE ADEWALE',
+            matric_number: 'NOU123456789',
+            programme: 'INFORMATION TECHNOLOGY',
+            level: '200',
+            student_group: 'GROUP A',
+            department: 'COMPUTER SCIENCE',
+            study_centre: 'LAGOS STUDY CENTRE',
+            logbook_code: '',
+            logbook_name: ''
+        };
+
+        var PAGE_W = 595;
+        var PAGE_H = 842;
+
+        function setStatus(msg, type) {
+            var el = document.getElementById('status');
+            el.textContent = msg;
+            el.className = 'status ' + (type || '');
+        }
+
+        async function loadLogo() {
+            try {
+                var resp = await fetch(LOGO_PATH);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                return await resp.arrayBuffer();
+            } catch (e) { console.warn('Logo not loaded:', e); return null; }
+        }
+
+        async function drawLogo(pdfDoc, page, logoBytes, yTop, targetWidth) {
+            if (!logoBytes) return;
+            var img = null;
+            var bytes = new Uint8Array(logoBytes);
+            var isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+            var isJpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
+            try {
+                if (isPng) img = await pdfDoc.embedPng(logoBytes);
+                else if (isJpg) img = await pdfDoc.embedJpg(logoBytes);
+                else {
+                    try { img = await pdfDoc.embedJpg(logoBytes); }
+                    catch (e) { img = await pdfDoc.embedPng(logoBytes); }
+                }
+                var aspect = img.height / img.width;
+                var w = targetWidth;
+                var h = w * aspect;
+                var x = (PAGE_W - w) / 2;
+                page.drawImage(img, { x: x, y: yTop - h, width: w, height: h });
+            } catch (e) { console.warn('Logo embed failed:', e); }
+        }
+
+        // Draw centered text helper — uses font width to truly center
+        function drawCentered(page, text, y, size, font, color) {
+            var w = font.widthOfTextAtSize(text, size);
+            page.drawText(text, { x: (PAGE_W - w) / 2, y: y, size: size, font: font, color: color });
+        }
+
+        function cap(s) { return (s || '').toString().toUpperCase(); }
+
+        // ============================================================
+        // MAIN DISPATCHER
+        // ============================================================
+        async function generateTemplate(code) {
+            try {
+                setStatus('Generating ' + code + '...', '');
+                var pdfDoc = await PDFLib.PDFDocument.create();
+                var logoBytes = await loadLogo();
+
+                var order = Object.assign({}, SAMPLE_ORDER);
+                order.logbook_code = code;
+                var courseNames = {
+                    'PHY191': 'INTRODUCTION PRACTICAL PHYSICS I',
+                    'CIT104': 'INTRODUCTION TO COMPUTER SCIENCE',
+                    'IFT191': 'COMPUTER LABORATORY I',
+                    'BIO191': 'GENERAL BIOLOGY PRACTICAL I',
+                    'MTH101': 'MATHEMATICS LABORATORY I'
+                };
+                order.logbook_name = courseNames[code] || code;
+
+                if (code === 'PHY191')       await generatePHY191PDF(pdfDoc, order, logoBytes);
+                else if (code === 'CIT104')  await generateCIT104PDF(pdfDoc, order, logoBytes);
+                else if (code === 'IFT191')  await generateIFT191PDF(pdfDoc, order, logoBytes);
+                else if (code === 'BIO191')  await generateBIO191PDF(pdfDoc, order, logoBytes);
+                else if (code === 'MTH101')  await generateMTH101PDF(pdfDoc, order, logoBytes);
+
+                var pdfBytes = await pdfDoc.save();
+                var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                window.open(URL.createObjectURL(blob), '_blank');
+                setStatus('✅ ' + code + ' PDF generated.', 'success');
+                setTimeout(function() { setStatus('', ''); }, 3000);
+            } catch (e) {
+                console.error(e);
+                setStatus('❌ Error: ' + e.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // TEMPLATE: PHY 191 — Physics
+        // ============================================================
+        async function generatePHY191PDF(pdfDoc, order, logoBytes) {
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+            var black = PDFLib.rgb(0, 0, 0);
+
+            await drawLogo(pdfDoc, page, logoBytes, 800, 65);
+
+            // Headers — centered
+            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
+            drawCentered(page, 'FACULTY OF SCIENCE', 680, 12, bold, black);
+
+            // Title
+            drawCentered(page, 'PHYSICS LABORATORY MANUAL', 625, 18, bold, black);
+
+            // Course info
+            drawCentered(page, 'COURSE CODE: PHY 191', 585, 11, bold, black);
+            drawCentered(page, 'COURSE TITLE: ' + cap(order.logbook_name), 555, 11, bold, black);
+
+            var labelX = 60;
+            var lineStartX = 145;
+            var lineEndX = 535;
+            var startY = 495;
+            var step = 45;
+
+            var fields = [
+                { label: 'NAME:', value: cap(order.student_name) },
+                { label: 'PROGRAMME:', value: cap(order.programme) },
+                { label: 'MATRIC. NO:', value: cap(order.matric_number) },
+                { label: 'LEVEL:', value: cap(order.level) }
+            ];
+
+            fields.forEach(function(f, i) {
+                var y = startY - (i * step);
+                page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
+                if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
+                page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
+            });
+
+            var gY = startY - (4 * step);
+            page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
+            if (order.student_group) page.drawText(cap(order.student_group), { x: 130, y: gY, size: 13, font: bold, color: black });
+            page.drawLine({ start: { x: 125, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
+
+            page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
+            page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
+        }
+
+        // ============================================================
+        // TEMPLATE: CIT 104 — Computer Science
+        // ============================================================
+        async function generateCIT104PDF(pdfDoc, order, logoBytes) {
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+            var black = PDFLib.rgb(0, 0, 0);
+
+            await drawLogo(pdfDoc, page, logoBytes, 800, 60);
+
+            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
+            drawCentered(page, 'Department of Computer Science', 682, 13, bold, black);
+            drawCentered(page, 'CIT 104: Introduction to Computer Science', 645, 12, font, black);
+            drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 618, 13, bold, black);
+
+            // Box "Student's Particulars"
+            page.drawRectangle({ x: 70, y: 568, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
+            drawCentered(page, "Student's Particulars", 578, 20, bold, black);
+
+            function fieldLine(label, x, y, width, value) {
+                if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
+                page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
+                page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
+            }
+
+            var year = new Date().getFullYear();
+            var yearLevel = year + '/' + (order.level || '100');
+
+            fieldLine('Matriculation number', 70, 490, 220, cap(order.matric_number));
+            page.drawLine({ start: { x: 300, y: 480 }, end: { x: 300, y: 505 }, thickness: 0.7, color: black });
+            fieldLine('Year/Level of Course', 310, 490, 215, yearLevel);
+
+            fieldLine('Name of Student (SURNAME, Other Names)', 70, 430, 455, cap(order.student_name));
+            fieldLine('Department', 70, 370, 455, cap(order.department || order.programme));
+
+            page.drawText('Name of Laboratory Coordinator', { x: 70, y: 310, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 70, y: 322 }, end: { x: 300, y: 322 }, thickness: 0.7, color: black });
+            page.drawText('Signature and Date', { x: 420, y: 310, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 420, y: 322 }, end: { x: 525, y: 322 }, thickness: 0.7, color: black });
+
+            page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 255, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 70, y: 267 }, end: { x: 300, y: 267 }, thickness: 0.7, color: black });
+            page.drawText('Signature and Date', { x: 420, y: 255, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 420, y: 267 }, end: { x: 525, y: 267 }, thickness: 0.7, color: black });
+        }
+
+        // ============================================================
+        // TEMPLATE: IFT 191 — Info Tech
+        // ============================================================
+        async function generateIFT191PDF(pdfDoc, order, logoBytes) {
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+            var black = PDFLib.rgb(0, 0, 0);
+
+            await drawLogo(pdfDoc, page, logoBytes, 800, 60);
+
+            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
+            drawCentered(page, 'Faculty of Computing', 682, 13, bold, black);
+            drawCentered(page, 'Department of Information Systems and Technology', 664, 12, bold, black);
+            drawCentered(page, 'NOUN-IFT191: Computer Laboratory I', 628, 12, font, black);
+            drawCentered(page, 'LABORATORY MANUAL AND LOGBOOK', 602, 13, bold, black);
+
+            // Box
+            page.drawRectangle({ x: 70, y: 552, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
+            drawCentered(page, 'Student Particulars', 562, 20, bold, black);
+
+            function fieldLine(label, x, y, width, value) {
+                if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
+                page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
+                page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
+            }
+
+            var year = new Date().getFullYear();
+            var yearLevel = year + '/' + (order.level || '100');
+
+            fieldLine('Matriculation number', 70, 478, 220, cap(order.matric_number));
+            page.drawLine({ start: { x: 300, y: 468 }, end: { x: 300, y: 493 }, thickness: 0.7, color: black });
+            fieldLine('Year/Level of Course', 310, 478, 215, yearLevel);
+
+            fieldLine('Name of Student (SURNAME, Other Names)', 70, 418, 455, cap(order.student_name));
+            fieldLine('Department', 70, 358, 455, cap(order.department || order.programme));
+
+            page.drawText('Name of Laboratory Coordinator', { x: 70, y: 298, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 70, y: 310 }, end: { x: 300, y: 310 }, thickness: 0.7, color: black });
+            page.drawText('Signature and Date', { x: 420, y: 298, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 420, y: 310 }, end: { x: 525, y: 310 }, thickness: 0.7, color: black });
+
+            page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 243, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 70, y: 255 }, end: { x: 300, y: 255 }, thickness: 0.7, color: black });
+            page.drawText('Signature and Date', { x: 420, y: 243, size: 9, font: font, color: black });
+            page.drawLine({ start: { x: 420, y: 255 }, end: { x: 525, y: 255 }, thickness: 0.7, color: black });
+        }
+
+        // ============================================================
+        // TEMPLATE: BIO 191 (displayed as BIO 107)
+        // ============================================================
+        async function generateBIO191PDF(pdfDoc, order, logoBytes) {
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+            var black = PDFLib.rgb(0, 0, 0);
+
+            await drawLogo(pdfDoc, page, logoBytes, 800, 65);
+
+            // Centered headers
+            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
+            drawCentered(page, 'FACULTY OF SCIENCE', 682, 12, bold, black);
+            drawCentered(page, 'LABORATORY MANUAL', 640, 13, bold, black);
+            drawCentered(page, 'COURSE CODE: BIO 107', 605, 11, bold, black);
+            drawCentered(page, 'COURSE TITLE: GENERAL BIOLOGY PRACTICAL I', 575, 11, bold, black);
+
+            var labelX = 60;
+            var lineStartX = 175;
+            var lineEndX = 535;
+            var startY = 500;
+            var step = 42;
+
+            var fields = [
+                { label: 'NAME:', value: cap(order.student_name) },
+                { label: 'PROGRAMME:', value: cap(order.programme) },
+                { label: 'MATRIC. NO:', value: cap(order.matric_number) },
+                { label: 'LEVEL:', value: cap(order.level) },
+                { label: 'STUDY CENTRE:', value: cap(order.study_centre) },
+                { label: 'PRACTICAL CENTRE:', value: '' }
+            ];
+
+            fields.forEach(function(f, i) {
+                var y = startY - (i * step);
+                page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
+                if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
+                page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
+            });
+
+            var gY = startY - (6 * step);
+            page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
+            if (order.student_group) page.drawText(cap(order.student_group), { x: 135, y: gY, size: 13, font: bold, color: black });
+            page.drawLine({ start: { x: 130, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
+
+            page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
+            page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
+        }
+
+        // ============================================================
+        // TEMPLATE: MTH 101 — Mathematics
+        // ============================================================
+        async function generateMTH101PDF(pdfDoc, order, logoBytes) {
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+            var black = PDFLib.rgb(0, 0, 0);
+
+            await drawLogo(pdfDoc, page, logoBytes, 810, 65);
+
+            // Centered headers with more space after logo
+            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 715, 12, bold, black);
+            drawCentered(page, 'DEPARTMENT OF MATHEMATICS', 697, 12, bold, black);
+
+            drawCentered(page, 'MATHEMATICS LABOURATORY I', 660, 11, bold, black);
+            drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 643, 11, bold, black);
+            drawCentered(page, "STUDENT'S PARTICULARS", 620, 11, bold, black);
+
+            // Passport box
+            page.drawRectangle({ x: 210, y: 485, width: 175, height: 115, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
+            drawCentered(page, 'Insert', 557, 10, bold, black);
+            drawCentered(page, 'Recent', 537, 10, bold, black);
+            drawCentered(page, 'Passport', 517, 10, bold, black);
+
+            var year = new Date().getFullYear();
+            var yearLevel = year + '/' + (order.level || '100');
+
+            // Matric — text above line, larger
+            page.drawText(cap(order.matric_number), { x: 55, y: 460, size: 17, font: bold, color: black });
+            page.drawLine({ start: { x: 55, y: 450 }, end: { x: 385, y: 450 }, thickness: 0.6, color: black });
+            page.drawText('Matriculation number', { x: 55, y: 432, size: 8, font: bold, color: black });
+
+            page.drawText(yearLevel, { x: 400, y: 460, size: 17, font: bold, color: black });
+            page.drawLine({ start: { x: 400, y: 450 }, end: { x: 540, y: 450 }, thickness: 0.6, color: black });
+            page.drawText('Year/Level of Course', { x: 400, y: 432, size: 8, font: bold, color: black });
+
+            // Name
+            page.drawText(cap(order.student_name), { x: 55, y: 380, size: 17, font: bold, color: black });
+            page.drawLine({ start: { x: 55, y: 370 }, end: { x: 540, y: 370 }, thickness: 0.6, color: black });
+            page.drawText('Name of Student (Surname, First name, Middle name)', { x: 55, y: 352, size: 8, font: bold, color: black });
+
+            // Department
+            page.drawText(cap(order.department || order.programme), { x: 55, y: 300, size: 17, font: bold, color: black });
+            page.drawLine({ start: { x: 55, y: 290 }, end: { x: 540, y: 290 }, thickness: 0.6, color: black });
+            page.drawText('Department', { x: 55, y: 272, size: 8, font: bold, color: black });
+
+            // Coordinator
+            page.drawLine({ start: { x: 55, y: 240 }, end: { x: 290, y: 240 }, thickness: 0.6, color: black });
+            page.drawText('Name of Laboratory Co-ordinator', { x: 55, y: 225, size: 8, font: bold, color: black });
+            page.drawLine({ start: { x: 400, y: 240 }, end: { x: 540, y: 240 }, thickness: 0.6, color: black });
+            page.drawText('Signature and Date', { x: 400, y: 225, size: 8, font: bold, color: black });
+
+            // Examiner
+            page.drawLine({ start: { x: 55, y: 190 }, end: { x: 290, y: 190 }, thickness: 0.6, color: black });
+            page.drawText('Examiner (or Course Co-ordinator)', { x: 55, y: 175, size: 8, font: bold, color: black });
+            page.drawLine({ start: { x: 400, y: 190 }, end: { x: 540, y: 190 }, thickness: 0.6, color: black });
+            page.drawText('Signature and Date', { x: 400, y: 175, size: 8, font: bold, color: black });
+        }
+    </script>
+</body>
+</html>
