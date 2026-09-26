@@ -10,35 +10,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== LIGHT & DARK THEME (CSS Variables) ===== */
+        /* ===== LIGHT & DARK THEME ===== */
         :root {
-            --bg: #f9fafb;
-            --card: #ffffff;
-            --text: #111827;
-            --border: #e5e7eb;
-            --muted: #6b7280;
-            --shadow: 0 2px 8px rgba(0,0,0,0.02);
-            --hover-bg: #f3f4f6;
-            --primary: #008751;
-            --primary-light: #E8F5E9;
-            --primary-dark: #006d3f;
+            --bg: #f9fafb; --card: #ffffff; --text: #111827; --border: #e5e7eb;
+            --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02); --hover-bg: #f3f4f6;
+            --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
         }
         body.dark {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --border: #334155;
-            --muted: #94a3b8;
-            --shadow: 0 2px 8px rgba(0,0,0,0.3);
-            --hover-bg: #2d3748;
+            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155;
+            --muted: #94a3b8; --shadow: 0 2px 8px rgba(0,0,0,0.3); --hover-bg: #2d3748;
         }
         body {
-            background: var(--bg);
-            color: var(--text);
+            background: var(--bg); color: var(--text);
             font-family: 'Inter', system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            margin: 0; padding: 0; min-height: 100vh;
             transition: background 0.3s, color 0.3s;
         }
         /* ===== SIDEBAR ===== */
@@ -107,7 +92,7 @@
             border: 1px solid var(--border); display: none; z-index: 50;
         }
         .notif-dropdown.active { display: block; }
-        .notif-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: default; }
+        .notif-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
         .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
         .notif-item .title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
         .notif-item .msg { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
@@ -138,61 +123,21 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 1.5rem;
+            padding: 1.25rem 1.5rem;
             margin-bottom: 1.5rem;
             box-shadow: var(--shadow);
             transition: background 0.3s, border 0.3s;
         }
         .revenue-section .section-title {
-            font-weight: 700;
-            font-size: 1.05rem;
+            font-weight: 600;
+            font-size: 0.95rem;
             color: var(--text);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
         }
         .revenue-section .section-title i { color: var(--primary); }
-        .revenue-section .section-title .total-badge {
-            margin-left: auto;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary);
-            background: var(--primary-light);
-            padding: 0.25rem 0.75rem;
-            border-radius: 8px;
-        }
-        .revenue-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
-        }
-        .revenue-item {
-            padding: 0.75rem;
-            border-radius: 10px;
-            background: var(--bg);
-            border-left: 3px solid var(--primary);
-        }
-        .revenue-item .rv-label {
-            font-size: 0.7rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            font-weight: 600;
-        }
-        .revenue-item .rv-value {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-top: 0.2rem;
-        }
-        .revenue-item .rv-sub {
-            font-size: 0.7rem;
-            color: var(--muted);
-            margin-top: 0.1rem;
-        }
 
         /* ===== TOP STUDENTS ===== */
         .top-students-list {
@@ -269,8 +214,7 @@
             .notif-dropdown { width: 280px; right: -0.5rem; }
             .grid-2 { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
-            .revenue-grid { grid-template-columns: 1fr 1fr; }
-            .revenue-section { padding: 1rem; }
+            .revenue-section { padding: 1rem 1.25rem; }
         }
         @media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
 
@@ -363,13 +307,13 @@
                 <div class="value" id="todayAttendance">0</div>
                 <div class="sub-text">Checked in today</div>
             </div>
-            <!-- Revenue - Hidden for Regular Admins -->
+            <!-- Tutorial Revenue - Super Admin Only -->
             <div class="stat-card" id="revenueCard">
                 <div class="label"><i class="fas fa-coins"></i> Tutorial Revenue</div>
                 <div class="value" id="totalRevenue">₦0</div>
                 <div class="sub-text">Total tutorial collected</div>
             </div>
-            <!-- Regular Admin Replacement - Top Student -->
+            <!-- Regular Admin - Top Student -->
             <div class="stat-card" id="topStudentCard" style="display:none;">
                 <div class="label"><i class="fas fa-trophy" style="color:var(--primary);"></i> Best Student</div>
                 <div class="value" id="topStudentName" style="font-size:1.2rem;">—</div>
@@ -377,33 +321,14 @@
             </div>
         </div>
 
-        <!-- ===== LOGBOOK REVENUE SECTION (Super Admin Only) ===== -->
+        <!-- ===== LOGBOOK REVENUE (Super Admin Only) ===== -->
         <div class="revenue-section" id="logbookRevenueSection" style="display:none;">
             <div class="section-title">
                 <i class="fas fa-book"></i> Logbook Revenue
-                <span class="total-badge" id="logbookTotalDisplay">₦0</span>
             </div>
-            <div class="revenue-grid">
-                <div class="revenue-item">
-                    <div class="rv-label">Today</div>
-                    <div class="rv-value" id="logbookToday">₦0</div>
-                    <div class="rv-sub" id="logbookTodayCount">0 orders</div>
-                </div>
-                <div class="revenue-item">
-                    <div class="rv-label">This Week</div>
-                    <div class="rv-value" id="logbookWeek">₦0</div>
-                    <div class="rv-sub" id="logbookWeekCount">0 orders</div>
-                </div>
-                <div class="revenue-item">
-                    <div class="rv-label">This Month</div>
-                    <div class="rv-value" id="logbookMonth">₦0</div>
-                    <div class="rv-sub" id="logbookMonthCount">0 orders</div>
-                </div>
-                <div class="revenue-item">
-                    <div class="rv-label">All Time</div>
-                    <div class="rv-value" id="logbookAllTime">₦0</div>
-                    <div class="rv-sub" id="logbookAllTimeCount">0 orders</div>
-                </div>
+            <div style="display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="logbookTotalDisplay">₦0</div>
+                <div style="font-size: 0.85rem; color: var(--muted);" id="logbookTotalCount">0 orders</div>
             </div>
         </div>
 
@@ -499,7 +424,7 @@
         })();
 
         // ============================================================
-        // SHOW / HIDE SUPER ADMIN LINK & REVENUE BASED ON ROLE
+        // ROLE CHECK
         // ============================================================
         let currentUserRole = 'admin';
 
@@ -541,8 +466,7 @@
 
             } catch (err) {
                 console.warn('Could not fetch role – defaulting to admin.', err);
-                const superLink = document.getElementById('superSettingsLink');
-                if (superLink) superLink.style.display = 'none';
+                document.getElementById('superSettingsLink').style.display = 'none';
                 document.getElementById('revenueCard').style.display = 'none';
                 document.getElementById('topStudentCard').style.display = 'block';
                 document.getElementById('logbookRevenueSection').style.display = 'none';
@@ -558,54 +482,25 @@
             try {
                 const { data: orders, error } = await supabaseClient
                     .from('logbook_orders')
-                    .select('amount, order_date, status');
+                    .select('amount, status');
 
                 if (error) throw error;
+
                 if (!orders || orders.length === 0) {
                     document.getElementById('logbookTotalDisplay').textContent = '₦0';
-                    document.getElementById('logbookToday').textContent = '₦0';
-                    document.getElementById('logbookWeek').textContent = '₦0';
-                    document.getElementById('logbookMonth').textContent = '₦0';
-                    document.getElementById('logbookAllTime').textContent = '₦0';
+                    document.getElementById('logbookTotalCount').textContent = '0 orders';
                     return;
                 }
 
-                const now = new Date();
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-                // Only count orders that are accepted (paid) or beyond
                 const validOrders = orders.filter(o => 
                     ['accepted', 'processing', 'ready', 'picked_up'].includes(o.status)
                 );
 
-                let todayTotal = 0, todayCount = 0;
-                let weekTotal = 0, weekCount = 0;
-                let monthTotal = 0, monthCount = 0;
-                let allTotal = 0;
+                let total = 0;
+                validOrders.forEach(o => { total += Number(o.amount) || 0; });
 
-                validOrders.forEach(o => {
-                    const amt = Number(o.amount) || 0;
-                    const d = new Date(o.order_date);
-                    allTotal += amt;
-
-                    if (d >= todayStart) { todayTotal += amt; todayCount++; }
-                    if (d >= weekStart) { weekTotal += amt; weekCount++; }
-                    if (d >= monthStart) { monthTotal += amt; monthCount++; }
-                });
-
-                const fmt = (n) => '₦' + n.toLocaleString();
-
-                document.getElementById('logbookTotalDisplay').textContent = fmt(allTotal);
-                document.getElementById('logbookToday').textContent = fmt(todayTotal);
-                document.getElementById('logbookTodayCount').textContent = todayCount + ' order' + (todayCount !== 1 ? 's' : '');
-                document.getElementById('logbookWeek').textContent = fmt(weekTotal);
-                document.getElementById('logbookWeekCount').textContent = weekCount + ' order' + (weekCount !== 1 ? 's' : '');
-                document.getElementById('logbookMonth').textContent = fmt(monthTotal);
-                document.getElementById('logbookMonthCount').textContent = monthCount + ' order' + (monthCount !== 1 ? 's' : '');
-                document.getElementById('logbookAllTime').textContent = fmt(allTotal);
-                document.getElementById('logbookAllTimeCount').textContent = validOrders.length + ' order' + (validOrders.length !== 1 ? 's' : '');
+                document.getElementById('logbookTotalDisplay').textContent = '₦' + total.toLocaleString();
+                document.getElementById('logbookTotalCount').textContent = validOrders.length + ' order' + (validOrders.length !== 1 ? 's' : '');
 
             } catch (err) {
                 console.error('Logbook revenue error:', err);
@@ -677,7 +572,7 @@
         });
 
         // ============================================================
-        // DASHBOARD STATS (Tutorial Revenue)
+        // DASHBOARD STATS
         // ============================================================
         async function loadStats() {
             try {
@@ -860,7 +755,7 @@
         }
 
         // ============================================================
-        // RELOAD DASHBOARD
+        // RELOAD
         // ============================================================
         window.reloadDashboard = async function() {
             await Promise.all([
@@ -895,7 +790,7 @@
                 await loadRecentActivity();
                 await loadSessionStatus();
                 await loadNotifications();
-                await loadLogbookRevenue(); // Only runs for super admin
+                await loadLogbookRevenue();
 
             } catch (e) {
                 console.warn('Init error:', e);
