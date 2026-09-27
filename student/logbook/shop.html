@@ -19,22 +19,103 @@
         .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
         .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
         .navbar a:hover { color: var(--primary); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
         .page-header { text-align: center; margin-bottom: 2.5rem; }
-        .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0; }
-        .page-header p { color: var(--muted); font-size: 1rem; margin-top: 0.25rem; }
-        .logbook-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .logbook-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: all 0.3s ease; position: relative; overflow: hidden; }
-        .logbook-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--primary); opacity: 0; transition: opacity 0.3s ease; }
-        .logbook-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.10); }
+        .page-header h1 { font-size: 1.9rem; font-weight: 700; margin: 0; }
+        .page-header p { color: var(--muted); font-size: 0.95rem; margin-top: 0.4rem; }
+
+        .logbook-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+
+        /* ===== CLEAN LOGBOOK CARD ===== */
+        .logbook-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.25s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .logbook-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            border-color: #A5D6A7;
+        }
+        .logbook-card .course-code {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .logbook-card .course-name {
+            font-size: 0.95rem;
+            color: var(--text);
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+        }
+        .logbook-card .description {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .logbook-card .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .logbook-card .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .logbook-card .price-note {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        .logbook-card .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            background: var(--primary);
+            color: white;
+            transition: background 0.2s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+        }
+        .logbook-card .btn:hover { background: var(--primary-dark); }
+        .logbook-card .btn:active { transform: scale(0.98); }
+
+        /* Top accent bar */
+        .logbook-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 1.5rem; right: 1.5rem; height: 3px;
+            background: var(--primary);
+            border-radius: 0 0 3px 3px;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
         .logbook-card:hover::before { opacity: 1; }
-        .logbook-card .code { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .logbook-card .name { font-size: 1rem; margin: 0.25rem 0 0.5rem; }
-        .logbook-card .price { font-size: 1.25rem; font-weight: 700; }
-        .logbook-card .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.65rem; font-weight: 600; background: var(--primary-light); color: var(--primary); }
-        .logbook-card .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.95rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .logbook-card .btn-primary { background: var(--primary); color: white; }
-        .logbook-card .btn-primary:active { transform: scale(0.97); }
+
         .loader { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
@@ -46,8 +127,13 @@
         .hidden { display: none !important; }
         @media (max-width: 768px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; }
+            .navbar .nav-links a { font-size: 0.8rem; }
+            .container { padding: 1.25rem 1rem; }
             .page-header h1 { font-size: 1.5rem; }
+            .page-header p { font-size: 0.85rem; }
             .logbook-grid { grid-template-columns: 1fr; }
+            .logbook-card { padding: 1.25rem; }
         }
     </style>
 </head>
@@ -55,17 +141,15 @@
 
     <nav class="navbar">
         <a href="../../index.html" class="brand">Course<span>Mate</span></a>
-        <div class="nav-links" id="navLinks">
-            <!-- Filled by JavaScript based on login status -->
-        </div>
+        <div class="nav-links" id="navLinks"></div>
     </nav>
 
     <div id="toastContainer" class="toast-container"></div>
 
     <div class="container">
         <div class="page-header">
-            <h1><i class="fas fa-book-open" style="color: var(--primary);"></i> Practical Logbooks</h1>
-            <p>Select a logbook below and place your order. Delivery within 48 hours.</p>
+            <h1>Practical Logbooks</h1>
+            <p>Select a logbook below and place your order. Ready for pickup within 48 hours.</p>
         </div>
 
         <div id="loadingState" style="text-align: center; padding: 3rem 0;">
@@ -81,40 +165,39 @@
     </div>
 
     <script>
-        // ============================================================
-        // CONFIG
-        // ============================================================
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // ============================================================
-        // SMART NAVBAR
+        // SMART NAVBAR — only tutorial students see "Dashboard"
         // ============================================================
         function renderNavbar() {
             var navLinks = document.getElementById('navLinks');
-            var studentEmail = localStorage.getItem('studentEmail');
+            // ✅ Check specifically for tutorial-student flag
+            var isTutorialStudent = localStorage.getItem('isTutorialStudent') === 'true';
             var adminEmail = localStorage.getItem('adminEmail');
+            var isMobile = window.innerWidth < 640;
 
             var html = '';
 
             if (adminEmail) {
-                // Admin logged in
-                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>';
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
                 html += '<a href="/admin/print-orders.html"><i class="fas fa-print"></i> Print Queue</a>';
                 html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
-            } else if (studentEmail) {
-                // Student logged in
+            } else if (isTutorialStudent) {
+                // Tutorial student — show Dashboard
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
-                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
-                // Guest (public user)
+                // Guest or logbook-only buyer
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
-                html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
+                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
 
             navLinks.innerHTML = html;
@@ -123,6 +206,7 @@
         function logout() {
             localStorage.removeItem('studentEmail');
             localStorage.removeItem('studentName');
+            localStorage.removeItem('isTutorialStudent');
             localStorage.removeItem('adminEmail');
             localStorage.removeItem('adminUser');
             sessionStorage.clear();
@@ -155,6 +239,9 @@
             }
         }
 
+        // ============================================================
+        // RENDER — clean cards, no book icon
+        // ============================================================
         function renderLogbooks(logbooks) {
             var grid = document.getElementById('logbookGrid');
             var html = '';
@@ -162,13 +249,15 @@
                 var book = logbooks[i];
                 var safeName = (book.name || '').replace(/'/g, "\\'");
                 html += '<div class="logbook-card">' +
-                    '<div class="code">' + book.code + '</div>' +
-                    '<div class="name">' + book.name + '</div>' +
-                    '<div style="margin: 0.25rem 0;"><span class="badge">Practical Logbook</span></div>' +
-                    '<div style="margin: 0.5rem 0;"><span class="price">&#8358;' + book.price.toLocaleString() + '</span><span style="font-size: 0.85rem; color: var(--muted);"> one-time</span></div>' +
-                    '<p style="font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0;">' + (book.description || '') + '</p>' +
-                    '<button type="button" onclick="buyLogbook(\'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')" class="btn btn-primary">' +
-                        '<i class="fas fa-shopping-cart"></i> Buy Now' +
+                    '<div class="course-code">' + (book.code || '') + '</div>' +
+                    '<div class="course-name">' + (book.name || '') + '</div>' +
+                    '<p class="description">' + (book.description || 'Official practical logbook. Ready for pickup within 48 hours.') + '</p>' +
+                    '<div class="price-row">' +
+                        '<span class="price">&#8358;' + (book.price ? book.price.toLocaleString() : '0') + '</span>' +
+                        '<span class="price-note">one-time</span>' +
+                    '</div>' +
+                    '<button type="button" onclick="buyLogbook(\'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')" class="btn">' +
+                        'Buy Now' +
                     '</button>' +
                 '</div>';
             }
@@ -176,23 +265,14 @@
         }
 
         // ============================================================
-        // BUY LOGBOOK - FIXED FOR MOBILE
+        // BUY LOGBOOK
         // ============================================================
         function buyLogbook(code, name, price) {
-            // Save selected logbook
             sessionStorage.setItem('selectedLogbook', JSON.stringify({
                 code: code,
                 name: name,
                 price: price
             }));
-
-            // Save email to session if logged in (for pre-fill)
-            var studentEmail = localStorage.getItem('studentEmail');
-            if (studentEmail) {
-                sessionStorage.setItem('prefillEmail', studentEmail);
-            }
-
-            // Navigate directly to checkout — no auth check, works on all devices
             window.location.href = 'checkout.html';
         }
 

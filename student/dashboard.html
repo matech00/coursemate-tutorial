@@ -34,7 +34,6 @@
         .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary-light); }
         .topbar .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; padding: 0.25rem 0.5rem; }
 
-        /* ===== NOTIFICATION BELL ===== */
         .notif-wrapper { position: relative; display: inline-block; }
         .notif-wrapper .bell-btn { background: none; border: none; font-size: 1.3rem; color: var(--text); cursor: pointer; padding: 0.4rem; border-radius: 50%; transition: background 0.2s; }
         .notif-wrapper .bell-btn:hover { background: var(--primary-light); }
@@ -50,7 +49,6 @@
         .notif-item .mark-read { font-size: 0.65rem; color: var(--primary); cursor: pointer; float: right; }
         .notif-empty { padding: 1.5rem; text-align: center; color: var(--muted); }
 
-        /* ===== STATS GRID ===== */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.25rem; box-shadow: var(--shadow); transition: background 0.3s, border 0.3s; }
         .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
@@ -58,7 +56,6 @@
         .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem; }
         .stat-card .sub { font-size: 0.7rem; color: var(--muted); }
 
-        /* ===== BADGES ===== */
         .badge { display: inline-block; padding: 0.15rem 0.75rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
         .badge-paid { background: #d1fae5; color: #065f46; }
         .badge-monthly { background: #fef3c7; color: #92400e; }
@@ -66,54 +63,19 @@
         .badge-pending { background: #f3f4f6; color: #6b7280; }
         .badge-verified { background: #dbeafe; color: #1e40af; }
 
-        /* ===== PAYMENT BANNER ===== */
-        .payment-banner {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+        .payment-banner { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: none; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
         @media (max-width: 640px) {
-            .payment-banner {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-            .payment-banner > div {
-                justify-content: center;
-            }
-            .payment-banner button {
-                width: 100%;
-                text-align: center;
-            }
+            .payment-banner { flex-direction: column; align-items: stretch; text-align: center; }
+            .payment-banner > div { justify-content: center; }
+            .payment-banner button { width: 100%; text-align: center; }
         }
 
-        /* ===== PROGRESS CARD ===== */
-        .progress-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1rem 1.25rem;
-            margin-top: 1rem;
-            box-shadow: var(--shadow);
-            transition: background 0.3s, border 0.3s;
-        }
-        body.dark .progress-card {
-            background: var(--card);
-            border-color: var(--border);
-        }
+        .progress-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--shadow); transition: background 0.3s, border 0.3s; }
+        body.dark .progress-card { background: var(--card); border-color: var(--border); }
 
-        /* ===== INFO CARD ===== */
         .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.5rem; transition: background 0.3s, border 0.3s; }
         .info-card .icon { color: var(--primary); margin-right: 0.5rem; }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); width: 75%; max-width: 280px; }
             .sidebar.open { transform: translateX(0); }
@@ -144,14 +106,13 @@
             <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
             <a href="qr.html"><i class="fas fa-qrcode"></i> My QR Code</a>
             <a href="id-card.html"><i class="fas fa-id-card"></i> ID Card</a>
-            <a href="logbook/shop.html"><i class="fas fa-book"></i> Buy Logbook</a>  
+            <a href="logbook/shop.html"><i class="fas fa-book"></i> Buy Logbook</a>
         </nav>
         <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
         <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </aside>
 
     <div class="main-content">
-        <!-- Topbar -->
         <div class="topbar">
             <div class="flex-center">
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
@@ -166,7 +127,6 @@
             </div>
         </div>
 
-        <!-- ===== PAYMENT BANNER ===== -->
         <div id="paymentBanner" class="payment-banner">
             <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; flex-wrap: wrap;">
                 <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #dc2626; flex-shrink: 0;">
@@ -182,13 +142,11 @@
             </button>
         </div>
 
-        <!-- Welcome -->
         <div class="mb-4">
             <p class="text-lg font-semibold">Welcome back, <span class="text-primary" id="studentNameDisplay">Student</span> 👋</p>
             <p class="text-sm text-muted">Student ID: <span id="studentIdDisplay">Loading...</span></p>
         </div>
 
-        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="label"><i class="fas fa-calendar-check"></i> Attendance</div>
@@ -213,7 +171,6 @@
             </div>
         </div>
 
-        <!-- ===== PROGRESS CARD ===== -->
         <div class="progress-card">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -252,7 +209,6 @@
             </div>
         </div>
 
-        <!-- Info Card -->
         <div class="info-card" style="margin-top: 1rem;">
             <p class="text-sm text-muted"><i class="fas fa-info-circle icon"></i> Your attendance and profile are up to date.</p>
         </div>
@@ -260,95 +216,96 @@
 
     <script src="../js/auth.js"></script>
     <script>
-// ============================================================
-// VERIFY DASHBOARD ACCESS
-// ============================================================
-async function verifyDashboardAccess() {
-    try {
-        const user = await window.auth.getCurrentUser();
-        if (!user) {
-            window.location.href = '../login.html';
-            return;
-        }
-
-        const { data: student, error } = await supabaseClient
-            .from('students')
-            .select('is_tutorial_student, payment_status')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-        if (error) throw error;
-
-        // If not a tutorial student or payment not complete, redirect
-        if (!student || student.is_tutorial_student !== true || student.payment_status !== 'paid') {
-            // Redirect to logbook shop or payment
-            if (student && student.is_tutorial_student === true) {
-                // Tutorial student but not paid - go to payment
-                window.location.href = '../payment.html';
-            } else {
-                // Logbook only user - go to shop
-                window.location.href = 'logbook/shop.html';
-            }
-            return;
-        }
-
-        // User has access - load the page
-        loadStudentData();
-        loadStudentProgress();
-        loadNotifications();
-
-    } catch (error) {
-        console.error('Dashboard verification error:', error);
-        window.location.href = '../login.html';
-    }
-}
-
-// Replace the existing DOMContentLoaded with this:
-document.addEventListener('DOMContentLoaded', function() {
-    verifyDashboardAccess();
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        const supabaseClient = window.supabaseClient || (() => {
+            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
+            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+            return window.supabase.createClient(url, key);
+        })();
 
         // ============================================================
-        // SIDEBAR FUNCTIONS
+        // VERIFY DASHBOARD ACCESS — sets isTutorialStudent flag
+        // ============================================================
+        async function verifyDashboardAccess() {
+            try {
+                const user = await window.auth.getCurrentUser();
+                if (!user) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                const { data: student, error } = await supabaseClient
+                    .from('students')
+                    .select('is_tutorial_student, payment_status')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                // ✅ SET THE TUTORIAL STUDENT FLAG
+                if (student && student.is_tutorial_student === true) {
+                    localStorage.setItem('isTutorialStudent', 'true');
+                } else {
+                    localStorage.removeItem('isTutorialStudent');
+                }
+
+                // If not a tutorial student, redirect to shop
+                if (!student || student.is_tutorial_student !== true) {
+                    window.location.href = 'logbook/shop.html';
+                    return;
+                }
+
+                // If tutorial student but payment not complete, redirect to payment
+                if (student.payment_status !== 'paid' && student.payment_status !== 'monthly_active') {
+                    window.location.href = '../payment.html';
+                    return;
+                }
+
+                // User has access — load the page
+                loadStudentData();
+                loadStudentProgress();
+                loadNotifications();
+
+            } catch (error) {
+                console.error('Dashboard verification error:', error);
+                window.location.href = '../login.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            verifyDashboardAccess();
+        });
+
+        // ============================================================
+        // SIDEBAR
         // ============================================================
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('active'); }
         window.addEventListener('resize', function() { if (window.innerWidth > 768) closeSidebar(); });
 
         // ============================================================
-        // THEME FUNCTIONS
+        // THEME
         // ============================================================
         function loadTheme() { const dark = localStorage.getItem('theme') === 'dark'; document.body.classList.toggle('dark', dark); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; }
         function toggleTheme() { const isDark = document.body.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const icon = document.querySelector('.theme-toggle i'); if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon'; }
         document.addEventListener('DOMContentLoaded', loadTheme);
 
         // ============================================================
-        // LOGOUT
+        // LOGOUT — clears all flags
         // ============================================================
-        window.handleLogout = async function() { try { await window.supabaseClient.auth.signOut(); window.location.href = '../login.html'; } catch (e) { window.location.href = '../login.html'; } };
-
-        // ============================================================
-        // SUPABASE CLIENT
-        // ============================================================
-        const supabaseClient = window.supabaseClient || (() => {
-            const url = window.SUPABASE_URL || "https://mbniynyvcxzspjmzgovp.supabase.co";
-            const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
-            return window.supabase.createClient(url, key);
-        })();
+        window.handleLogout = async function() {
+            try {
+                localStorage.removeItem('studentEmail');
+                localStorage.removeItem('studentName');
+                localStorage.removeItem('isTutorialStudent');
+                localStorage.removeItem('adminEmail');
+                sessionStorage.clear();
+                await window.supabaseClient.auth.signOut();
+                window.location.href = '../login.html';
+            } catch (e) {
+                localStorage.clear();
+                window.location.href = '../login.html';
+            }
+        };
 
         // ============================================================
         // NOTIFICATIONS
@@ -409,17 +366,10 @@ document.addEventListener('DOMContentLoaded', function() {
         async function loadStudentData() {
             try {
                 const user = await window.auth.getCurrentUser();
-                if (!user) {
-                    window.location.href = '../login.html';
-                    return;
-                }
+                if (!user) { window.location.href = '../login.html'; return; }
 
                 const { data: student, error } = await supabaseClient
-                    .from('students')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .maybeSingle();
-
+                    .from('students').select('*').eq('user_id', user.id).maybeSingle();
                 if (error) throw error;
 
                 const paymentBanner = document.getElementById('paymentBanner');
@@ -438,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (studentNameDisplay) studentNameDisplay.textContent = student.full_name || 'Student';
-
                 const paymentStatus = student.payment_status || 'pending';
 
                 if (paymentStatus === 'pending' || paymentStatus === 'expired') {
@@ -467,18 +416,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 await loadNotifications();
-
             } catch (error) {
                 console.error('Error loading student data:', error);
-                document.getElementById('studentNameDisplay').textContent = 'Student';
-                document.getElementById('studentIdDisplay').textContent = 'Error loading';
-                document.getElementById('studentIdCard').textContent = 'Error loading';
             }
         }
 
-        // ============================================================
-        // GENERATE STUDENT ID
-        // ============================================================
         async function generateStudentId(userId) {
             try {
                 const studentIdNumber = `STU${String(Date.now()).slice(-6)}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
@@ -486,42 +428,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (error) throw error;
                 document.getElementById('studentIdDisplay').textContent = studentIdNumber;
                 document.getElementById('studentIdCard').textContent = studentIdNumber;
-            } catch (error) {
-                console.error('Error generating student ID:', error);
-                document.getElementById('studentIdDisplay').textContent = 'Error generating ID';
-                document.getElementById('studentIdCard').textContent = 'Error';
-            }
+            } catch (error) { console.error('Error generating student ID:', error); }
         }
 
-        // ============================================================
-        // LOAD STUDENT PROGRESS
-        // ============================================================
         async function loadStudentProgress() {
             try {
                 const user = await window.auth.getCurrentUser();
                 if (!user) return;
-
                 const { data: student, error: studentError } = await supabaseClient
-                    .from('students')
-                    .select('id, student_id')
-                    .eq('user_id', user.id)
-                    .maybeSingle();
-
-                if (studentError || !student) {
-                    console.log('No student record found');
-                    return;
-                }
+                    .from('students').select('id, student_id').eq('user_id', user.id).maybeSingle();
+                if (studentError || !student) return;
 
                 const { data: attendance, error: attendanceError } = await supabaseClient
-                    .from('attendance')
-                    .select('status, session_date')
-                    .eq('student_id', student.id)
-                    .order('session_date', { ascending: false });
-
-                if (attendanceError) {
-                    console.error('Attendance fetch error:', attendanceError);
-                    return;
-                }
+                    .from('attendance').select('status, session_date').eq('student_id', student.id).order('session_date', { ascending: false });
+                if (attendanceError) return;
 
                 if (!attendance || attendance.length === 0) {
                     document.getElementById('totalSessions').textContent = '0';
@@ -547,15 +467,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     .filter(a => a.status === 'present' || a.status === 'late')
                     .map(a => new Date(a.session_date))
                     .sort((a, b) => b - a);
-
                 for (let i = 0; i < presentDates.length; i++) {
                     const date = presentDates[i];
                     const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
-                    if (diffDays === i) {
-                        streak++;
-                    } else if (diffDays > i) {
-                        break;
-                    }
+                    if (diffDays === i) streak++;
+                    else if (diffDays > i) break;
                 }
 
                 document.getElementById('totalSessions').textContent = total;
@@ -567,28 +483,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('progressBarSmall').style.width = `${Math.min(percentage, 100)}%`;
 
                 const progressBar = document.getElementById('progressBarSmall');
-                if (percentage >= 80) {
-                    progressBar.style.background = '#22c55e';
-                } else if (percentage >= 50) {
-                    progressBar.style.background = '#eab308';
-                } else if (percentage >= 30) {
-                    progressBar.style.background = '#f97316';
-                } else {
-                    progressBar.style.background = '#ef4444';
-                }
-
-            } catch (error) {
-                console.error('Progress load error:', error);
-            }
+                if (percentage >= 80) progressBar.style.background = '#22c55e';
+                else if (percentage >= 50) progressBar.style.background = '#eab308';
+                else if (percentage >= 30) progressBar.style.background = '#f97316';
+                else progressBar.style.background = '#ef4444';
+            } catch (error) { console.error('Progress load error:', error); }
         }
-
-        // ============================================================
-        // PAGE INIT
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStudentData();
-            loadStudentProgress();
-        });
     </script>
 </body>
 </html>

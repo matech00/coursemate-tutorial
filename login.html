@@ -7,8 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
-<link rel="icon" href="assets/images/favicon.png" type="image/png" />
+    <link rel="icon" href="assets/images/favicon.png" type="image/png" />
     <script>
         tailwind.config = {
             theme: {
@@ -76,7 +75,6 @@
                 </button>
             </form>
 
-            <!-- Divider -->
             <div class="relative flex items-center my-6">
                 <div class="flex-grow border-t border-gray-300"></div>
                 <span class="px-4 text-sm text-gray-500 bg-white">Or continue with</span>
@@ -145,7 +143,7 @@
         };
 
         // ============================================================
-        // LOGIN LOGIC - UPDATED WITH REDIRECT SUPPORT
+        // LOGIN LOGIC — sets isTutorialStudent flag correctly
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
@@ -159,9 +157,18 @@
                     if (user) {
                         if (window.toast) window.toast.success('Login successful! Redirecting...');
 
+                        // Save basic info
+                        localStorage.setItem('studentEmail', email);
+                        localStorage.setItem('studentName', user.user_metadata?.full_name || '');
+
                         // Check if admin
                         const { data: admin } = await window.supabaseClient.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
-                        if (admin) { window.location.href = 'admin/dashboard.html'; return; }
+                        if (admin) {
+                            localStorage.removeItem('isTutorialStudent');
+                            localStorage.setItem('adminEmail', email);
+                            window.location.href = 'admin/dashboard.html';
+                            return;
+                        }
 
                         // Check student record
                         const { data: student } = await window.supabaseClient
@@ -170,34 +177,36 @@
                             .eq('user_id', user.id)
                             .maybeSingle();
 
+                        // ✅ SET THE TUTORIAL STUDENT FLAG
+                        if (student && student.is_tutorial_student === true) {
+                            localStorage.setItem('isTutorialStudent', 'true');
+                        } else {
+                            localStorage.removeItem('isTutorialStudent');
+                        }
+
                         // Check redirect parameter
                         const urlParams = new URLSearchParams(window.location.search);
                         const redirect = urlParams.get('redirect');
 
-                        // If redirect is for logbook shop
                         if (redirect === 'logbook/shop') {
                             window.location.href = 'student/logbook/shop.html';
                             return;
                         }
 
-                        // If redirect is for dashboard
                         if (redirect === 'dashboard') {
                             window.location.href = 'student/dashboard.html';
                             return;
                         }
 
-                        // If redirect is for tutorial enrollment
                         if (redirect === 'enroll-tutorial') {
                             if (student) {
                                 if (student.is_tutorial_student === true) {
-                                    // Already a tutorial student
                                     if (student.payment_status === 'pending' || student.payment_status === 'expired') {
                                         window.location.href = 'payment.html';
                                     } else {
                                         window.location.href = 'student/dashboard.html';
                                     }
                                 } else {
-                                    // Logbook buyer wants to enroll
                                     window.location.href = 'complete-profile.html?source=tutorial';
                                 }
                             } else {
@@ -206,17 +215,15 @@
                             return;
                         }
 
-                        // Default redirect based on user type
+                        // Default redirect
                         if (student) {
                             if (student.is_tutorial_student === true) {
-                                // Tutorial student
                                 if (student.payment_status === 'pending' || student.payment_status === 'expired') {
                                     window.location.href = 'payment.html';
                                 } else {
                                     window.location.href = 'student/dashboard.html';
                                 }
                             } else {
-                                // Logbook buyer
                                 window.location.href = 'student/logbook/shop.html';
                             }
                         } else {
