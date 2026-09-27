@@ -3,415 +3,890 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Template Test</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <title>CourseMate Tutorial – Master Your Undergraduate Courses</title>
+    <meta name="description" content="Expert-led tutorial sessions and practical logbooks for undergraduate students. Register online, pay securely, track attendance with QR codes." />
+    <meta name="keywords" content="tutorial, undergraduate, courses, attendance, QR code, learning, logbook" />
+    <meta property="og:title" content="CourseMate Tutorial – Master Your Undergraduate Courses" />
+    <meta property="og:description" content="Expert-led tutorials and practical logbooks for undergraduates." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://coursemate-tutorial.vercel.app" />
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; margin: 0; padding: 2rem; min-height: 100vh; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: #111827; text-align: center; margin: 0 0 0.5rem; font-size: 1.8rem; }
-        .subtitle { text-align: center; color: #6b7280; margin: 0 0 2rem; font-size: 0.95rem; }
-        .info-box { background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; color: #92400e; font-size: 0.9rem; }
-        .info-box strong { color: #78350f; }
-        .buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        button { padding: 1.25rem 1rem; border: none; border-radius: 12px; background: #008751; color: white; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 12px rgba(0,135,81,0.2); }
-        button:hover { background: #006d3f; transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
-        .data-preview { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .data-preview h2 { font-size: 1rem; color: #111827; margin: 0 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
-        .data-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed #f3f4f6; font-size: 0.9rem; }
-        .data-row:last-child { border-bottom: none; }
-        .data-label { color: #6b7280; font-weight: 500; }
-        .data-value { color: #111827; font-weight: 600; }
-        .status { text-align: center; color: #6b7280; font-size: 0.85rem; margin-top: 1rem; min-height: 1.2rem; }
-        .status.success { color: #16a34a; }
-        .status.error { color: #dc2626; }
+        @media (max-width: 768px) {
+            #mobileMenu {
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                height: calc(100vh - 64px);
+                overflow-y: auto; z-index: 40;
+                background: white; padding: 1.5rem 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,135,81,0.12); }
+        .hero-badge-dot { animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        .gradient-text { background: linear-gradient(135deg, #008751 0%, #00a86b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Hero image with floating animation */
+        .hero-image-wrap {
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        .hero-image-wrap img {
+            width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0,135,81,0.2);
+            border: 6px solid white;
+            object-fit: cover;
+            aspect-ratio: 4/5;
+            display: block;
+        }
+        /* Image text overlay — shows on all screen sizes */
+        .hero-image-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 5;
+        }
+        .hero-image-overlay .stat {
+            text-align: center;
+            flex: 1;
+        }
+        .hero-image-overlay .stat .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #008751;
+            line-height: 1;
+        }
+        .hero-image-overlay .stat .label {
+            font-size: 0.65rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.2rem;
+        }
+        .hero-image-overlay .divider {
+            width: 1px;
+            height: 28px;
+            background: #e5e7eb;
+        }
+        @media (min-width: 769px) {
+            .hero-image-overlay { display: none; } /* Hide on desktop since we have floating cards */
+        }
+
+        /* Floating card decoration (desktop only) */
+        .floating-card {
+            position: absolute;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 10;
+            animation: float 4s ease-in-out infinite;
+        }
+        .floating-card-1 { top: 10%; left: -20px; animation-delay: 0.5s; }
+        .floating-card-2 { bottom: 15%; right: -20px; animation-delay: 1s; }
+        @media (max-width: 768px) {
+            .floating-card-1, .floating-card-2 { display: none; }
+        }
+
+        /* Logbook promo — redesigned clean */
+        .logbook-promo {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .logbook-promo:hover {
+            box-shadow: 0 12px 40px rgba(0,135,81,0.1);
+            border-color: #A5D6A7;
+        }
+        @media (max-width: 640px) {
+            .logbook-promo { padding: 1.75rem 1.25rem; }
+        }
+
+        /* About section image */
+        .about-image {
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,135,81,0.15);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 4/3;
+        }
+
+        /* How it works image */
+        .how-image {
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,135,81,0.15);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 4/3;
+        }
+
+        /* FAQ */
+        .faq-question { cursor: pointer; user-select: none; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-answer.open { max-height: 200px; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; border-radius: 1.5rem; max-width: 440px; width: 100%; padding: 2rem; box-shadow: 0 24px 60px rgba(0,0,0,0.25); animation: fadeIn 0.25s ease; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.96) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-box .icon-circle { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .modal-box .icon-circle.success { background: #dcfce7; color: #16a34a; }
+        .modal-box .icon-circle.error { background: #fee2e2; color: #dc2626; }
+        .modal-box .icon-circle i { font-size: 2.5rem; }
+
+        /* Logged-in / guest visibility */
+        .logged-in-only { display: none; }
+        .guest-only { display: inline-flex; }
     </style>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { primary: {
+                50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7',
+                300: '#81C784', 400: '#66BB6A', 500: '#008751',
+                600: '#007A48', 700: '#006D3F', 800: '#005B34', 900: '#004A2A'
+            } } } }
+        }
+    </script>
 </head>
-<body>
+<body class="bg-white">
 
-    <div class="container">
-        <h1>PDF Template Test</h1>
-        <p class="subtitle">Click a button below to preview each logbook template</p>
-
-        <div class="info-box">
-            <strong>ℹ️ Test Data Used:</strong> Sample student data — so you can see what each logbook cover looks like when printed.
+    <!-- ========== FEEDBACK MODAL ========== -->
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="icon-circle success" id="modalIcon"><i class="fas fa-check-circle"></i></div>
+            <h3 id="feedbackModalTitle" class="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+            <p id="feedbackModalMessage" class="text-gray-600 mb-6">Your feedback has been received. We'll get back to you within 24 hours.</p>
+            <button onclick="closeFeedbackModal()" class="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium transition-all">Got it</button>
         </div>
-
-        <div class="buttons">
-            <button onclick="generateTemplate('PHY191')">PHY 191<br><small style="font-weight: 400; opacity: 0.9;">Physics</small></button>
-            <button onclick="generateTemplate('CIT104')">CIT 104<br><small style="font-weight: 400; opacity: 0.9;">Computer Science</small></button>
-            <button onclick="generateTemplate('IFT191')">IFT 191<br><small style="font-weight: 400; opacity: 0.9;">Info Tech</small></button>
-            <button onclick="generateTemplate('BIO191')">BIO 191<br><small style="font-weight: 400; opacity: 0.9;">Biology</small></button>
-            <button onclick="generateTemplate('MTH101')">MTH 101<br><small style="font-weight: 400; opacity: 0.9;">Mathematics</small></button>
-        </div>
-
-        <div class="data-preview">
-            <h2>📋 Sample Student Data (used in all PDFs)</h2>
-            <div class="data-row"><span class="data-label">Full Name</span><span class="data-value">JOHN DOE ADEWALE</span></div>
-            <div class="data-row"><span class="data-label">Matric Number</span><span class="data-value">NOU123456789</span></div>
-            <div class="data-row"><span class="data-label">Programme</span><span class="data-value">INFORMATION TECHNOLOGY</span></div>
-            <div class="data-row"><span class="data-label">Level</span><span class="data-value">200</span></div>
-            <div class="data-row"><span class="data-label">Group</span><span class="data-value">GROUP A</span></div>
-            <div class="data-row"><span class="data-label">Department</span><span class="data-value">COMPUTER SCIENCE</span></div>
-            <div class="data-row"><span class="data-label">Study Centre</span><span class="data-value">LAGOS STUDY CENTRE</span></div>
-        </div>
-
-        <p class="status" id="status"></p>
     </div>
 
-    <script>
-        var LOGO_PATH = 'noun-logo.png';
+    <!-- ========== NAVBAR ========== -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 h-16 flex items-center px-4 md:px-8">
+        <div class="max-w-7xl w-full mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-primary-500 flex items-center gap-2">
+                <i class="fas fa-graduation-cap text-2xl"></i>
+                Course<span class="font-light text-gray-600">Mate</span>
+            </a>
 
-        var SAMPLE_ORDER = {
-            student_name: 'JOHN DOE ADEWALE',
-            matric_number: 'NOU123456789',
-            programme: 'INFORMATION TECHNOLOGY',
-            level: '200',
-            student_group: 'GROUP A',
-            department: 'COMPUTER SCIENCE',
-            study_centre: 'LAGOS STUDY CENTRE',
-            logbook_code: '',
-            logbook_name: ''
+            <div class="hidden md:flex items-center gap-6">
+                <a href="#services" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">Services</a>
+                <a href="#about" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">About</a>
+                <a href="#programs" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">Programs</a>
+                <a href="#faq" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">FAQ</a>
+                <a href="#feedback" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">Contact</a>
+                <a href="student/logbook/shop.html" class="text-gray-600 hover:text-primary-500 text-sm font-medium transition-colors">
+                    <i class="fas fa-book"></i> Logbook
+                </a>
+                <a href="login.html" class="guest-only px-4 py-2 border border-gray-300 rounded-lg hover:border-primary-500 hover:text-primary-500 text-sm font-medium transition-all items-center">Login</a>
+                <a href="register.html?source=tutorial" class="guest-only px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 text-sm font-medium transition-all shadow-sm hover:shadow-md items-center">Get Started</a>
+                <a href="student/dashboard.html" class="logged-in-only px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 text-sm font-medium transition-all shadow-sm hover:shadow-md items-center">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>
+
+            <button id="mobileMenuToggle" class="md:hidden text-gray-600 text-2xl hover:text-primary-500 transition">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ========== MOBILE MENU ========== -->
+    <div id="mobileMenu" class="md:hidden hidden bg-white border-b border-gray-200 px-4 py-4 shadow-lg">
+        <div class="flex flex-col gap-4">
+            <a href="#services" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">Services</a>
+            <a href="#about" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">About</a>
+            <a href="#programs" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">Programs</a>
+            <a href="#faq" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">FAQ</a>
+            <a href="#feedback" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">Contact</a>
+            <a href="student/logbook/shop.html" class="text-gray-600 hover:text-primary-500 text-sm font-medium" onclick="closeMobileMenu()">
+                <i class="fas fa-book"></i> Logbook
+            </a>
+            <a href="login.html" class="guest-only px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-center items-center justify-center" onclick="closeMobileMenu()">Login</a>
+            <a href="register.html?source=tutorial" class="guest-only px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium text-center items-center justify-center" onclick="closeMobileMenu()">Get Started</a>
+            <a href="student/dashboard.html" class="logged-in-only px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium text-center items-center justify-center" onclick="closeMobileMenu()">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== HERO ========== -->
+    <section class="pt-24 pb-16 bg-gradient-to-b from-primary-50/70 to-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- LEFT: Text -->
+                <div class="fade-up">
+                    <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+                        Master Your Courses with <span class="gradient-text">Expert-Led Tutorials</span>
+                    </h1>
+                    <p class="text-lg text-gray-600 mb-6 max-w-lg leading-relaxed">
+                        Register online, attend expert-led physical sessions, track your attendance with QR codes, and monitor your academic progress in real time.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="register.html?source=tutorial" class="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium transition-all shadow-sm hover:shadow-lg flex items-center gap-2">
+                            <i class="fas fa-rocket"></i> Enroll Now
+                        </a>
+                        <a href="student/logbook/shop.html" class="px-6 py-3 bg-white text-primary-500 border-2 border-primary-500 rounded-lg hover:bg-primary-50 font-medium transition-all flex items-center gap-2">
+                            <i class="fas fa-book"></i> Buy Logbook
+                        </a>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mt-6">
+                        <span class="inline-flex items-center gap-1 text-sm text-gray-500"><i class="fas fa-shield-alt text-primary-500"></i> 100% Secure</span>
+                        <span class="inline-flex items-center gap-1 text-sm text-gray-500"><i class="fas fa-qrcode text-primary-500"></i> QR Attendance</span>
+                        <span class="inline-flex items-center gap-1 text-sm text-gray-500"><i class="fas fa-headset text-primary-500"></i> 24/7 Support</span>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Hero Image -->
+                <div class="fade-up relative flex justify-center">
+                    <div class="hero-image-wrap w-full max-w-md">
+                        <img src="hero.jpg" alt="Student celebrating graduation" loading="eager" />
+
+                        <!-- Text overlay for mobile (hidden on desktop) -->
+                        <div class="hero-image-overlay">
+                            <div class="stat">
+                                <div class="value">90+</div>
+                                <div class="label">Students</div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="stat">
+                                <div class="value">95%</div>
+                                <div class="label">Attendance</div>
+                            </div>
+                        </div>
+
+                        <!-- Floating cards for desktop only -->
+                        <div class="floating-card floating-card-1">
+                            <div class="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-users text-primary-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Students</p>
+                                <p class="text-sm font-bold text-gray-900">90+</p>
+                            </div>
+                        </div>
+                        <div class="floating-card floating-card-2">
+                            <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-green-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Attendance</p>
+                                <p class="text-sm font-bold text-gray-900">95%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== STATS BAR ========== -->
+    <section class="py-8 bg-white border-y border-gray-100">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-primary-500">90+</p>
+                    <p class="text-sm text-gray-500">Students Enrolled</p>
+                </div>
+                <div class="text-center border-l border-r border-gray-200">
+                    <p class="text-3xl font-bold text-primary-500">95%</p>
+                    <p class="text-sm text-gray-500">Attendance Rate</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-primary-500">4.8</p>
+                    <p class="text-sm text-gray-500">Student Rating</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== OUR SERVICES ========== -->
+    <section id="services" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 fade-up">
+                <span class="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">Our Services</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Two Ways We Help You Succeed</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Whether you need expert guidance or practical materials, we've got you covered.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Service 1: Tutorial -->
+                <div class="bg-gradient-to-br from-primary-50 to-white border-2 border-primary-100 rounded-2xl p-8 hover-lift transition-all">
+                    <div class="w-14 h-14 bg-primary-500 text-white rounded-2xl flex items-center justify-center text-xl mb-5">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Tutorial Sessions</h3>
+                    <p class="text-gray-600 mb-5 leading-relaxed">
+                        Expert-led physical classes held every week. Structured, focused, and designed to help you master your courses.
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> Monday, Wednesday, Friday</li>
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> Full payment or monthly plan</li>
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> QR attendance tracking</li>
+                    </ul>
+                    <a href="register.html?source=tutorial" class="inline-flex items-center gap-2 text-primary-500 font-semibold hover:gap-3 transition-all">
+                        Enroll Now <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+
+                <!-- Service 2: Logbook -->
+                <div class="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-8 hover-lift transition-all">
+                    <div class="w-14 h-14 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-xl mb-5">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Practical Logbooks</h3>
+                    <p class="text-gray-600 mb-5 leading-relaxed">
+                        Order your NOUN practical logbook online. Prepared, printed, and ready for pickup within 48 hours.
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> CIT104, IFT191, MTH101, BIO191, PHY191</li>
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> Ready within 48 hours</li>
+                        <li class="flex items-center gap-2 text-sm text-gray-600"><i class="fas fa-check text-primary-500"></i> Pickup at our study centre</li>
+                    </ul>
+                    <a href="student/logbook/shop.html" class="inline-flex items-center gap-2 text-primary-500 font-semibold hover:gap-3 transition-all">
+                        Order Logbook <i class="fas fa-arrow-right text-sm"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ABOUT ========== -->
+    <section id="about" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="fade-up">
+                    <img src="about.jpg" alt="Students studying together" loading="lazy" class="about-image" />
+                </div>
+                <div class="fade-up">
+                    <span class="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">About Us</span>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">What is CourseMate Tutorial?</h2>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        CourseMate Tutorial is a <strong>physical tutorial program</strong> designed for undergraduate students who want to <strong>master their courses</strong> with structured, expert-led sessions that complement their university curriculum.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0 mt-0.5">
+                                <i class="fas fa-users text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Expert Instructors</h4>
+                                <p class="text-sm text-gray-500">Learn from tutors who know the curriculum inside out.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0 mt-0.5">
+                                <i class="fas fa-calendar-alt text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Structured Sessions</h4>
+                                <p class="text-sm text-gray-500">Monday, Wednesday, Friday — consistent, focused learning.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0 mt-0.5">
+                                <i class="fas fa-qrcode text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Track Your Progress</h4>
+                                <p class="text-sm text-gray-500">Real-time dashboard for attendance, payments, and performance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== HOW IT WORKS ========== -->
+    <section id="how-it-works" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10 fade-up">
+                <span class="inline-block px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium mb-4">How It Works</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Get Started in 3 Simple Steps</h2>
+                <p class="text-lg text-gray-600">From your house to the classroom — all online.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="fade-up order-2 md:order-1">
+                    <img src="tutorial.jpg" alt="Student with study materials" loading="lazy" class="how-image" />
+                </div>
+                <div class="fade-up space-y-6 order-1 md:order-2">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">1</div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-lg">Register Online</h3>
+                            <p class="text-sm text-gray-500 mt-1">Create your account, choose your department, and enroll in the program.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">2</div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-lg">Complete Payment</h3>
+                            <p class="text-sm text-gray-500 mt-1">Pay securely online — full program fee or monthly instalment.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">3</div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-lg">Attend & Track</h3>
+                            <p class="text-sm text-gray-500 mt-1">Show up for classes, scan your QR code, and track your attendance in real-time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== LOGBOOK PROMO (Redesigned) ========== -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="logbook-promo fade-up">
+                <div class="inline-block px-3 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full mb-4 tracking-wide">
+                    NEW
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                    Practical Logbooks, Delivered to You
+                </h2>
+                <p class="text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                    Order your practical logbook online. Prepared, printed, and ready for pickup within 48 hours.
+                </p>
+                <a href="student/logbook/shop.html" class="inline-flex items-center gap-2 px-7 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition-all shadow-sm hover:shadow-md">
+                    Place an Order
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== WHY STUDENTS LOVE US ========== -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10 fade-up">
+                <span class="inline-block px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium mb-4">Why Students Love Us</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Everything You Need to Succeed</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100 hover-lift">
+                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">All Online Registration</h4>
+                        <p class="text-sm text-gray-500">Sign up from anywhere — no physical paperwork required.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100 hover-lift">
+                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">QR Code Attendance</h4>
+                        <p class="text-sm text-gray-500">No manual registers — scan and go.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100 hover-lift">
+                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0">
+                        <i class="fas fa-chart-simple"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">Real-Time Dashboard</h4>
+                        <p class="text-sm text-gray-500">Track attendance, payments, and progress anytime.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100 hover-lift">
+                    <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-500 flex-shrink-0">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900">24/7 Support</h4>
+                        <p class="text-sm text-gray-500">Get help whenever you need it.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== TESTIMONIALS ========== -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 fade-up">
+                <span class="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">Testimonials</span>
+                <h2 class="text-3xl font-bold text-gray-900">What Our Students Say</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl p-6 border border-gray-100 hover-lift">
+                    <div class="flex text-primary-500 mb-2">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600">"CourseMate helped me understand difficult topics I struggled with all semester. The QR attendance system is so convenient."</p>
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold">JD</div>
+                        <div>
+                            <p class="font-semibold text-gray-900">John Daniel</p>
+                            <p class="text-xs text-gray-500">Computer Science, 300L</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-6 border border-gray-100 hover-lift">
+                    <div class="flex text-primary-500 mb-2">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600">"The monthly payment plan made it affordable. I love tracking my attendance and progress on the dashboard."</p>
+                    <div class="flex items-center gap-3 mt-4">
+                        <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold">SM</div>
+                        <div>
+                            <p class="font-semibold text-gray-900">Gift Michael</p>
+                            <p class="text-xs text-gray-500">Biology, 200L</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== PROGRAMS ========== -->
+    <section id="programs" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10 fade-up">
+                <span class="inline-block px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium mb-4">Our Programs</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Departments We Cover</h2>
+                <p class="text-lg text-gray-600">We offer tutorial sessions for a wide range of undergraduate programs.</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-laptop-code text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Computer Science</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-network-wired text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Information Technology</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-shield-alt text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Cyber Security</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-dna text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Biology</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-calculator text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Maths & CS</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-atom text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Physics</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-bullhorn text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Mass Communication</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-200 hover:shadow-md transition-all hover:border-primary-500/30 hover-lift">
+                    <i class="fas fa-landmark text-2xl text-primary-500 mb-2"></i>
+                    <p class="font-medium text-gray-900 text-sm">Political Science</p>
+                </div>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-4">And more <a href="#feedback" class="text-primary-500 hover:underline">contact us</a> if your department isn't listed.</p>
+        </div>
+    </section>
+
+    <!-- ========== FAQ ========== -->
+    <section id="faq" class="py-16 bg-gray-50">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10 fade-up">
+                <span class="inline-block px-4 py-2 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium mb-4">FAQ</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-white rounded-lg border border-gray-200 p-4 hover-lift">
+                    <div class="faq-question flex justify-between items-center" onclick="toggleFaq(this)">
+                        <h3 class="font-semibold text-gray-900">How much does the program cost?</h3>
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        We offer flexible payment options: <strong>&#8358;20,000</strong> for the full program or <strong>&#8358;5,000/month</strong> for monthly instalments.
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4 hover-lift">
+                    <div class="faq-question flex justify-between items-center" onclick="toggleFaq(this)">
+                        <h3 class="font-semibold text-gray-900">When are classes held?</h3>
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        Classes are held <strong>Monday, Wednesday, and Friday</strong> — consistent, focused sessions every week.
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4 hover-lift">
+                    <div class="faq-question flex justify-between items-center" onclick="toggleFaq(this)">
+                        <h3 class="font-semibold text-gray-900">What if I miss a session?</h3>
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        No worries! You'll receive an email notification and can catch up with the session materials on your dashboard.
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4 hover-lift">
+                    <div class="faq-question flex justify-between items-center" onclick="toggleFaq(this)">
+                        <h3 class="font-semibold text-gray-900">How do I track my attendance?</h3>
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                    </div>
+                    <div class="faq-answer mt-2 text-gray-600">
+                        You'll scan your QR code at each session. Your attendance is updated automatically on your dashboard in real-time.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FEEDBACK ========== -->
+    <section id="feedback" class="py-16 bg-white">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10 fade-up">
+                <span class="inline-block px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium mb-4">Contact Us</span>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Have Questions? We're Here to Help</h2>
+                <p class="text-lg text-gray-600">Send us a message and we'll get back to you as soon as possible.</p>
+            </div>
+            <div class="bg-gray-50 rounded-2xl shadow-md p-8 border border-gray-100 hover-lift">
+                <form id="feedbackForm" onsubmit="handleFeedback(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="fbName" placeholder="John Doe" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="fbEmail" placeholder="you@example.com" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <input type="text" id="fbSubject" placeholder="Brief title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                        <textarea id="fbMessage" rows="4" placeholder="Tell us what's on your mind..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-semibold transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-xl font-bold text-primary-500 flex items-center gap-1">
+                        <i class="fas fa-graduation-cap"></i> Course<span class="font-light text-white">Mate</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-2">Tutorial management for undergraduate students.</p>
+                    <div class="flex gap-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-primary-400 transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-400 transition-colors"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-400 transition-colors"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-400 transition-colors"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-400 transition-colors"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold uppercase tracking-wider mb-4 text-gray-400">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#services" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Services</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">About Us</a></li>
+                        <li><a href="#programs" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Programs</a></li>
+                        <li><a href="#faq" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">FAQ</a></li>
+                        <li><a href="#feedback" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold uppercase tracking-wider mb-4 text-gray-400">Student</h4>
+                    <ul class="space-y-2">
+                        <li><a href="login.html" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Login</a></li>
+                        <li><a href="register.html" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Register</a></li>
+                        <li><a href="student/dashboard.html" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Dashboard</a></li>
+                        <li><a href="student/logbook/shop.html" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">Buy Logbook</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold uppercase tracking-wider mb-4 text-gray-400">Contact</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><i class="fas fa-envelope mr-2 w-5"></i><a href="mailto:coursematetutoria@gmail.com" class="hover:text-primary-400 transition-colors">coursematetutoria@gmail.com</a></li>
+                        <li><i class="fas fa-phone mr-2 w-5"></i> <a href="tel:+23407013673960" class="hover:text-primary-400 transition-colors">+234 0701 367 3960</a></li>
+                        <li><i class="fas fa-map-marker-alt mr-2 w-5"></i> 25, Owolabi Balogun St, Behind NOUN Back Gate Lagos, Nigeria.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
+                &copy; 2026 CourseMate Tutorial. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        const SUPABASE_URL = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supabaseClient;
+
+        function updateNavbar() {
+            var studentEmail = localStorage.getItem('studentEmail');
+            var adminEmail = localStorage.getItem('adminEmail');
+            var isLoggedIn = !!(studentEmail || adminEmail);
+            document.querySelectorAll('.guest-only').forEach(function(el) { el.style.display = isLoggedIn ? 'none' : 'inline-flex'; });
+            document.querySelectorAll('.logged-in-only').forEach(function(el) { el.style.display = isLoggedIn ? 'inline-flex' : 'none'; });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavbar();
+
+            const fadeElements = document.querySelectorAll('.fade-up');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            fadeElements.forEach(el => observer.observe(el));
+
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (toggleBtn && mobileMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                    this.innerHTML = mobileMenu.classList.contains('hidden') ? '<i class="fas fa-bars"></i>' : '<i class="fas fa-times"></i>';
+                });
+            }
+
+            window.toggleFaq = function(el) {
+                const answer = el.nextElementSibling;
+                const icon = el.querySelector('.fa-chevron-down');
+                answer.classList.toggle('open');
+                if (answer.classList.contains('open')) {
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    answer.style.maxHeight = '0';
+                    icon.style.transform = 'rotate(0)';
+                }
+            };
+            const firstFaq = document.querySelector('.faq-question');
+            if (firstFaq) toggleFaq(firstFaq);
+        });
+
+        window.closeMobileMenu = function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            }
         };
 
-        var PAGE_W = 595;
-        var PAGE_H = 842;
-
-        function setStatus(msg, type) {
-            var el = document.getElementById('status');
-            el.textContent = msg;
-            el.className = 'status ' + (type || '');
-        }
-
-        async function loadLogo() {
-            try {
-                var resp = await fetch(LOGO_PATH);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                return await resp.arrayBuffer();
-            } catch (e) { console.warn('Logo not loaded:', e); return null; }
-        }
-
-        async function drawLogo(pdfDoc, page, logoBytes, yTop, targetWidth) {
-            if (!logoBytes) return;
-            var img = null;
-            var bytes = new Uint8Array(logoBytes);
-            var isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
-            var isJpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
-            try {
-                if (isPng) img = await pdfDoc.embedPng(logoBytes);
-                else if (isJpg) img = await pdfDoc.embedJpg(logoBytes);
-                else {
-                    try { img = await pdfDoc.embedJpg(logoBytes); }
-                    catch (e) { img = await pdfDoc.embedPng(logoBytes); }
-                }
-                var aspect = img.height / img.width;
-                var w = targetWidth;
-                var h = w * aspect;
-                var x = (PAGE_W - w) / 2;
-                page.drawImage(img, { x: x, y: yTop - h, width: w, height: h });
-            } catch (e) { console.warn('Logo embed failed:', e); }
-        }
-
-        // Draw centered text helper — uses font width to truly center
-        function drawCentered(page, text, y, size, font, color) {
-            var w = font.widthOfTextAtSize(text, size);
-            page.drawText(text, { x: (PAGE_W - w) / 2, y: y, size: size, font: font, color: color });
-        }
-
-        function cap(s) { return (s || '').toString().toUpperCase(); }
-
-        // ============================================================
-        // MAIN DISPATCHER
-        // ============================================================
-        async function generateTemplate(code) {
-            try {
-                setStatus('Generating ' + code + '...', '');
-                var pdfDoc = await PDFLib.PDFDocument.create();
-                var logoBytes = await loadLogo();
-
-                var order = Object.assign({}, SAMPLE_ORDER);
-                order.logbook_code = code;
-                var courseNames = {
-                    'PHY191': 'INTRODUCTION PRACTICAL PHYSICS I',
-                    'CIT104': 'INTRODUCTION TO COMPUTER SCIENCE',
-                    'IFT191': 'COMPUTER LABORATORY I',
-                    'BIO191': 'GENERAL BIOLOGY PRACTICAL I',
-                    'MTH101': 'MATHEMATICS LABORATORY I'
-                };
-                order.logbook_name = courseNames[code] || code;
-
-                if (code === 'PHY191')       await generatePHY191PDF(pdfDoc, order, logoBytes);
-                else if (code === 'CIT104')  await generateCIT104PDF(pdfDoc, order, logoBytes);
-                else if (code === 'IFT191')  await generateIFT191PDF(pdfDoc, order, logoBytes);
-                else if (code === 'BIO191')  await generateBIO191PDF(pdfDoc, order, logoBytes);
-                else if (code === 'MTH101')  await generateMTH101PDF(pdfDoc, order, logoBytes);
-
-                var pdfBytes = await pdfDoc.save();
-                var blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                window.open(URL.createObjectURL(blob), '_blank');
-                setStatus('✅ ' + code + ' PDF generated.', 'success');
-                setTimeout(function() { setStatus('', ''); }, 3000);
-            } catch (e) {
-                console.error(e);
-                setStatus('❌ Error: ' + e.message, 'error');
+        function openFeedbackModal(type) {
+            const modal = document.getElementById('feedbackModal');
+            const title = document.getElementById('feedbackModalTitle');
+            const message = document.getElementById('feedbackModalMessage');
+            const icon = document.getElementById('modalIcon');
+            if (type === 'success') {
+                title.textContent = 'Message Sent!';
+                message.textContent = 'Your feedback has been received. We\'ll get back to you within 24 hours.';
+                icon.className = 'icon-circle success';
+                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            } else {
+                title.textContent = 'Something Went Wrong';
+                message.textContent = 'Please try again later. If the issue persists, contact support.';
+                icon.className = 'icon-circle error';
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
             }
+            modal.classList.add('active');
         }
 
-        // ============================================================
-        // TEMPLATE: PHY 191 — Physics
-        // ============================================================
-        async function generatePHY191PDF(pdfDoc, order, logoBytes) {
-            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
-            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
-            var black = PDFLib.rgb(0, 0, 0);
+        window.closeFeedbackModal = function() {
+            document.getElementById('feedbackModal').classList.remove('active');
+        };
 
-            await drawLogo(pdfDoc, page, logoBytes, 800, 65);
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('feedbackModal');
+            if (e.target === modal) modal.classList.remove('active');
+        });
 
-            // Headers — centered
-            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
-            drawCentered(page, 'FACULTY OF SCIENCE', 680, 12, bold, black);
+        window.handleFeedback = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('fbName').value.trim();
+            const email = document.getElementById('fbEmail').value.trim();
+            const subject = document.getElementById('fbSubject').value.trim();
+            const message = document.getElementById('fbMessage').value.trim();
+            if (!name || !email || !subject || !message) { alert('Please fill in all fields.'); return; }
 
-            // Title
-            drawCentered(page, 'PHYSICS LABORATORY MANUAL', 625, 18, bold, black);
+            try {
+                const response = await fetch(SUPABASE_URL + "/rest/v1/feedback", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        full_name: name, email: email,
+                        subject: subject, message: message,
+                        created_at: new Date().toISOString()
+                    })
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
 
-            // Course info
-            drawCentered(page, 'COURSE CODE: PHY 191', 585, 11, bold, black);
-            drawCentered(page, 'COURSE TITLE: ' + cap(order.logbook_name), 555, 11, bold, black);
+                try {
+                    await fetch('/api/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'feedback', to: 'coursematetutorial@gmail.com',
+                            full_name: name, email: email,
+                            subject: subject, message: message
+                        })
+                    });
+                } catch (emailErr) { console.warn('Email notification failed:', emailErr); }
 
-            var labelX = 60;
-            var lineStartX = 145;
-            var lineEndX = 535;
-            var startY = 495;
-            var step = 45;
-
-            var fields = [
-                { label: 'NAME:', value: cap(order.student_name) },
-                { label: 'PROGRAMME:', value: cap(order.programme) },
-                { label: 'MATRIC. NO:', value: cap(order.matric_number) },
-                { label: 'LEVEL:', value: cap(order.level) }
-            ];
-
-            fields.forEach(function(f, i) {
-                var y = startY - (i * step);
-                page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
-                if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
-                page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
-            });
-
-            var gY = startY - (4 * step);
-            page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
-            if (order.student_group) page.drawText(cap(order.student_group), { x: 130, y: gY, size: 13, font: bold, color: black });
-            page.drawLine({ start: { x: 125, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
-
-            page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
-            page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
-        }
-
-        // ============================================================
-        // TEMPLATE: CIT 104 — Computer Science
-        // ============================================================
-        async function generateCIT104PDF(pdfDoc, order, logoBytes) {
-            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
-            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
-            var black = PDFLib.rgb(0, 0, 0);
-
-            await drawLogo(pdfDoc, page, logoBytes, 800, 60);
-
-            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
-            drawCentered(page, 'Department of Computer Science', 682, 13, bold, black);
-            drawCentered(page, 'CIT 104: Introduction to Computer Science', 645, 12, font, black);
-            drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 618, 13, bold, black);
-
-            // Box "Student's Particulars"
-            page.drawRectangle({ x: 70, y: 568, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
-            drawCentered(page, "Student's Particulars", 578, 20, bold, black);
-
-            function fieldLine(label, x, y, width, value) {
-                if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
-                page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
-                page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
+                document.getElementById('feedbackForm').reset();
+                openFeedbackModal('success');
+            } catch (err) {
+                console.error('Feedback error:', err);
+                openFeedbackModal('error');
             }
-
-            var year = new Date().getFullYear();
-            var yearLevel = year + '/' + (order.level || '100');
-
-            fieldLine('Matriculation number', 70, 490, 220, cap(order.matric_number));
-            page.drawLine({ start: { x: 300, y: 480 }, end: { x: 300, y: 505 }, thickness: 0.7, color: black });
-            fieldLine('Year/Level of Course', 310, 490, 215, yearLevel);
-
-            fieldLine('Name of Student (SURNAME, Other Names)', 70, 430, 455, cap(order.student_name));
-            fieldLine('Department', 70, 370, 455, cap(order.department || order.programme));
-
-            page.drawText('Name of Laboratory Coordinator', { x: 70, y: 310, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 70, y: 322 }, end: { x: 300, y: 322 }, thickness: 0.7, color: black });
-            page.drawText('Signature and Date', { x: 420, y: 310, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 420, y: 322 }, end: { x: 525, y: 322 }, thickness: 0.7, color: black });
-
-            page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 255, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 70, y: 267 }, end: { x: 300, y: 267 }, thickness: 0.7, color: black });
-            page.drawText('Signature and Date', { x: 420, y: 255, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 420, y: 267 }, end: { x: 525, y: 267 }, thickness: 0.7, color: black });
-        }
-
-        // ============================================================
-        // TEMPLATE: IFT 191 — Info Tech
-        // ============================================================
-        async function generateIFT191PDF(pdfDoc, order, logoBytes) {
-            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
-            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
-            var black = PDFLib.rgb(0, 0, 0);
-
-            await drawLogo(pdfDoc, page, logoBytes, 800, 60);
-
-            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
-            drawCentered(page, 'Faculty of Computing', 682, 13, bold, black);
-            drawCentered(page, 'Department of Information Systems and Technology', 664, 12, bold, black);
-            drawCentered(page, 'NOUN-IFT191: Computer Laboratory I', 628, 12, font, black);
-            drawCentered(page, 'LABORATORY MANUAL AND LOGBOOK', 602, 13, bold, black);
-
-            // Box
-            page.drawRectangle({ x: 70, y: 552, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
-            drawCentered(page, 'Student Particulars', 562, 20, bold, black);
-
-            function fieldLine(label, x, y, width, value) {
-                if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
-                page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
-                page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
-            }
-
-            var year = new Date().getFullYear();
-            var yearLevel = year + '/' + (order.level || '100');
-
-            fieldLine('Matriculation number', 70, 478, 220, cap(order.matric_number));
-            page.drawLine({ start: { x: 300, y: 468 }, end: { x: 300, y: 493 }, thickness: 0.7, color: black });
-            fieldLine('Year/Level of Course', 310, 478, 215, yearLevel);
-
-            fieldLine('Name of Student (SURNAME, Other Names)', 70, 418, 455, cap(order.student_name));
-            fieldLine('Department', 70, 358, 455, cap(order.department || order.programme));
-
-            page.drawText('Name of Laboratory Coordinator', { x: 70, y: 298, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 70, y: 310 }, end: { x: 300, y: 310 }, thickness: 0.7, color: black });
-            page.drawText('Signature and Date', { x: 420, y: 298, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 420, y: 310 }, end: { x: 525, y: 310 }, thickness: 0.7, color: black });
-
-            page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 243, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 70, y: 255 }, end: { x: 300, y: 255 }, thickness: 0.7, color: black });
-            page.drawText('Signature and Date', { x: 420, y: 243, size: 9, font: font, color: black });
-            page.drawLine({ start: { x: 420, y: 255 }, end: { x: 525, y: 255 }, thickness: 0.7, color: black });
-        }
-
-        // ============================================================
-        // TEMPLATE: BIO 191 (displayed as BIO 107)
-        // ============================================================
-        async function generateBIO191PDF(pdfDoc, order, logoBytes) {
-            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
-            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
-            var black = PDFLib.rgb(0, 0, 0);
-
-            await drawLogo(pdfDoc, page, logoBytes, 800, 65);
-
-            // Centered headers
-            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
-            drawCentered(page, 'FACULTY OF SCIENCE', 682, 12, bold, black);
-            drawCentered(page, 'LABORATORY MANUAL', 640, 13, bold, black);
-            drawCentered(page, 'COURSE CODE: BIO 107', 605, 11, bold, black);
-            drawCentered(page, 'COURSE TITLE: GENERAL BIOLOGY PRACTICAL I', 575, 11, bold, black);
-
-            var labelX = 60;
-            var lineStartX = 175;
-            var lineEndX = 535;
-            var startY = 500;
-            var step = 42;
-
-            var fields = [
-                { label: 'NAME:', value: cap(order.student_name) },
-                { label: 'PROGRAMME:', value: cap(order.programme) },
-                { label: 'MATRIC. NO:', value: cap(order.matric_number) },
-                { label: 'LEVEL:', value: cap(order.level) },
-                { label: 'STUDY CENTRE:', value: cap(order.study_centre) },
-                { label: 'PRACTICAL CENTRE:', value: '' }
-            ];
-
-            fields.forEach(function(f, i) {
-                var y = startY - (i * step);
-                page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
-                if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
-                page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
-            });
-
-            var gY = startY - (6 * step);
-            page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
-            if (order.student_group) page.drawText(cap(order.student_group), { x: 135, y: gY, size: 13, font: bold, color: black });
-            page.drawLine({ start: { x: 130, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
-
-            page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
-            page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
-        }
-
-        // ============================================================
-        // TEMPLATE: MTH 101 — Mathematics
-        // ============================================================
-        async function generateMTH101PDF(pdfDoc, order, logoBytes) {
-            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-            var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
-            var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
-            var black = PDFLib.rgb(0, 0, 0);
-
-            await drawLogo(pdfDoc, page, logoBytes, 810, 65);
-
-            // Centered headers with more space after logo
-            drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 715, 12, bold, black);
-            drawCentered(page, 'DEPARTMENT OF MATHEMATICS', 697, 12, bold, black);
-
-            drawCentered(page, 'MATHEMATICS LABOURATORY I', 660, 11, bold, black);
-            drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 643, 11, bold, black);
-            drawCentered(page, "STUDENT'S PARTICULARS", 620, 11, bold, black);
-
-            // Passport box
-            page.drawRectangle({ x: 210, y: 485, width: 175, height: 115, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
-            drawCentered(page, 'Insert', 557, 10, bold, black);
-            drawCentered(page, 'Recent', 537, 10, bold, black);
-            drawCentered(page, 'Passport', 517, 10, bold, black);
-
-            var year = new Date().getFullYear();
-            var yearLevel = year + '/' + (order.level || '100');
-
-            // Matric — text above line, larger
-            page.drawText(cap(order.matric_number), { x: 55, y: 460, size: 17, font: bold, color: black });
-            page.drawLine({ start: { x: 55, y: 450 }, end: { x: 385, y: 450 }, thickness: 0.6, color: black });
-            page.drawText('Matriculation number', { x: 55, y: 432, size: 8, font: bold, color: black });
-
-            page.drawText(yearLevel, { x: 400, y: 460, size: 17, font: bold, color: black });
-            page.drawLine({ start: { x: 400, y: 450 }, end: { x: 540, y: 450 }, thickness: 0.6, color: black });
-            page.drawText('Year/Level of Course', { x: 400, y: 432, size: 8, font: bold, color: black });
-
-            // Name
-            page.drawText(cap(order.student_name), { x: 55, y: 380, size: 17, font: bold, color: black });
-            page.drawLine({ start: { x: 55, y: 370 }, end: { x: 540, y: 370 }, thickness: 0.6, color: black });
-            page.drawText('Name of Student (Surname, First name, Middle name)', { x: 55, y: 352, size: 8, font: bold, color: black });
-
-            // Department
-            page.drawText(cap(order.department || order.programme), { x: 55, y: 300, size: 17, font: bold, color: black });
-            page.drawLine({ start: { x: 55, y: 290 }, end: { x: 540, y: 290 }, thickness: 0.6, color: black });
-            page.drawText('Department', { x: 55, y: 272, size: 8, font: bold, color: black });
-
-            // Coordinator
-            page.drawLine({ start: { x: 55, y: 240 }, end: { x: 290, y: 240 }, thickness: 0.6, color: black });
-            page.drawText('Name of Laboratory Co-ordinator', { x: 55, y: 225, size: 8, font: bold, color: black });
-            page.drawLine({ start: { x: 400, y: 240 }, end: { x: 540, y: 240 }, thickness: 0.6, color: black });
-            page.drawText('Signature and Date', { x: 400, y: 225, size: 8, font: bold, color: black });
-
-            // Examiner
-            page.drawLine({ start: { x: 55, y: 190 }, end: { x: 290, y: 190 }, thickness: 0.6, color: black });
-            page.drawText('Examiner (or Course Co-ordinator)', { x: 55, y: 175, size: 8, font: bold, color: black });
-            page.drawLine({ start: { x: 400, y: 190 }, end: { x: 540, y: 190 }, thickness: 0.6, color: black });
-            page.drawText('Signature and Date', { x: 400, y: 175, size: 8, font: bold, color: black });
-        }
+        };
     </script>
 </body>
 </html>
