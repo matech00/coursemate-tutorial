@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ===== LIGHT & DARK THEME ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+* { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         :root {
             --bg: #f9fafb;
             --card: #ffffff;
@@ -311,6 +313,11 @@
             <a href="attendance.html"><i class="fas fa-clipboard-list"></i> Attendance</a>
             <a href="analytics.html" class="active"><i class="fas fa-chart-bar"></i> Progress</a>
              <a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
+              <a href="/admin/print-orders.html" class="menu-item">
+                <i class="fas fa-print"></i> Logbook Print Queue
+            <a href="super-settings.html" id="superSettingsLink" style="display: none;">
+                <i class="fas fa-crown"></i> Super Admin
+            </a>
             <a href="settings.html" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
 
            
