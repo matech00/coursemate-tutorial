@@ -396,7 +396,7 @@
 
             if (code.includes('PHY191'))       await generatePHY191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('CIT104'))  await generateCIT104PDF(pdfDoc, order, logoBytes);
-            else if (code.includes('IFT191'))  await generateIFT191PDF(pdfDoc, order, logoBytes);
+            else if (code.includes('CIT191') || code.includes('IFT191')) await generateIFT191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('BIO191') || code.includes('BIO107')) await generateBIO191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('MTH101'))  await generateMTH101PDF(pdfDoc, order, logoBytes);
             else                               await generatePHY191PDF(pdfDoc, order, logoBytes);
@@ -498,7 +498,7 @@
         }
 
         // ============================================================
-        // TEMPLATE: IFT 191
+        // TEMPLATE: IFT 191 / CIT 191
         // ============================================================
         async function generateIFT191PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
