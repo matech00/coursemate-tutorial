@@ -143,79 +143,91 @@
         };
 
         // ============================================================
-        // LOGIN LOGIC — sets isTutorialStudent flag correctly
+        // LOGIN LOGIC — checks admin, then seller, then student
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
 
                 try {
                     const { user } = await window.auth.signIn(email, password);
-                    if (user) {
-                        if (window.toast) window.toast.success('Login successful! Redirecting...');
+                    if (!user) return;
 
-                        // Save basic info
-                        localStorage.setItem('studentEmail', email);
-                        localStorage.setItem('studentName', user.user_metadata?.full_name || '');
+                    if (window.toast) window.toast.success('Login successful! Redirecting...');
 
-                        // Check if admin
-                        const { data: admin } = await window.supabaseClient.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
-                        if (admin) {
-                            localStorage.removeItem('isTutorialStudent');
-                            localStorage.setItem('adminEmail', email);
-                            window.location.href = 'admin/dashboard.html';
-                            return;
-                        }
+                    // Save basic info
+                    localStorage.setItem('studentEmail', email);
+                    localStorage.setItem('studentName', user.user_metadata?.full_name || '');
 
-                        // Check student record
-                        const { data: student } = await window.supabaseClient
-                            .from('students')
-                            .select('user_id, is_tutorial_student, payment_status')
-                            .eq('user_id', user.id)
-                            .maybeSingle();
+                    // ============================================
+                    // CHECK 1: Is this an ADMIN? (admin or super_admin)
+                    // ============================================
+                    const { data: admin } = await window.supabaseClient
+                        .from('admins')
+                        .select('role')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
 
-                        // ✅ SET THE TUTORIAL STUDENT FLAG
-                        if (student && student.is_tutorial_student === true) {
-                            localStorage.setItem('isTutorialStudent', 'true');
-                        } else {
-                            localStorage.removeItem('isTutorialStudent');
-                        }
+                    if (admin) {
+                        localStorage.removeItem('isTutorialStudent');
+                        localStorage.removeItem('isSeller');
+                        localStorage.setItem('adminEmail', email);
+                        localStorage.setItem('adminRole', admin.role || 'admin');
+                        window.location.href = 'admin/dashboard.html';
+                        return;
+                    }
 
-                        // Check redirect parameter
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const redirect = urlParams.get('redirect');
+                    // ============================================
+                    // CHECK 2: Is this a SELLER?
+                    // ============================================
+                    const { data: seller } = await window.supabaseClient
+                        .from('sellers')
+                        .select('id, seller_code, name')
+                        .eq('email', email)
+                        .maybeSingle();
 
-                        if (redirect === 'logbook/shop') {
-                            window.location.href = 'student/logbook/shop.html';
-                            return;
-                        }
+                    if (seller) {
+                        localStorage.removeItem('isTutorialStudent');
+                        localStorage.removeItem('adminEmail');
+                        localStorage.setItem('isSeller', 'true');
+                        localStorage.setItem('sellerCode', seller.seller_code);
+                        localStorage.setItem('sellerName', seller.name);
+                        localStorage.setItem('sellerEmail', email);
+                        window.location.href = 'admin/seller-dashboard.html';
+                        return;
+                    }
 
-                        if (redirect === 'dashboard') {
-                            window.location.href = 'student/dashboard.html';
-                            return;
-                        }
+                    // ============================================
+                    // CHECK 3: Is this a STUDENT?
+                    // ============================================
+                    const { data: student } = await window.supabaseClient
+                        .from('students')
+                        .select('user_id, is_tutorial_student, payment_status')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
 
-                        if (redirect === 'enroll-tutorial') {
-                            if (student) {
-                                if (student.is_tutorial_student === true) {
-                                    if (student.payment_status === 'pending' || student.payment_status === 'expired') {
-                                        window.location.href = 'payment.html';
-                                    } else {
-                                        window.location.href = 'student/dashboard.html';
-                                    }
-                                } else {
-                                    window.location.href = 'complete-profile.html?source=tutorial';
-                                }
-                            } else {
-                                window.location.href = 'complete-profile.html?source=tutorial';
-                            }
-                            return;
-                        }
+                    if (student && student.is_tutorial_student === true) {
+                        localStorage.setItem('isTutorialStudent', 'true');
+                    } else {
+                        localStorage.removeItem('isTutorialStudent');
+                    }
 
-                        // Default redirect
+                    // Check redirect parameter
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect');
+
+                    if (redirect === 'logbook/shop') {
+                        window.location.href = 'student/logbook/shop.html';
+                        return;
+                    }
+                    if (redirect === 'dashboard') {
+                        window.location.href = 'student/dashboard.html';
+                        return;
+                    }
+                    if (redirect === 'enroll-tutorial') {
                         if (student) {
                             if (student.is_tutorial_student === true) {
                                 if (student.payment_status === 'pending' || student.payment_status === 'expired') {
@@ -224,12 +236,29 @@
                                     window.location.href = 'student/dashboard.html';
                                 }
                             } else {
-                                window.location.href = 'student/logbook/shop.html';
+                                window.location.href = 'complete-profile.html?source=tutorial';
                             }
                         } else {
-                            window.location.href = 'complete-profile.html';
+                            window.location.href = 'complete-profile.html?source=tutorial';
                         }
+                        return;
                     }
+
+                    // Default redirect
+                    if (student) {
+                        if (student.is_tutorial_student === true) {
+                            if (student.payment_status === 'pending' || student.payment_status === 'expired') {
+                                window.location.href = 'payment.html';
+                            } else {
+                                window.location.href = 'student/dashboard.html';
+                            }
+                        } else {
+                            window.location.href = 'student/logbook/shop.html';
+                        }
+                    } else {
+                        window.location.href = 'complete-profile.html';
+                    }
+
                 } catch (error) {
                     if (window.toast) window.toast.error('Login failed: ' + error.message);
                     else alert('Login failed: ' + error.message);

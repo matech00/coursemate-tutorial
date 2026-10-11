@@ -82,6 +82,7 @@
         .btn-danger { background: #dc2626; color: white; }
         .btn-danger:hover { background: #b91c1c; }
         .btn-sm { padding: 0.2rem 0.6rem; font-size: 0.75rem; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .input-group { display: flex; gap: 0.5rem; }
         .input-group input, .input-group select { flex: 1; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.85rem; }
@@ -90,7 +91,6 @@
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
         .list-item:last-child { border-bottom: none; }
 
-        /* Seller specific */
         .seller-list .list-item { padding: 0.75rem 0; font-size: 0.9rem; }
         .seller-info { flex: 1; }
         .seller-info .name { font-weight: 600; color: var(--text); }
@@ -715,7 +715,7 @@
         window.closeModal = function() { document.getElementById('addAdminModal').classList.remove('active'); };
 
         // ============================================================
-        // SELLERS MANAGEMENT
+        // SELLERS MANAGEMENT (UPDATED — calls /api/create-seller)
         // ============================================================
         let sellersCache = [];
         let editingSellerId = null;
@@ -765,36 +765,77 @@
             document.getElementById('sellerModalTitle').innerHTML = '<i class="fas fa-store text-primary-500 mr-2"></i>Edit Seller';
             document.getElementById('sellerName').value = seller.name;
             document.getElementById('sellerEmail').value = seller.email;
-            document.getElementById('sellerPassword').value = seller.password;
+            document.getElementById('sellerPassword').value = seller.password || '';
             document.getElementById('sellerCode').value = seller.seller_code;
             document.getElementById('sellerFeedback').style.display = 'none';
             document.getElementById('sellerModal').classList.add('active');
         };
 
+        // ============================================================
+        // SAVE SELLER — Calls /api/create-seller for NEW sellers
+        // ============================================================
         window.saveSeller = async function() {
             const name = document.getElementById('sellerName').value.trim();
             const email = document.getElementById('sellerEmail').value.trim();
             const password = document.getElementById('sellerPassword').value.trim();
             const sellerCode = document.getElementById('sellerCode').value.trim();
             const feedback = document.getElementById('sellerFeedback');
-            if (!name || !email || !password || !sellerCode) { feedback.textContent = 'Please fill in all fields.'; feedback.style.display = 'block'; return; }
+            const saveBtn = document.getElementById('sellerSaveBtn');
+
+            if (!name || !email || !password || !sellerCode) {
+                feedback.textContent = 'Please fill in all fields.';
+                feedback.style.display = 'block';
+                return;
+            }
+
+            feedback.style.display = 'none';
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
             try {
                 if (editingSellerId) {
-                    const { error } = await supabaseClient.from('sellers').update({ name, email, password, seller_code: sellerCode }).eq('id', editingSellerId);
+                    // UPDATE existing seller (no auth change on edit)
+                    const { error } = await supabaseClient
+                        .from('sellers')
+                        .update({ name, email, seller_code: sellerCode })
+                        .eq('id', editingSellerId);
                     if (error) throw error;
                     showToast('Seller updated.', 'success');
                 } else {
-                    const { error } = await supabaseClient.from('sellers').insert([{ name, email, password, seller_code: sellerCode }]);
-                    if (error) throw error;
-                    showToast('Seller added.', 'success');
+                    // CREATE new seller via API (creates auth user + seller record)
+                    const response = await fetch('/api/create-seller', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            password: password,
+                            seller_code: sellerCode
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to create seller');
+                    }
+
+                    showToast('Seller created. They can now log in.', 'success');
                 }
                 closeSellerModal();
                 await loadSellers();
-            } catch (err) { feedback.textContent = 'Error: ' + err.message; feedback.style.display = 'block'; }
+            } catch (err) {
+                console.error('Save seller error:', err);
+                feedback.textContent = 'Error: ' + err.message;
+                feedback.style.display = 'block';
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Seller';
+            }
         };
 
         window.deleteSeller = async function(id) {
-            if (!confirm('Delete this seller?')) return;
+            if (!confirm('Delete this seller? This does NOT delete their Supabase Auth account.')) return;
             const { error } = await supabaseClient.from('sellers').delete().eq('id', id);
             if (error) { showToast('Failed.', 'error'); return; }
             showToast('Seller deleted.', 'success');

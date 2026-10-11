@@ -267,9 +267,6 @@
         var PAGE_H = 842;
         var pendingDeleteOrder = null;
 
-        // ============================================================
-        // HELPERS
-        // ============================================================
         function showToast(message, type) {
             type = type || 'info';
             var container = document.getElementById('toastContainer');
@@ -284,38 +281,20 @@
         function escapeHtml(t) { if (!t) return ''; return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function cap(s) { return (s || '').toString().toUpperCase(); }
 
-        // ============================================================
-        // SUPER ADMIN DETECTION (FIXED)
-        // ============================================================
         async function checkSuperAdmin() {
             try {
                 var { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                if (userError || !user) {
-                    console.log('No logged in user.');
-                    return;
-                }
+                if (userError || !user) { console.log('No logged in user.'); return; }
                 console.log('Logged in as:', user.email);
-                console.log('User ID:', user.id);
-
                 var r = await supabaseClient.from('admins').select('role').eq('user_id', user.id).single();
-                console.log('DB response:', r);
-
+                console.log('Role:', r.data?.role);
                 if (r.data && r.data.role === 'super_admin') {
                     IS_SUPER_ADMIN = true;
                     console.log('✅ Super admin mode enabled');
-                } else if (r.data) {
-                    console.log('Role found:', r.data.role, '- Not a super admin');
-                } else {
-                    console.log('No matching admin record for this user.');
                 }
-            } catch (e) {
-                console.warn('Could not verify super admin status:', e);
-            }
+            } catch (e) { console.warn('Could not verify super admin status:', e); }
         }
 
-        // ============================================================
-        // TABS
-        // ============================================================
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
@@ -344,6 +323,12 @@
             return html;
         }
 
+        // Delete button HTML (reused)
+        function deleteBtnHTML(o) {
+            if (!IS_SUPER_ADMIN) return '';
+            return '<button class="btn btn-danger btn-icon btn-sm" onclick="openDeleteModal(\'' + o.order_number + '\', \'' + escapeHtml(o.student_name).replace(/'/g, "\\'") + '\', ' + (o.amount || 0) + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+        }
+
         // ============================================================
         // NEW ORDERS
         // ============================================================
@@ -360,7 +345,7 @@
                     '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Level">' + escapeHtml(o.level) + ' | ' + escapeHtml(o.student_group) + '</td>' +
                     '<td data-label="Date">' + formatDate(o.order_date) + '</td>' +
-                    '<td data-label="Action"><button class="btn btn-primary btn-sm" onclick="startProcessing(\'' + o.order_number + '\')"><i class="fas fa-play"></i> Start</button></td></tr>';
+                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;"><button class="btn btn-primary btn-sm" onclick="startProcessing(\'' + o.order_number + '\')"><i class="fas fa-play"></i> Start</button>' + deleteBtnHTML(o) + '</div></td></tr>';
             });
             document.getElementById('paneNew').innerHTML = html + '</tbody></table>';
             applySearch();
@@ -382,25 +367,22 @@
                     '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Level">' + escapeHtml(o.level) + ' | ' + escapeHtml(o.student_group) + '</td>' +
                     '<td data-label="Date">' + formatDate(o.order_date) + '</td>' +
-                    '<td data-label="Action"><button class="btn btn-warning btn-sm" onclick="printAndMarkReady(\'' + o.order_number + '\')"><i class="fas fa-print"></i> Print</button></td></tr>';
+                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;"><button class="btn btn-warning btn-sm" onclick="printAndMarkReady(\'' + o.order_number + '\')"><i class="fas fa-print"></i> Print</button>' + deleteBtnHTML(o) + '</div></td></tr>';
             });
             document.getElementById('paneProcessing').innerHTML = html + '</tbody></table>';
             applySearch();
         }
 
         // ============================================================
-        // INSTANT SALES + SELLER PERFORMANCE
+        // INSTANT SALES
         // ============================================================
         async function loadInstantSales() {
             var r = await supabaseClient.from('logbook_orders').select('*').in('status', ['paid_instant', 'collected']).order('order_date', { ascending: false });
             if (r.error) { document.getElementById('instantTableContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed.</p></div>'; return; }
             var orders = r.data || [];
             document.getElementById('countInstant').textContent = orders.length;
-
             renderSellerPerformance(orders);
-
             if (!orders.length) { document.getElementById('instantTableContent').innerHTML = '<div class="empty-state"><i class="fas fa-bolt"></i><p>No instant sales yet.</p></div>'; return; }
-
             var html = '<table><thead><tr><th>Instant ID</th><th>Buyer</th><th>Logbook</th><th>Seller</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>';
             orders.forEach(function(o) {
                 var isCollected = o.status === 'collected';
@@ -412,11 +394,6 @@
                 } else {
                     actionBtn = '<button class="btn btn-success btn-sm" onclick="markCollected(\'' + o.order_number + '\')"><i class="fas fa-check"></i> Mark Collected</button>';
                 }
-                var deleteBtn = '';
-                if (IS_SUPER_ADMIN) {
-                    deleteBtn = '<button class="btn btn-danger btn-icon btn-sm" onclick="openDeleteModal(\'' + o.order_number + '\', \'' + escapeHtml(o.student_name).replace(/'/g, "\\'") + '\', ' + (o.amount || 0) + ')" title="Delete"><i class="fas fa-trash"></i></button>';
-                }
-
                 html += '<tr>' +
                     '<td data-label="Instant ID"><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
                     '<td data-label="Buyer"><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.email) + '</span></div></td>' +
@@ -424,7 +401,7 @@
                     '<td data-label="Seller">' + escapeHtml(o.referrer_code || '---') + '</td>' +
                     '<td data-label="Amount">₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</td>' +
                     '<td data-label="Status"><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
-                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;">' + actionBtn + ' ' + deleteBtn + '</div></td></tr>';
+                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;">' + actionBtn + ' ' + deleteBtnHTML(o) + '</div></td></tr>';
             });
             document.getElementById('instantTableContent').innerHTML = html + '</tbody></table>';
             applySearch();
@@ -438,27 +415,17 @@
                 groups[code].count++;
                 groups[code].total += Number(o.amount) || 0;
             });
-
             var container = document.getElementById('sellersPerfList');
             supabaseClient.from('sellers').select('seller_code, name').then(function(r) {
                 var sellerMap = {};
                 (r.data || []).forEach(function(s) { sellerMap[s.seller_code] = s.name; });
-
                 var keys = Object.keys(groups).sort(function(a, b) { return groups[b].total - groups[a].total; });
-                if (keys.length === 0) {
-                    container.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem;">No sales yet.</p>';
-                    return;
-                }
-
+                if (keys.length === 0) { container.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem;">No sales yet.</p>'; return; }
                 var html = '';
                 keys.forEach(function(k) {
                     var g = groups[k];
                     var name = sellerMap[k] || 'Unknown Seller';
-                    html += '<div class="seller-perf-item">' +
-                        '<div class="seller-code">' + escapeHtml(g.code) + '</div>' +
-                        '<div class="seller-name">' + escapeHtml(name) + '</div>' +
-                        '<div class="seller-stats"><span>' + g.count + ' sale' + (g.count !== 1 ? 's' : '') + '</span><span class="amount">₦' + g.total.toLocaleString() + '</span></div>' +
-                    '</div>';
+                    html += '<div class="seller-perf-item"><div class="seller-code">' + escapeHtml(g.code) + '</div><div class="seller-name">' + escapeHtml(name) + '</div><div class="seller-stats"><span>' + g.count + ' sale' + (g.count !== 1 ? 's' : '') + '</span><span class="amount">₦' + g.total.toLocaleString() + '</span></div></div>';
                 });
                 container.innerHTML = html;
             });
@@ -475,13 +442,10 @@
         }
 
         // ============================================================
-        // DELETE ORDER (Super Admin only)
+        // DELETE
         // ============================================================
         function openDeleteModal(orderNumber, buyer, amount) {
-            if (!IS_SUPER_ADMIN) {
-                showToast('Only super admins can delete orders.', 'error');
-                return;
-            }
+            if (!IS_SUPER_ADMIN) { showToast('Only super admins can delete orders.', 'error'); return; }
             pendingDeleteOrder = orderNumber;
             document.getElementById('deleteOrderNum').textContent = orderNumber;
             document.getElementById('deleteBuyer').textContent = buyer;
@@ -491,25 +455,17 @@
             document.getElementById('deleteModal').classList.add('active');
             setTimeout(function() { document.getElementById('deleteConfirmInput').focus(); }, 100);
         }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            pendingDeleteOrder = null;
-        }
-
+        function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); pendingDeleteOrder = null; }
         document.getElementById('deleteConfirmInput').addEventListener('input', function() {
             var v = this.value.trim().toUpperCase();
             document.getElementById('deleteConfirmBtn').disabled = (v !== 'DELETE');
         });
-
         async function confirmDelete() {
             if (!pendingDeleteOrder) return;
             var v = document.getElementById('deleteConfirmInput').value.trim().toUpperCase();
             if (v !== 'DELETE') { showToast('Type DELETE to confirm.', 'error'); return; }
-
             var r = await supabaseClient.from('logbook_orders').delete().eq('order_number', pendingDeleteOrder);
             if (r.error) { showToast('Delete failed: ' + r.error.message, 'error'); return; }
-
             showToast('Order deleted permanently.', 'success');
             closeDeleteModal();
             loadAll();
@@ -536,7 +492,7 @@
                     '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Printed By">' + escapeHtml(o.printed_by || '---') + '</td>' +
                     '<td data-label="Status"><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
-                    '<td data-label="Action">' + actionBtn + '</td></tr>';
+                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;">' + actionBtn + deleteBtnHTML(o) + '</div></td></tr>';
             });
             document.getElementById('paneCompleted').innerHTML = html + '</tbody></table>';
             applySearch();
@@ -573,10 +529,8 @@
                 } catch (e) { console.error(e); showToast('PDF failed.', 'warning'); }
                 var u = await supabaseClient.from('logbook_orders').update({ status: 'ready', printed_by: CURRENT_ADMIN_EMAIL, printed_at: new Date().toISOString(), print_count: (order.print_count || 0) + 1 }).eq('order_number', orderNumber);
                 if (u.error) { showToast('Update failed.', 'error'); return; }
-                try {
-                    await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'ready_for_pickup', to: order.email, full_name: order.student_name, order_number: order.order_number, logbook_code: order.logbook_code, logbook_name: order.logbook_name, pickup_location: PICKUP_LOCATION }) });
-                    showToast('Ready. Email sent.', 'success');
-                } catch (e) { showToast('Email failed.', 'warning'); }
+                try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'ready_for_pickup', to: order.email, full_name: order.student_name, order_number: order.order_number, logbook_code: order.logbook_code, logbook_name: order.logbook_name, pickup_location: PICKUP_LOCATION }) }); showToast('Ready. Email sent.', 'success'); }
+                catch (e) { showToast('Email failed.', 'warning'); }
                 loadAll();
             });
         }
@@ -592,7 +546,6 @@
             setTimeout(function() { document.getElementById('verifyMatric').focus(); }, 100);
         }
         function closePickupModal() { document.getElementById('pickupModal').classList.remove('active'); pickupOrderData = null; }
-
         async function confirmPickup() {
             if (!pickupOrderData) return;
             var typed = document.getElementById('verifyMatric').value.trim();
@@ -625,12 +578,9 @@
         }
 
         // ============================================================
-        // LOGO + PDF FUNCTIONS
+        // LOGO + PDF
         // ============================================================
-        async function loadLogo() {
-            try { var resp = await fetch(LOGO_PATH); if (!resp.ok) throw new Error('HTTP ' + resp.status); return await resp.arrayBuffer(); }
-            catch (e) { return null; }
-        }
+        async function loadLogo() { try { var resp = await fetch(LOGO_PATH); if (!resp.ok) throw new Error('HTTP ' + resp.status); return await resp.arrayBuffer(); } catch (e) { return null; } }
         async function drawLogo(pdfDoc, page, logoBytes, yTop, targetWidth) {
             if (!logoBytes) return;
             var img = null;
@@ -647,10 +597,8 @@
                 page.drawImage(img, { x: x, y: yTop - h, width: w, height: h });
             } catch (e) {}
         }
-        function drawCentered(page, text, y, size, font, color) {
-            var w = font.widthOfTextAtSize(text, size);
-            page.drawText(text, { x: (PAGE_W - w) / 2, y: y, size: size, font: font, color: color });
-        }
+        function drawCentered(page, text, y, size, font, color) { var w = font.widthOfTextAtSize(text, size); page.drawText(text, { x: (PAGE_W - w) / 2, y: y, size: size, font: font, color: color }); }
+
         async function generateOrderPDF(order) {
             var pdfDoc = await PDFLib.PDFDocument.create();
             var code = (order.logbook_code || '').toUpperCase().replace(/\s/g, '');
@@ -834,9 +782,6 @@
             page.drawText('Signature and Date', { x: 400, y: 175, size: 8, font: bold, color: black });
         }
 
-        // ============================================================
-        // MODALS
-        // ============================================================
         function showModal(title, message, onConfirm) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
@@ -854,9 +799,6 @@
             window.location.href = '/admin/login.html';
         }
 
-        // ============================================================
-        // INIT
-        // ============================================================
         function loadAll() { loadNewOrders(); loadProcessingOrders(); loadInstantSales(); loadCompletedOrders(); }
         document.addEventListener('DOMContentLoaded', async function() {
             await checkSuperAdmin();

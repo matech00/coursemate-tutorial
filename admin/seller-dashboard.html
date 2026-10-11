@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Sales - CourseMate Seller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="../assets/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+
+        .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .navbar .brand span { font-weight: 300; color: var(--text); }
+        .navbar .seller-info { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .navbar .seller-badge { background: var(--primary-light); color: var(--primary-dark); padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+        .navbar .logout-btn { background: none; border: 1.5px solid var(--border); color: var(--text); padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; font-family: inherit; }
+        .navbar .logout-btn:hover { border-color: #dc2626; color: #dc2626; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-header { margin-bottom: 1.75rem; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.35rem 0; display: flex; align-items: center; gap: 0.6rem; }
+        .page-header h1 i { color: var(--primary); }
+        .page-header p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.35rem; }
+        .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+        .stat-card .label i { color: var(--primary); font-size: 0.85rem; }
+        .stat-card .value { font-size: 1.9rem; font-weight: 800; color: var(--primary); margin-top: 0.4rem; line-height: 1; }
+        .stat-card .sub-text { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+
+        .sales-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+        .sales-card .sales-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
+        .sales-card .sales-title i { color: var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 0.85rem 0.75rem; background: var(--bg); font-weight: 600; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--border); }
+        td { padding: 0.85rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .order-cell .order-id { font-weight: 700; color: var(--primary); font-size: 0.85rem; }
+        .order-cell .order-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+        .buyer-cell .name { font-weight: 600; color: var(--text); font-size: 0.88rem; }
+        .buyer-cell .email { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+
+        .amount-cell { font-weight: 700; color: var(--text); }
+
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.7rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+        .badge-paid { background: #fef3c7; color: #92400e; }
+        .badge-collected { background: #dcfce7; color: #166534; }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; font-family: inherit; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-success:hover { background: #15803d; }
+        .btn-disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: var(--primary); }
+        .empty-state p { margin: 0; font-size: 0.95rem; }
+
+        .loading-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+        .loading-state .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px; width: 100%; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.15); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+        .toast.error { border-left-color: #dc2626; }
+        .toast.warning { border-left-color: #f59e0b; }
+        .toast.success { border-left-color: #22c55e; }
+        .toast i { font-size: 1.1rem; flex-shrink: 0; }
+        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--card); border-radius: 16px; padding: 1.75rem; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-content h3 { font-size: 1.15rem; margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem; }
+        .modal-content p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin: 0 0 1.25rem 0; }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+        @media (max-width: 640px) {
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .container { padding: 1rem; }
+            .stat-card .value { font-size: 1.5rem; }
+            table, thead, tbody, tr, td, th { display: block; width: 100%; }
+            thead { display: none; }
+            tr { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 0; }
+            td { border: none; padding: 0.35rem 0; display: flex; justify-content: space-between; font-size: 0.85rem; text-align: right; }
+            td::before { content: attr(data-label); font-weight: 600; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="#" class="brand">Course<span>Mate</span> Seller</a>
+        <div class="seller-info">
+            <span class="seller-badge" id="sellerBadge">Loading...</span>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </nav>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-chart-line"></i> My Sales</h1>
+            <p>Track your logbook sales, buyers, and earnings.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-shopping-bag"></i> Total Sales</div>
+                <div class="value" id="statSalesCount">0</div>
+                <div class="sub-text">Logbooks sold</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-coins"></i> Total Earned</div>
+                <div class="value" id="statSalesTotal">₦0</div>
+                <div class="sub-text">All-time revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-check-circle"></i> Handed Over</div>
+                <div class="value" id="statCollected">0</div>
+                <div class="sub-text">Completed pickups</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><i class="fas fa-clock"></i> Pending</div>
+                <div class="value" id="statPending">0</div>
+                <div class="sub-text">Awaiting handover</div>
+            </div>
+        </div>
+
+        <div class="sales-card">
+            <div class="sales-title"><i class="fas fa-list"></i> Recent Sales</div>
+            <div id="salesTableContent">
+                <div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading your sales...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-question-circle" style="color: var(--primary);"></i> Confirm Handover</h3>
+            <p>Confirm that you have handed over this logbook to the buyer?</p>
+            <div class="modal-actions">
+                <button class="btn" style="background:#e5e7eb; color:#374151;" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" id="modalConfirmBtn">Yes, Handed Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F3zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        var sellerCode = null;
+        var sellerName = null;
+        var currentOrders = [];
+
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
+        }
+
+        function formatDate(d) {
+            if (!d) return '---';
+            return new Date(d).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function escapeHtml(t) {
+            if (!t) return '';
+            return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function logout() {
+            localStorage.removeItem('isSeller');
+            localStorage.removeItem('sellerCode');
+            localStorage.removeItem('sellerName');
+            localStorage.removeItem('sellerEmail');
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('isTutorialStudent');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminRole');
+            sessionStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        async function loadSellerData() {
+            sellerCode = localStorage.getItem('sellerCode');
+            sellerName = localStorage.getItem('sellerName');
+
+            if (!sellerCode) {
+                showToast('Not logged in as seller. Redirecting...', 'error');
+                setTimeout(function() { window.location.href = '../login.html'; }, 1500);
+                return;
+            }
+
+            document.getElementById('sellerBadge').textContent = sellerName + ' (' + sellerCode + ')';
+
+            // Fetch all orders from this seller
+            try {
+                var r = await supabaseClient
+                    .from('logbook_orders')
+                    .select('*')
+                    .eq('referrer_code', sellerCode)
+                    .in('status', ['paid_instant', 'collected'])
+                    .order('order_date', { ascending: false });
+
+                if (r.error) throw r.error;
+                currentOrders = r.data || [];
+
+                renderStats(currentOrders);
+                renderSalesTable(currentOrders);
+            } catch (err) {
+                console.error('Load error:', err);
+                document.getElementById('salesTableContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load sales.</p></div>';
+            }
+        }
+
+        function renderStats(orders) {
+            var totalCount = orders.length;
+            var totalAmount = 0;
+            var collectedCount = 0;
+            var pendingCount = 0;
+
+            orders.forEach(function(o) {
+                totalAmount += Number(o.amount) || 0;
+                if (o.status === 'collected') collectedCount++;
+                else pendingCount++;
+            });
+
+            document.getElementById('statSalesCount').textContent = totalCount;
+            document.getElementById('statSalesTotal').textContent = '₦' + totalAmount.toLocaleString();
+            document.getElementById('statCollected').textContent = collectedCount;
+            document.getElementById('statPending').textContent = pendingCount;
+        }
+
+        function renderSalesTable(orders) {
+            var container = document.getElementById('salesTableContent');
+            if (!orders.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No sales yet. Sales will appear here when buyers use your code.</p></div>';
+                return;
+            }
+
+            var html = '<table><thead><tr><th>Order ID</th><th>Buyer</th><th>Logbook</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            orders.forEach(function(o) {
+                var isCollected = o.status === 'collected';
+                var badgeClass = isCollected ? 'badge-collected' : 'badge-paid';
+                var statusLabel = isCollected ? 'Handed Over' : 'Paid';
+                var actionBtn = isCollected
+                    ? '<span style="color:var(--muted); font-size:0.75rem;"><i class="fas fa-check-circle"></i> Done</span>'
+                    : '<button class="btn btn-success" onclick="openConfirm(\'' + o.order_number + '\')"><i class="fas fa-check"></i> Mark Handed Over</button>';
+
+                html += '<tr>' +
+                    '<td data-label="Order ID"><div class="order-cell"><div class="order-id">' + escapeHtml(o.order_number) + '</div><div class="order-date">' + formatDate(o.order_date) + '</div></div></td>' +
+                    '<td data-label="Buyer"><div class="buyer-cell"><div class="name">' + escapeHtml(o.student_name) + '</div><div class="email">' + escapeHtml(o.email) + '</div></div></td>' +
+                    '<td data-label="Logbook">' + escapeHtml(o.logbook_code) + '</td>' +
+                    '<td data-label="Amount"><span class="amount-cell">₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</span></td>' +
+                    '<td data-label="Date">' + formatDate(o.order_date) + '</td>' +
+                    '<td data-label="Status"><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
+                    '<td data-label="Action">' + actionBtn + '</td>' +
+                '</tr>';
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        var pendingOrderNumber = null;
+
+        function openConfirm(orderNumber) {
+            pendingOrderNumber = orderNumber;
+            document.getElementById('confirmModal').classList.add('active');
+            var confirmBtn = document.getElementById('modalConfirmBtn');
+            var newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            newBtn.addEventListener('click', function() {
+                markHandedOver(orderNumber);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            pendingOrderNumber = null;
+        }
+
+        async function markHandedOver(orderNumber) {
+            closeModal();
+            try {
+                var r = await supabaseClient
+                    .from('logbook_orders')
+                    .update({
+                        status: 'collected',
+                        picked_up_at: new Date().toISOString(),
+                        picked_up_by: sellerCode
+                    })
+                    .eq('order_number', orderNumber);
+
+                if (r.error) throw r.error;
+                showToast('Logbook marked as handed over.', 'success');
+                loadSellerData();
+            } catch (err) {
+                console.error('Update error:', err);
+                showToast('Failed to update. Try again.', 'error');
+            }
+        }
+
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', loadSellerData);
+    </script>
+</body>
+</html>
