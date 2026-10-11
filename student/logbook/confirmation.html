@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-* { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
@@ -22,7 +20,7 @@
         .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
         .navbar a:hover { color: var(--primary); }
         .container { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
         .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: #16a34a; }
         h1 { font-size: 1.5rem; font-weight: 700; text-align: center; margin: 0 0 0.5rem 0; }
         .subtitle { color: var(--muted); text-align: center; margin-bottom: 1.5rem; font-size: 0.9rem; }
@@ -31,19 +29,49 @@
         .order-details .row:last-child { border-bottom: none; }
         .order-details .label { color: var(--muted); font-weight: 500; }
         .order-details .value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; }
-        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; font-size: 0.9rem; touch-action: manipulation; }
+
+        /* Items list (for multi-item orders) */
+        .items-section {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        .items-section .items-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-row .item-code { font-weight: 700; color: var(--primary); }
+        .item-row .item-name { font-size: 0.8rem; color: var(--muted); margin-top: 0.1rem; }
+        .item-row .item-price { font-weight: 600; }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; text-align: center; font-size: 0.9rem; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-outline:hover { background: var(--primary-light); }
         .btn-sm { padding: 0.4rem 1rem; font-size: 0.85rem; }
+
         .status-steps { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.25rem; margin: 1rem 0 0.5rem 0; padding: 0.5rem 0; overflow-x: auto; }
         .status-steps .step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; font-size: 0.7rem; color: var(--muted); flex: 1; min-width: 70px; text-align: center; }
         .status-steps .step .circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; border: 2px solid var(--border); background: var(--card); transition: all 0.3s; }
         .status-steps .step .circle.done { background: #22c55e; color: white; border-color: #22c55e; }
         .status-steps .step .circle.active { background: var(--primary); color: white; border-color: var(--primary); }
         .status-steps .step .circle.pending { background: var(--bg); color: var(--muted); }
-        .status-steps .step .label { font-weight: 500; font-size: 0.7rem; }
+
         .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
         .section-title i { color: var(--primary); }
         .history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -64,41 +92,19 @@
         .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem; }
         .form-group input, .form-group textarea { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.9rem; font-family: inherit; }
         .form-group textarea { resize: vertical; min-height: 100px; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
 
-        /* ============================================================ */
-        /* MOBILE RESPONSIVE STYLES */
-        /* ============================================================ */
         @media (max-width: 640px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
             .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; flex-wrap: wrap; }
-            .navbar .nav-links a { font-size: 0.8rem; }
             .container { padding: 1rem; max-width: 100%; }
-            .card { padding: 1.25rem; border-radius: 12px; }
+            .card { padding: 1.25rem; }
             h1 { font-size: 1.3rem; }
-            .subtitle { font-size: 0.85rem; }
             .success-icon { width: 60px; height: 60px; font-size: 2rem; }
-            .order-details { padding: 1rem; }
             .order-details .row { flex-direction: column; gap: 0.15rem; padding: 0.6rem 0; }
-            .order-details .label { font-size: 0.75rem; text-transform: uppercase; }
-            .order-details .value { text-align: left; font-size: 0.9rem; }
-            .status-steps { justify-content: flex-start; gap: 0.5rem; padding: 0.5rem 0; }
-            .status-steps .step { min-width: 60px; }
-            .status-steps .step .circle { width: 30px; height: 30px; font-size: 0.75rem; }
-            .status-steps .step .label { font-size: 0.6rem; }
-            .actions { flex-direction: column; gap: 0.5rem; }
-            .actions .btn { width: 100%; justify-content: center; padding: 0.75rem; }
-            .history-table th { display: none; }
-            .history-table tr { display: flex; flex-direction: column; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
-            .history-table td { display: flex; justify-content: space-between; padding: 0.25rem 0; border: none; }
-            .history-table td::before { content: attr(data-label); font-weight: 600; color: var(--muted); font-size: 0.75rem; margin-right: 1rem; flex-shrink: 0; }
-            .history-table td:last-child { border-bottom: none; }
-            .modal-content { padding: 1.25rem; max-width: 95%; }
-            .modal-content h2 { font-size: 1.1rem; }
-            .form-group input, .form-group textarea { font-size: 0.9rem; padding: 0.65rem; }
-            .modal-actions { flex-direction: column-reverse; gap: 0.5rem; }
-            .modal-actions .btn { width: 100%; justify-content: center; }
+            .order-details .value { text-align: left; }
+            .actions { flex-direction: column; }
+            .actions .btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -117,13 +123,18 @@
             <h1>Order Confirmed</h1>
             <p class="subtitle">Your logbook order has been placed successfully.</p>
 
-            <div id="orderDetails" class="order-details">
+            <div class="order-details">
                 <div class="row"><span class="label">Order Number</span><span class="value" id="orderNumber">---</span></div>
                 <div class="row"><span class="label">Student Name</span><span class="value" id="studentName">---</span></div>
-                <div class="row"><span class="label">Logbook</span><span class="value" id="logbookName">---</span></div>
                 <div class="row"><span class="label">Amount Paid</span><span class="value" id="amountPaid">---</span></div>
                 <div class="row"><span class="label">Order Date</span><span class="value" id="orderDate">---</span></div>
                 <div class="row"><span class="label">Status</span><span class="value" id="orderStatusBadge">---</span></div>
+            </div>
+
+            <!-- ITEMS LIST -->
+            <div class="items-section" id="itemsSection">
+                <div class="items-title">Items Ordered</div>
+                <div id="itemsContent"><p style="color: var(--muted); font-size: 0.9rem;">Loading...</p></div>
             </div>
 
             <h3 class="section-title" style="margin-top: 1.5rem;"><i class="fas fa-stream"></i> Order Progress</h3>
@@ -174,20 +185,14 @@
     </div>
 
     <script>
-        // ============================================================
-        // CONFIG
-        // ============================================================
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         var API_URL = window.location.origin + '/api/send-email';
 
-        // ============================================================
-        // SMART NAVBAR
-        // ============================================================
-        (function() {
+        function renderNavbar() {
             var navLinks = document.getElementById('navLinks');
-            var studentEmail = localStorage.getItem('studentEmail');
+            var isTutorialStudent = localStorage.getItem('isTutorialStudent') === 'true';
             var adminEmail = localStorage.getItem('adminEmail');
             var isMobile = window.innerWidth < 640;
             var html = '';
@@ -195,7 +200,7 @@
             if (adminEmail) {
                 html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
-            } else if (studentEmail) {
+            } else if (isTutorialStudent) {
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
@@ -205,62 +210,42 @@
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
-                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
             navLinks.innerHTML = html;
-        })();
+        }
 
         function logout() {
             localStorage.removeItem('studentEmail');
             localStorage.removeItem('studentName');
+            localStorage.removeItem('isTutorialStudent');
             localStorage.removeItem('adminEmail');
             sessionStorage.clear();
             window.location.href = '../../index.html';
         }
 
-        // ============================================================
-        // STATUS CONFIG
-        // ============================================================
         var STATUS_STEPS = [
             { code: 'accepted', label: 'Received', icon: 'fa-check' },
             { code: 'processing', label: 'Preparing', icon: 'fa-cog' },
             { code: 'ready', label: 'Ready', icon: 'fa-box' },
             { code: 'picked_up', label: 'Picked Up', icon: 'fa-check-double' }
         ];
-
-        var STATUS_LABELS = {
-            'accepted': 'Order Received',
-            'processing': 'Being Prepared',
-            'ready': 'Ready for Pickup',
-            'picked_up': 'Picked Up'
-        };
-
-        var STATUS_BADGE = {
-            'accepted': 'badge-accepted',
-            'processing': 'badge-processing',
-            'ready': 'badge-ready',
-            'picked_up': 'badge-picked_up'
-        };
+        var STATUS_LABELS = { 'accepted': 'Order Received', 'processing': 'Being Prepared', 'ready': 'Ready for Pickup', 'picked_up': 'Picked Up' };
+        var STATUS_BADGE = { 'accepted': 'badge-accepted', 'processing': 'badge-processing', 'ready': 'badge-ready', 'picked_up': 'badge-picked_up' };
 
         function renderStatusTracker(currentStatus) {
             var html = '';
             var currentIndex = STATUS_STEPS.findIndex(function(s) { return s.code === currentStatus; });
             if (currentIndex === -1) currentIndex = 0;
-
             STATUS_STEPS.forEach(function(step, i) {
                 var circleClass = 'pending';
                 if (i < currentIndex) circleClass = 'done';
                 else if (i === currentIndex) circleClass = 'active';
-
                 var iconHtml = circleClass === 'done' ? '<i class="fas fa-check"></i>' : '<i class="fas ' + step.icon + '"></i>';
                 html += '<div class="step"><div class="circle ' + circleClass + '">' + iconHtml + '</div><div class="label">' + step.label + '</div></div>';
             });
             document.getElementById('statusTracker').innerHTML = html;
         }
 
-        // ============================================================
-        // LOAD CURRENT ORDER
-        // ============================================================
         function loadCurrentOrder() {
             var orderData = sessionStorage.getItem('lastOrder');
             if (!orderData) {
@@ -272,9 +257,11 @@
 
             document.getElementById('orderNumber').textContent = order.orderNumber || '---';
             document.getElementById('studentName').textContent = order.studentName || '---';
-            document.getElementById('logbookName').textContent = order.logbook || '---';
             document.getElementById('amountPaid').textContent = order.amount ? '₦' + order.amount.toLocaleString() : '---';
             document.getElementById('orderDate').textContent = order.orderDate || new Date().toLocaleDateString();
+
+            // Render items list (split by pipe from order.logbookName)
+            renderItems(order);
 
             // Send "Order Received" email ONCE
             var emailSentKey = 'emailSent_' + order.orderNumber;
@@ -295,7 +282,6 @@
                 }).catch(function(err) { console.error('Email error:', err); });
             }
 
-            // Fetch live status
             supabaseClient.from('logbook_orders').select('*').eq('order_number', order.orderNumber).single()
                 .then(function(result) {
                     if (result.data) {
@@ -303,6 +289,8 @@
                         var badge = STATUS_BADGE[status] || 'badge-accepted';
                         document.getElementById('orderStatusBadge').innerHTML = '<span class="badge ' + badge + '">' + (STATUS_LABELS[status] || status) + '</span>';
                         renderStatusTracker(status);
+                        // Re-render items with fresh DB data (in case format changed)
+                        renderItemsFromDb(result.data);
                     } else {
                         renderStatusTracker('accepted');
                     }
@@ -310,20 +298,48 @@
                 .catch(function() { renderStatusTracker('accepted'); });
         }
 
-        // ============================================================
-        // LOAD MY ORDERS (history, no order number, responsive)
-        // ============================================================
+        function renderItems(order) {
+            var container = document.getElementById('itemsContent');
+            if (!order.logbookName) {
+                container.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem;">---</p>';
+                return;
+            }
+            var items = order.logbookName.split(' | ');
+            var html = '';
+            items.forEach(function(item) {
+                html += '<div class="item-row"><span>' + item + '</span></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function renderItemsFromDb(dbOrder) {
+            var container = document.getElementById('itemsContent');
+            var codes = (dbOrder.logbook_code || '').split(',').map(function(c) { return c.trim(); });
+            var names = (dbOrder.logbook_name || '').split(' | ');
+            if (codes.length === 0 || !codes[0]) return;
+
+            var html = '';
+            for (var i = 0; i < codes.length; i++) {
+                var code = codes[i];
+                var nameFull = names[i] || '';
+                // Extract name part after code
+                var nameOnly = nameFull.replace(code + ' - ', '');
+                html += '<div class="item-row">' +
+                    '<div><span class="item-code">' + code + '</span><div class="item-name">' + nameOnly + '</div></div>' +
+                '</div>';
+            }
+            container.innerHTML = html;
+        }
+
         function loadMyOrders() {
             var email = null;
             var orderData = sessionStorage.getItem('lastOrder');
             if (orderData) { try { email = JSON.parse(orderData).email; } catch(e) {} }
             if (!email) email = localStorage.getItem('studentEmail');
-
             if (!email) {
-                document.getElementById('myOrdersContent').innerHTML = '<p style="color: var(--muted); text-align: center; font-size: 0.9rem;">No email on file. Unable to load order history.</p>';
+                document.getElementById('myOrdersContent').innerHTML = '<p style="color: var(--muted); text-align: center; font-size: 0.9rem;">No email on file.</p>';
                 return;
             }
-
             supabaseClient.from('logbook_orders')
                 .select('order_number, logbook_code, logbook_name, amount, status, order_date')
                 .eq('email', email).order('order_date', { ascending: false })
@@ -337,9 +353,8 @@
                     orders.forEach(function(o) {
                         var badge = STATUS_BADGE[o.status] || 'badge-accepted';
                         var label = STATUS_LABELS[o.status] || o.status;
-                        var logbookText = (o.logbook_code || '---') + (o.logbook_name ? ' - ' + o.logbook_name : '');
                         html += '<tr>' +
-                            '<td data-label="Logbook">' + logbookText + '</td>' +
+                            '<td data-label="Logbook">' + (o.logbook_code || '---') + '</td>' +
                             '<td data-label="Amount">₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</td>' +
                             '<td data-label="Date">' + (o.order_date ? new Date(o.order_date).toLocaleDateString() : '---') + '</td>' +
                             '<td data-label="Status"><span class="badge ' + badge + '">' + label + '</span></td>' +
@@ -348,15 +363,11 @@
                     html += '</tbody></table>';
                     document.getElementById('myOrdersContent').innerHTML = html;
                 })
-                .catch(function(err) {
-                    console.error('My orders error:', err);
+                .catch(function() {
                     document.getElementById('myOrdersContent').innerHTML = '<p style="color: var(--muted); text-align: center; font-size: 0.9rem;">Failed to load history.</p>';
                 });
         }
 
-        // ============================================================
-        // FEEDBACK MODAL
-        // ============================================================
         function openFeedbackForm() {
             document.getElementById('feedbackModal').classList.add('active');
             document.getElementById('feedbackSuccessView').style.display = 'none';
@@ -370,32 +381,24 @@
                 } catch(e) {}
             }
         }
-
         window.closeFeedbackModal = function() { document.getElementById('feedbackModal').classList.remove('active'); };
         document.addEventListener('click', function(e) {
             var modal = document.getElementById('feedbackModal');
             if (e.target === modal) modal.classList.remove('active');
         });
-
         window.handleFeedback = function(e) {
             e.preventDefault();
             var name = document.getElementById('fbName').value.trim();
             var email = document.getElementById('fbEmail').value.trim();
             var subject = document.getElementById('fbSubject').value.trim();
             var message = document.getElementById('fbMessage').value.trim();
-
             if (!name || !email || !subject || !message) { alert('Please fill in all fields.'); return; }
-
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: 'feedback',
-                    to: 'coursematetutorial@gmail.com',
-                    full_name: name,
-                    email: email,
-                    subject: subject,
-                    message: message
+                    type: 'feedback', to: 'coursematetutorial@gmail.com',
+                    full_name: name, email: email, subject: subject, message: message
                 })
             })
             .then(function(response) { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
@@ -407,10 +410,8 @@
             .catch(function(err) { console.error(err); alert('Failed to send feedback. Try again.'); });
         };
 
-        // ============================================================
-        // INIT
-        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            renderNavbar();
             loadCurrentOrder();
             loadMyOrders();
             setInterval(loadCurrentOrder, 30000);

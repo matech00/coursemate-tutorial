@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instant Buy - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #f9fafb; --card: #ffffff; --text: #111827;
+            --border: #e5e7eb; --muted: #6b7280;
+            --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .navbar .brand span { font-weight: 300; color: var(--text); }
+        .navbar .nav-links { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .navbar a:hover { color: var(--primary); }
+        .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .checkout-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+        .checkout-card .title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .checkout-card .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .summary { background: var(--primary-light); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .summary .label { color: var(--muted); font-size: 0.85rem; }
+        .summary .value { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; font-family: inherit; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
+        .form-group small { color: var(--muted); font-size: 0.75rem; margin-top: 0.25rem; display: block; }
+        .btn { width: 100%; padding: 0.85rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #ffffff; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+        .toast.error { border-left-color: #dc2626; }
+        .toast.warning { border-left-color: #f59e0b; }
+        .toast.success { border-left-color: #22c55e; }
+        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
+        .info-banner { background: #fef3c7; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #92400e; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .info-banner i { margin-top: 0.15rem; }
+        @media (max-width: 640px) {
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; }
+            .navbar .nav-links a { font-size: 0.8rem; }
+            .container { padding: 1rem; }
+            .checkout-card { padding: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="../../index.html" class="brand">Course<span>Mate</span></a>
+        <div class="nav-links">
+            <a href="../../index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="shop.html"><i class="fas fa-arrow-left"></i> Back to Shop</a>
+        </div>
+    </nav>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="container">
+        <div class="checkout-card">
+            <div class="title"><i class="fas fa-bolt" style="color: var(--primary);"></i> Instant Buy</div>
+            <div class="subtitle">Quick purchase. Get your logbook right now.</div>
+
+            <div class="info-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>This is for <strong>instant pickup</strong>. Pay now, show your receipt to the seller, and collect your logbook immediately.</div>
+            </div>
+
+            <div class="summary">
+                <div>
+                    <div class="label">Logbook</div>
+                    <div class="value" id="logbookDisplay">Loading...</div>
+                </div>
+                <div>
+                    <div class="label">Amount</div>
+                    <div class="value" id="amountDisplay">&#8358;0</div>
+                </div>
+            </div>
+
+            <form id="quickBuyForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name <span style="color: #dc2626;">*</span></label>
+                    <input type="text" id="fullName" placeholder="Enter your full name" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address <span style="color: #dc2626;">*</span></label>
+                    <input type="email" id="email" placeholder="you@example.com" required />
+                    <small>Used for your payment receipt. Not for marketing.</small>
+                </div>
+                <div class="form-group">
+                    <label for="seller">Who sold you this? <span style="color: #dc2626;">*</span></label>
+                    <select id="seller" required>
+                        <option value="">-- Select Seller --</option>
+                    </select>
+                    <small>Required. Ask the seller for their code if you don't know.</small>
+                </div>
+
+                <button type="submit" id="payBtn" class="btn btn-primary" style="margin-top: 1rem;">
+                    <i class="fas fa-lock"></i> Pay Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        var PAYSTACK_KEY = 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a';
+
+        var selectedBook = null;
+        var sellersList = [];
+
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
+        }
+
+        function generateInstantId() {
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var random = String(Math.floor(1000 + Math.random() * 9000));
+            return 'INST-' + year + month + day + '-' + random;
+        }
+
+        async function loadSellers() {
+            try {
+                var r = await supabaseClient.from('sellers').select('*').order('name');
+                if (r.error) throw r.error;
+                sellersList = r.data || [];
+                var select = document.getElementById('seller');
+                sellersList.forEach(function(s) {
+                    var opt = document.createElement('option');
+                    opt.value = s.seller_code;
+                    opt.textContent = s.name + ' (' + s.seller_code + ')';
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Load sellers error:', err);
+                showToast('Failed to load sellers. Please refresh.', 'error');
+            }
+        }
+
+        function loadSelectedLogbook() {
+            try {
+                var data = sessionStorage.getItem('selectedLogbook');
+                if (!data) {
+                    showToast('No logbook selected. Redirecting...', 'warning');
+                    setTimeout(function() { window.location.href = 'shop.html'; }, 1500);
+                    return null;
+                }
+                var book = JSON.parse(data);
+                selectedBook = book;
+                document.getElementById('logbookDisplay').textContent = book.code + ' - ' + book.name;
+                document.getElementById('amountDisplay').textContent = '₦' + book.price.toLocaleString();
+                return book;
+            } catch (e) {
+                console.error(e);
+                window.location.href = 'shop.html';
+                return null;
+            }
+        }
+
+        document.getElementById('quickBuyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var book = selectedBook || loadSelectedLogbook();
+            if (!book) return;
+
+            var fullName = document.getElementById('fullName').value.trim();
+            var email = document.getElementById('email').value.trim();
+            var sellerCode = document.getElementById('seller').value;
+
+            if (!fullName || !email || !sellerCode) {
+                showToast('Please fill in all fields.', 'error');
+                return;
+            }
+
+            var seller = sellersList.find(function(s) { return s.seller_code === sellerCode; });
+            if (!seller) {
+                showToast('Invalid seller. Please refresh.', 'error');
+                return;
+            }
+
+            var payBtn = document.getElementById('payBtn');
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<div class="loader"></div> Processing...';
+
+            var instantId = generateInstantId();
+
+            // Save order to database first (with status: pending)
+            supabaseClient
+                .from('logbook_orders')
+                .insert([{
+                    order_number: instantId,
+                    student_name: fullName,
+                    email: email,
+                    matric_number: '',
+                    phone: '',
+                    department: '',
+                    programme: '',
+                    level: '',
+                    student_group: '',
+                    study_centre: '',
+                    logbook_code: book.code,
+                    logbook_name: book.name,
+                    amount: book.price,
+                    order_date: new Date().toISOString(),
+                    status: 'pending',
+                    referrer_code: sellerCode,
+                    order_type: 'instant'
+                }])
+                .select()
+                .single()
+                .then(function(result) {
+                    if (result.error) throw result.error;
+
+                    var reference = 'INST-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+                    var handler = PaystackPop.setup({
+                        key: PAYSTACK_KEY,
+                        email: email,
+                        amount: book.price * 100,
+                        currency: 'NGN',
+                        ref: reference,
+                        metadata: {
+                            custom_fields: [
+                                { display_name: "Instant ID", variable_name: "instant_id", value: instantId },
+                                { display_name: "Seller", variable_name: "seller_code", value: sellerCode }
+                            ]
+                        },
+                        callback: function(response) {
+                            // Update order to paid_instant
+                            supabaseClient
+                                .from('logbook_orders')
+                                .update({
+                                    payment_reference: response.reference,
+                                    status: 'paid_instant'
+                                })
+                                .eq('order_number', instantId)
+                                .then(function() {
+                                    // Save receipt info for the receipt page
+                                    sessionStorage.setItem('lastInstantOrder', JSON.stringify({
+                                        instantId: instantId,
+                                        buyerName: fullName,
+                                        email: email,
+                                        logbookCode: book.code,
+                                        logbookName: book.name,
+                                        amount: book.price,
+                                        sellerName: seller.name,
+                                        sellerCode: seller.seller_code,
+                                        sellerEmail: seller.email,
+                                        orderDate: new Date().toLocaleDateString(),
+                                        orderTime: new Date().toLocaleTimeString()
+                                    }));
+
+                                    // Fire seller + super admin notifications (fire-and-forget)
+                                    try {
+                                        fetch(window.location.origin + '/api/send-email', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                type: 'instant_sale',
+                                                instant_id: instantId,
+                                                buyer_name: fullName,
+                                                buyer_email: email,
+                                                logbook_code: book.code,
+                                                logbook_name: book.name,
+                                                amount: book.price,
+                                                seller_name: seller.name,
+                                                seller_code: seller.seller_code,
+                                                seller_email: seller.email
+                                            })
+                                        });
+                                    } catch (err) {
+                                        console.warn('Email notification failed:', err);
+                                    }
+
+                                    // Redirect to receipt page
+                                    window.location.href = 'receipt.html';
+                                })
+                                .catch(function(err) {
+                                    console.error('Update error:', err);
+                                    window.location.href = 'receipt.html';
+                                });
+                        },
+                        onClose: function() {
+                            showToast('Payment cancelled.', 'warning');
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '<i class="fas fa-lock"></i> Pay Now';
+                        }
+                    });
+
+                    handler.openIframe();
+                })
+                .catch(function(error) {
+                    console.error('Order error:', error);
+                    showToast('Failed to place order: ' + (error.message || 'Unknown'), 'error');
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-lock"></i> Pay Now';
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSelectedLogbook();
+            loadSellers();
+        });
+    </script>
+</body>
+</html>

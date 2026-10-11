@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Receipt - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg: #f9fafb; --card: #ffffff; --text: #111827;
+            --border: #e5e7eb; --muted: #6b7280;
+            --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .navbar .brand span { font-weight: 300; color: var(--text); }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .container { max-width: 500px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .receipt-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem 1.75rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .receipt-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(135deg, var(--primary) 0%, #00a86b 100%);
+        }
+        .receipt-success {
+            width: 72px; height: 72px;
+            background: #dcfce7; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem; color: #16a34a;
+        }
+        .receipt-title { font-size: 1.4rem; font-weight: 700; text-align: center; margin: 0 0 0.35rem 0; color: var(--text); }
+        .receipt-subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 1.75rem; }
+        .instant-id-box { background: var(--primary-light); border: 2px dashed var(--primary); border-radius: 12px; padding: 1rem; text-align: center; margin-bottom: 1.75rem; }
+        .instant-id-box .label { font-size: 0.7rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+        .instant-id-box .value { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); letter-spacing: 0.02em; margin-top: 0.3rem; font-family: 'Courier New', monospace; }
+        .receipt-details { background: var(--bg); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+        .receipt-details .row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .receipt-details .row:last-child { border-bottom: none; }
+        .receipt-details .label { color: var(--muted); font-weight: 500; }
+        .receipt-details .value { font-weight: 600; color: var(--text); text-align: right; }
+        .instruction-banner { background: #fef3c7; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.9rem; color: #92400e; }
+        .instruction-banner i { font-size: 1.2rem; margin-top: 0.1rem; flex-shrink: 0; }
+        .btn { width: 100%; padding: 0.85rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; margin-bottom: 0.75rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary-light); }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+        .empty-state .title { font-weight: 700; margin: 0 0 0.5rem 0; color: var(--text); font-size: 1.1rem; }
+        .empty-state .text { margin: 0 0 1.5rem 0; font-size: 0.9rem; }
+        .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media print {
+            .navbar, .btn, .instruction-banner { display: none !important; }
+            body { background: white; }
+            .receipt-card { box-shadow: none; border: 2px solid #000; }
+        }
+        @media (max-width: 640px) {
+            .navbar { padding: 0.75rem 1rem; }
+            .container { padding: 1rem; }
+            .receipt-card { padding: 1.5rem 1.25rem; }
+            .instant-id-box .value { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="../../index.html" class="brand">Course<span>Mate</span></a>
+        <div style="display: flex; gap: 1rem;">
+            <a href="../../index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="shop.html"><i class="fas fa-book"></i> Shop</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="receiptContainer" class="receipt-card">
+            <div class="empty-state">
+                <div class="spinner"></div>
+                <p class="text" style="margin-top: 1rem;">Verifying your payment...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
+        var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
+        var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function formatCurrency(n) {
+            return '₦' + (n || 0).toLocaleString();
+        }
+
+        function escapeHtml(t) {
+            if (!t) return '';
+            return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showReceipt(order) {
+            var html = '' +
+                '<div class="receipt-success"><i class="fas fa-check-circle"></i></div>' +
+                '<h1 class="receipt-title">Payment Successful</h1>' +
+                '<p class="receipt-subtitle">Show this receipt to collect your logbook</p>' +
+                '<div class="instant-id-box">' +
+                    '<div class="label">Instant Buy ID</div>' +
+                    '<div class="value">' + escapeHtml(order.order_number) + '</div>' +
+                '</div>' +
+                '<div class="receipt-details">' +
+                    '<div class="row"><span class="label">Buyer Name</span><span class="value">' + escapeHtml(order.student_name) + '</span></div>' +
+                    '<div class="row"><span class="label">Logbook</span><span class="value">' + escapeHtml(order.logbook_code) + '</span></div>' +
+                    '<div class="row"><span class="label">Logbook Name</span><span class="value">' + escapeHtml(order.logbook_name) + '</span></div>' +
+                    '<div class="row"><span class="label">Amount Paid</span><span class="value">' + formatCurrency(order.amount) + '</span></div>' +
+                    '<div class="row"><span class="label">Seller Code</span><span class="value">' + escapeHtml(order.referrer_code || 'N/A') + '</span></div>' +
+                    '<div class="row"><span class="label">Date</span><span class="value">' + new Date(order.order_date).toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' }) + '</span></div>' +
+                    '<div class="row"><span class="label">Time</span><span class="value">' + new Date(order.order_date).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }) + '</span></div>' +
+                '</div>' +
+                '<div class="instruction-banner">' +
+                    '<i class="fas fa-hand-point-right"></i>' +
+                    '<div><strong>Show this to the seller</strong> to collect your logbook. Keep this receipt open or take a screenshot.</div>' +
+                '</div>' +
+                '<button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Print Receipt</button>' +
+                '<a href="shop.html" class="btn btn-outline"><i class="fas fa-book"></i> Buy Another Logbook</a>';
+
+            document.getElementById('receiptContainer').innerHTML = html;
+        }
+
+        function showPending() {
+            document.getElementById('receiptContainer').innerHTML = '' +
+                '<div class="empty-state">' +
+                    '<i class="fas fa-hourglass-half" style="color: #eab308;"></i>' +
+                    '<h2 class="title">Payment Not Confirmed</h2>' +
+                    '<p class="text">We couldn\'t verify your payment. If you just paid, please wait a moment and refresh this page.</p>' +
+                    '<a href="shop.html" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back to Shop</a>' +
+                    '<button onclick="window.location.reload()" class="btn btn-outline"><i class="fas fa-sync"></i> Refresh Page</button>' +
+                '</div>';
+        }
+
+        function showError(message) {
+            document.getElementById('receiptContainer').innerHTML = '' +
+                '<div class="empty-state">' +
+                    '<i class="fas fa-receipt"></i>' +
+                    '<h2 class="title">No Receipt Found</h2>' +
+                    '<p class="text">' + escapeHtml(message || 'We couldn\'t find a recent instant purchase.') + '</p>' +
+                    '<a href="shop.html" class="btn btn-primary" style="display:inline-flex;"><i class="fas fa-book"></i> Go to Shop</a>' +
+                '</div>';
+        }
+
+        async function verifyAndShowReceipt() {
+            var data = sessionStorage.getItem('lastInstantOrder');
+            if (!data) {
+                showError('We couldn\'t find a recent instant purchase.');
+                return;
+            }
+
+            var order;
+            try {
+                order = JSON.parse(data);
+            } catch (e) {
+                showError('Invalid receipt data.');
+                return;
+            }
+
+            if (!order.instantId) {
+                showError('Missing order ID.');
+                return;
+            }
+
+            // ✅ VERIFY PAYMENT STATUS FROM DATABASE
+            try {
+                var result = await supabaseClient
+                    .from('logbook_orders')
+                    .select('*')
+                    .eq('order_number', order.instantId)
+                    .single();
+
+                if (result.error || !result.data) {
+                    showError('We couldn\'t verify your payment. Please contact support.');
+                    return;
+                }
+
+                var dbOrder = result.data;
+
+                // ✅ ONLY show the receipt if the payment is confirmed
+                if (dbOrder.status === 'paid_instant') {
+                    // Also verify the amount matches (security check)
+                    if (Number(dbOrder.amount) !== Number(order.amount)) {
+                        showError('Receipt data mismatch. Please contact support.');
+                        return;
+                    }
+                    showReceipt(dbOrder);
+                } else if (dbOrder.status === 'pending') {
+                    showPending();
+                } else {
+                    // Order exists but wasn't for instant buy, or was cancelled
+                    showError('This order is not an instant purchase.');
+                }
+            } catch (err) {
+                console.error('Verification error:', err);
+                showError('We couldn\'t verify your payment. Please try again.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            verifyAndShowReceipt();
+        });
+    </script>
+</body>
+</html>

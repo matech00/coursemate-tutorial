@@ -44,12 +44,16 @@
         .student-cell { display: flex; flex-direction: column; }
         .student-cell .name { font-weight: 600; color: var(--text); }
         .student-cell .meta { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+        .logbook-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+        .logbook-cell .logbook-code { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
+        .logbook-cell .logbook-name { font-size: 0.75rem; color: var(--muted); }
         .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .badge-accepted { background: #dcfce7; color: #166534; }
         .badge-processing { background: #fef3c7; color: #92400e; }
         .badge-ready { background: #ede9fe; color: #5b21b6; }
         .badge-picked_up { background: #e5e7eb; color: #374151; }
-        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-decoration: none; white-space: nowrap; touch-action: manipulation; }
+        .badge-instant { background: #fef3c7; color: #92400e; font-size: 0.65rem; padding: 0.15rem 0.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-decoration: none; white-space: nowrap; touch-action: manipulation; font-family: inherit; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
@@ -58,7 +62,10 @@
         .btn-warning:hover { background: #d97706; }
         .btn-success { background: #16a34a; color: white; }
         .btn-success:hover { background: #15803d; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
         .btn-sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+        .btn-icon { padding: 0.4rem; width: 32px; height: 32px; justify-content: center; }
         .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: var(--primary); }
         .empty-state p { margin: 0; font-size: 0.95rem; }
@@ -84,6 +91,53 @@
         .modal-info .row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
         .modal-info .row span:first-child { color: var(--muted); }
         .modal-info .row span:last-child { font-weight: 600; }
+
+        .sellers-perf-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .sellers-perf-card .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+        }
+        .sellers-perf-card .card-title i { color: var(--primary); }
+        .seller-perf-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+        .seller-perf-item {
+            background: var(--bg);
+            border-left: 3px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.75rem 0.9rem;
+        }
+        .seller-perf-item .seller-code {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.85rem;
+            margin-bottom: 0.15rem;
+        }
+        .seller-perf-item .seller-name {
+            font-size: 0.8rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        .seller-perf-item .seller-stats {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .seller-perf-item .seller-stats .amount {
+            font-weight: 700;
+            color: var(--text);
+        }
+
         @media (max-width: 768px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
             .navbar .nav-links { width: 100%; gap: 1rem; font-size: 0.85rem; }
@@ -126,12 +180,22 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('new')"><i class="fas fa-inbox"></i> New Orders <span class="count" id="countNew">0</span></button>
             <button class="tab-btn" onclick="switchTab('processing')"><i class="fas fa-cog"></i> Ready to Print <span class="count" id="countProcessing">0</span></button>
+            <button class="tab-btn" onclick="switchTab('instant')"><i class="fas fa-bolt"></i> Instant Sales <span class="count" id="countInstant">0</span></button>
             <button class="tab-btn" onclick="switchTab('completed')"><i class="fas fa-check-circle"></i> Completed <span class="count" id="countCompleted">0</span></button>
         </div>
 
         <div class="card">
             <div id="paneNew" class="tab-pane active"><div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div></div>
             <div id="paneProcessing" class="tab-pane"><div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div></div>
+            <div id="paneInstant" class="tab-pane">
+                <div class="sellers-perf-card" id="sellersPerfCard" style="margin: 1rem;">
+                    <div class="card-title"><i class="fas fa-chart-bar"></i> Sales per Seller</div>
+                    <div class="seller-perf-list" id="sellersPerfList">
+                        <p style="color: var(--muted); font-size: 0.9rem;">Loading...</p>
+                    </div>
+                </div>
+                <div id="instantTableContent"><div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div></div>
+            </div>
             <div id="paneCompleted" class="tab-pane"><div class="loading-state"><div class="spinner"></div><p style="margin-top: 1rem;">Loading...</p></div></div>
         </div>
     </div>
@@ -165,6 +229,26 @@
         </div>
     </div>
 
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3><i class="fas fa-trash" style="color: #dc2626;"></i> Delete Order</h3>
+            <p>This will permanently delete this order. This action cannot be undone.</p>
+            <div class="modal-info">
+                <div class="row"><span>Order #:</span><span id="deleteOrderNum">---</span></div>
+                <div class="row"><span>Buyer:</span><span id="deleteBuyer">---</span></div>
+                <div class="row"><span>Amount:</span><span id="deleteAmount">---</span></div>
+            </div>
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Type <span style="color:#dc2626;">DELETE</span> to confirm:</label>
+            <input type="text" id="deleteConfirmInput" placeholder="Type DELETE" autocomplete="off" />
+            <div class="modal-actions">
+                <button class="btn btn-outline btn-sm" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="deleteConfirmBtn" onclick="confirmDelete()" disabled>
+                    <i class="fas fa-trash"></i> Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
@@ -174,11 +258,14 @@
         var CURRENT_ADMIN_EMAIL = localStorage.getItem('adminEmail') || 'coursematetutorial@gmail.com';
         var LOGO_PATH = '../noun-logo.png';
 
+        var IS_SUPER_ADMIN = false;
+
         var STATUS_LABELS = { 'accepted': 'New Order', 'processing': 'Ready to Print', 'ready': 'Awaiting Pickup', 'picked_up': 'Completed' };
         var STATUS_BADGE = { 'accepted': 'badge-accepted', 'processing': 'badge-processing', 'ready': 'badge-ready', 'picked_up': 'badge-picked_up' };
 
         var PAGE_W = 595;
         var PAGE_H = 842;
+        var pendingDeleteOrder = null;
 
         // ============================================================
         // HELPERS
@@ -197,14 +284,48 @@
         function escapeHtml(t) { if (!t) return ''; return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
         function cap(s) { return (s || '').toString().toUpperCase(); }
 
+        // ============================================================
+        // SUPER ADMIN DETECTION (FIXED)
+        // ============================================================
+        async function checkSuperAdmin() {
+            try {
+                var { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                if (userError || !user) {
+                    console.log('No logged in user.');
+                    return;
+                }
+                console.log('Logged in as:', user.email);
+                console.log('User ID:', user.id);
+
+                var r = await supabaseClient.from('admins').select('role').eq('user_id', user.id).single();
+                console.log('DB response:', r);
+
+                if (r.data && r.data.role === 'super_admin') {
+                    IS_SUPER_ADMIN = true;
+                    console.log('✅ Super admin mode enabled');
+                } else if (r.data) {
+                    console.log('Role found:', r.data.role, '- Not a super admin');
+                } else {
+                    console.log('No matching admin record for this user.');
+                }
+            } catch (e) {
+                console.warn('Could not verify super admin status:', e);
+            }
+        }
+
+        // ============================================================
+        // TABS
+        // ============================================================
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
             if (tab === 'new') { document.querySelector('.tab-btn:nth-child(1)').classList.add('active'); document.getElementById('paneNew').classList.add('active'); }
             else if (tab === 'processing') { document.querySelector('.tab-btn:nth-child(2)').classList.add('active'); document.getElementById('paneProcessing').classList.add('active'); }
-            else { document.querySelector('.tab-btn:nth-child(3)').classList.add('active'); document.getElementById('paneCompleted').classList.add('active'); }
+            else if (tab === 'instant') { document.querySelector('.tab-btn:nth-child(3)').classList.add('active'); document.getElementById('paneInstant').classList.add('active'); }
+            else { document.querySelector('.tab-btn:nth-child(4)').classList.add('active'); document.getElementById('paneCompleted').classList.add('active'); }
             applySearch();
         }
+
         function applySearch() {
             var query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
             document.querySelectorAll('.tab-pane table tbody tr').forEach(function(row) {
@@ -212,20 +333,31 @@
             });
         }
 
+        function renderLogbookCell(o) {
+            var codes = (o.logbook_code || '').split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+            if (codes.length === 0) return '<span style="color:var(--muted);">---</span>';
+            var html = '<div class="logbook-cell">';
+            codes.forEach(function(code) {
+                html += '<span class="logbook-code">' + escapeHtml(code) + '</span>';
+            });
+            html += '</div>';
+            return html;
+        }
+
         // ============================================================
-        // DATA LOADERS
+        // NEW ORDERS
         // ============================================================
         async function loadNewOrders() {
-            var r = await supabaseClient.from('logbook_orders').select('*').eq('status', 'accepted').order('order_date', { ascending: false });
+            var r = await supabaseClient.from('logbook_orders').select('*').eq('status', 'accepted').eq('order_type', 'normal').order('order_date', { ascending: false });
             if (r.error) { document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load.</p></div>'; return; }
             var orders = r.data || [];
             document.getElementById('countNew').textContent = orders.length;
             if (!orders.length) { document.getElementById('paneNew').innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No new orders.</p></div>'; return; }
-            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook</th><th>Level/Group</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook(s)</th><th>Level/Group</th><th>Date</th><th>Action</th></tr></thead><tbody>';
             orders.forEach(function(o) {
                 html += '<tr><td data-label="Order"><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
                     '<td data-label="Student"><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.matric_number) + '</span></div></td>' +
-                    '<td data-label="Logbook"><strong>' + escapeHtml(o.logbook_code) + '</strong><br><span style="font-size:0.75rem; color:var(--muted);">' + escapeHtml(o.logbook_name) + '</span></td>' +
+                    '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Level">' + escapeHtml(o.level) + ' | ' + escapeHtml(o.student_group) + '</td>' +
                     '<td data-label="Date">' + formatDate(o.order_date) + '</td>' +
                     '<td data-label="Action"><button class="btn btn-primary btn-sm" onclick="startProcessing(\'' + o.order_number + '\')"><i class="fas fa-play"></i> Start</button></td></tr>';
@@ -234,17 +366,20 @@
             applySearch();
         }
 
+        // ============================================================
+        // READY TO PRINT
+        // ============================================================
         async function loadProcessingOrders() {
-            var r = await supabaseClient.from('logbook_orders').select('*').eq('status', 'processing').order('order_date', { ascending: false });
+            var r = await supabaseClient.from('logbook_orders').select('*').eq('status', 'processing').eq('order_type', 'normal').order('order_date', { ascending: false });
             if (r.error) { document.getElementById('paneProcessing').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed.</p></div>'; return; }
             var orders = r.data || [];
             document.getElementById('countProcessing').textContent = orders.length;
             if (!orders.length) { document.getElementById('paneProcessing').innerHTML = '<div class="empty-state"><i class="fas fa-cog"></i><p>No orders here.</p></div>'; return; }
-            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook</th><th>Level/Group</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook(s)</th><th>Level/Group</th><th>Date</th><th>Action</th></tr></thead><tbody>';
             orders.forEach(function(o) {
                 html += '<tr><td data-label="Order"><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
                     '<td data-label="Student"><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.matric_number) + '</span></div></td>' +
-                    '<td data-label="Logbook"><strong>' + escapeHtml(o.logbook_code) + '</strong><br><span style="font-size:0.75rem; color:var(--muted);">' + escapeHtml(o.logbook_name) + '</span></td>' +
+                    '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Level">' + escapeHtml(o.level) + ' | ' + escapeHtml(o.student_group) + '</td>' +
                     '<td data-label="Date">' + formatDate(o.order_date) + '</td>' +
                     '<td data-label="Action"><button class="btn btn-warning btn-sm" onclick="printAndMarkReady(\'' + o.order_number + '\')"><i class="fas fa-print"></i> Print</button></td></tr>';
@@ -253,13 +388,143 @@
             applySearch();
         }
 
+        // ============================================================
+        // INSTANT SALES + SELLER PERFORMANCE
+        // ============================================================
+        async function loadInstantSales() {
+            var r = await supabaseClient.from('logbook_orders').select('*').in('status', ['paid_instant', 'collected']).order('order_date', { ascending: false });
+            if (r.error) { document.getElementById('instantTableContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed.</p></div>'; return; }
+            var orders = r.data || [];
+            document.getElementById('countInstant').textContent = orders.length;
+
+            renderSellerPerformance(orders);
+
+            if (!orders.length) { document.getElementById('instantTableContent').innerHTML = '<div class="empty-state"><i class="fas fa-bolt"></i><p>No instant sales yet.</p></div>'; return; }
+
+            var html = '<table><thead><tr><th>Instant ID</th><th>Buyer</th><th>Logbook</th><th>Seller</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            orders.forEach(function(o) {
+                var isCollected = o.status === 'collected';
+                var badgeClass = isCollected ? 'badge-picked_up' : 'badge-instant';
+                var statusLabel = isCollected ? 'Collected' : 'Paid';
+                var actionBtn = '';
+                if (isCollected) {
+                    actionBtn = '<span style="color:var(--muted); font-size:0.8rem;"><i class="fas fa-check-circle"></i> Done</span>';
+                } else {
+                    actionBtn = '<button class="btn btn-success btn-sm" onclick="markCollected(\'' + o.order_number + '\')"><i class="fas fa-check"></i> Mark Collected</button>';
+                }
+                var deleteBtn = '';
+                if (IS_SUPER_ADMIN) {
+                    deleteBtn = '<button class="btn btn-danger btn-icon btn-sm" onclick="openDeleteModal(\'' + o.order_number + '\', \'' + escapeHtml(o.student_name).replace(/'/g, "\\'") + '\', ' + (o.amount || 0) + ')" title="Delete"><i class="fas fa-trash"></i></button>';
+                }
+
+                html += '<tr>' +
+                    '<td data-label="Instant ID"><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
+                    '<td data-label="Buyer"><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.email) + '</span></div></td>' +
+                    '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
+                    '<td data-label="Seller">' + escapeHtml(o.referrer_code || '---') + '</td>' +
+                    '<td data-label="Amount">₦' + (o.amount ? o.amount.toLocaleString() : '0') + '</td>' +
+                    '<td data-label="Status"><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
+                    '<td data-label="Action"><div style="display:flex; gap:0.4rem; justify-content:flex-end;">' + actionBtn + ' ' + deleteBtn + '</div></td></tr>';
+            });
+            document.getElementById('instantTableContent').innerHTML = html + '</tbody></table>';
+            applySearch();
+        }
+
+        function renderSellerPerformance(orders) {
+            var groups = {};
+            orders.forEach(function(o) {
+                var code = o.referrer_code || 'UNKNOWN';
+                if (!groups[code]) groups[code] = { code: code, count: 0, total: 0 };
+                groups[code].count++;
+                groups[code].total += Number(o.amount) || 0;
+            });
+
+            var container = document.getElementById('sellersPerfList');
+            supabaseClient.from('sellers').select('seller_code, name').then(function(r) {
+                var sellerMap = {};
+                (r.data || []).forEach(function(s) { sellerMap[s.seller_code] = s.name; });
+
+                var keys = Object.keys(groups).sort(function(a, b) { return groups[b].total - groups[a].total; });
+                if (keys.length === 0) {
+                    container.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem;">No sales yet.</p>';
+                    return;
+                }
+
+                var html = '';
+                keys.forEach(function(k) {
+                    var g = groups[k];
+                    var name = sellerMap[k] || 'Unknown Seller';
+                    html += '<div class="seller-perf-item">' +
+                        '<div class="seller-code">' + escapeHtml(g.code) + '</div>' +
+                        '<div class="seller-name">' + escapeHtml(name) + '</div>' +
+                        '<div class="seller-stats"><span>' + g.count + ' sale' + (g.count !== 1 ? 's' : '') + '</span><span class="amount">₦' + g.total.toLocaleString() + '</span></div>' +
+                    '</div>';
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        async function markCollected(orderNumber) {
+            showModal('Mark as Collected', 'Confirm that the buyer has received their logbook?', async function() {
+                closeModal();
+                var r = await supabaseClient.from('logbook_orders').update({ status: 'collected', picked_up_at: new Date().toISOString(), picked_up_by: CURRENT_ADMIN_EMAIL }).eq('order_number', orderNumber);
+                if (r.error) { showToast('Failed.', 'error'); return; }
+                showToast('Marked as collected.', 'success');
+                loadAll();
+            });
+        }
+
+        // ============================================================
+        // DELETE ORDER (Super Admin only)
+        // ============================================================
+        function openDeleteModal(orderNumber, buyer, amount) {
+            if (!IS_SUPER_ADMIN) {
+                showToast('Only super admins can delete orders.', 'error');
+                return;
+            }
+            pendingDeleteOrder = orderNumber;
+            document.getElementById('deleteOrderNum').textContent = orderNumber;
+            document.getElementById('deleteBuyer').textContent = buyer;
+            document.getElementById('deleteAmount').textContent = '₦' + (amount || 0).toLocaleString();
+            document.getElementById('deleteConfirmInput').value = '';
+            document.getElementById('deleteConfirmBtn').disabled = true;
+            document.getElementById('deleteModal').classList.add('active');
+            setTimeout(function() { document.getElementById('deleteConfirmInput').focus(); }, 100);
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            pendingDeleteOrder = null;
+        }
+
+        document.getElementById('deleteConfirmInput').addEventListener('input', function() {
+            var v = this.value.trim().toUpperCase();
+            document.getElementById('deleteConfirmBtn').disabled = (v !== 'DELETE');
+        });
+
+        async function confirmDelete() {
+            if (!pendingDeleteOrder) return;
+            var v = document.getElementById('deleteConfirmInput').value.trim().toUpperCase();
+            if (v !== 'DELETE') { showToast('Type DELETE to confirm.', 'error'); return; }
+
+            var r = await supabaseClient.from('logbook_orders').delete().eq('order_number', pendingDeleteOrder);
+            if (r.error) { showToast('Delete failed: ' + r.error.message, 'error'); return; }
+
+            showToast('Order deleted permanently.', 'success');
+            closeDeleteModal();
+            loadAll();
+        }
+
+        // ============================================================
+        // COMPLETED
+        // ============================================================
         async function loadCompletedOrders() {
             var r = await supabaseClient.from('logbook_orders').select('*').in('status', ['ready', 'picked_up']).order('printed_at', { ascending: false });
             if (r.error) { document.getElementById('paneCompleted').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed.</p></div>'; return; }
             var orders = r.data || [];
             document.getElementById('countCompleted').textContent = orders.length;
             if (!orders.length) { document.getElementById('paneCompleted').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>No completed orders.</p></div>'; return; }
-            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook</th><th>Printed By</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            var html = '<table><thead><tr><th>Order</th><th>Student</th><th>Logbook(s)</th><th>Printed By</th><th>Status</th><th>Action</th></tr></thead><tbody>';
             orders.forEach(function(o) {
                 var badgeClass = STATUS_BADGE[o.status] || 'badge-picked_up';
                 var statusLabel = STATUS_LABELS[o.status] || o.status;
@@ -268,7 +533,7 @@
                 else actionBtn = '<button class="btn btn-outline btn-sm" onclick="reprint(\'' + o.order_number + '\')"><i class="fas fa-redo"></i> Re-print</button>';
                 html += '<tr><td data-label="Order"><strong>' + escapeHtml(o.order_number) + '</strong></td>' +
                     '<td data-label="Student"><div class="student-cell"><span class="name">' + escapeHtml(o.student_name) + '</span><span class="meta">' + escapeHtml(o.matric_number) + '</span></div></td>' +
-                    '<td data-label="Logbook">' + escapeHtml(o.logbook_code) + '</td>' +
+                    '<td data-label="Logbook">' + renderLogbookCell(o) + '</td>' +
                     '<td data-label="Printed By">' + escapeHtml(o.printed_by || '---') + '</td>' +
                     '<td data-label="Status"><span class="badge ' + badgeClass + '">' + statusLabel + '</span></td>' +
                     '<td data-label="Action">' + actionBtn + '</td></tr>';
@@ -291,16 +556,20 @@
         }
 
         function printAndMarkReady(orderNumber) {
-            showModal('Print & Notify', 'Print logbook and send pickup email?', async function() {
+            showModal('Print & Notify', 'Print logbook(s) and send pickup email?', async function() {
                 closeModal();
                 var r = await supabaseClient.from('logbook_orders').select('*').eq('order_number', orderNumber).single();
                 if (r.error || !r.data) { showToast('Order not found.', 'error'); return; }
                 var order = r.data;
                 try {
-                    var pdfUrl = await generateOrderPDF(order);
-                    var w = window.open(pdfUrl);
-                    if (w) w.onload = function() { w.print(); };
-                    else { var a = document.createElement('a'); a.href = pdfUrl; a.download = 'logbook_' + order.order_number + '.pdf'; a.click(); }
+                    var codes = (order.logbook_code || '').split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+                    for (var i = 0; i < codes.length; i++) {
+                        var singleOrder = Object.assign({}, order);
+                        singleOrder.logbook_code = codes[i];
+                        var pdfUrl = await generateOrderPDF(singleOrder);
+                        var w = window.open(pdfUrl);
+                        if (w && i === 0) w.onload = function() { w.print(); };
+                    }
                 } catch (e) { console.error(e); showToast('PDF failed.', 'warning'); }
                 var u = await supabaseClient.from('logbook_orders').update({ status: 'ready', printed_by: CURRENT_ADMIN_EMAIL, printed_at: new Date().toISOString(), print_count: (order.print_count || 0) + 1 }).eq('order_number', orderNumber);
                 if (u.error) { showToast('Update failed.', 'error'); return; }
@@ -340,26 +609,28 @@
                 closeModal();
                 var r = await supabaseClient.from('logbook_orders').select('*').eq('order_number', orderNumber).single();
                 if (r.error || !r.data) { showToast('Not found.', 'error'); return; }
+                var order = r.data;
                 try {
-                    var pdfUrl = await generateOrderPDF(r.data);
-                    var w = window.open(pdfUrl);
-                    if (w) w.onload = function() { w.print(); };
+                    var codes = (order.logbook_code || '').split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+                    for (var i = 0; i < codes.length; i++) {
+                        var singleOrder = Object.assign({}, order);
+                        singleOrder.logbook_code = codes[i];
+                        var pdfUrl = await generateOrderPDF(singleOrder);
+                        var w = window.open(pdfUrl);
+                        if (w && i === 0) w.onload = function() { w.print(); };
+                    }
                     showToast('Print opened.', 'success');
                 } catch (e) { showToast('Failed.', 'error'); }
             });
         }
 
         // ============================================================
-        // LOGO LOADER
+        // LOGO + PDF FUNCTIONS
         // ============================================================
         async function loadLogo() {
-            try {
-                var resp = await fetch(LOGO_PATH);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                return await resp.arrayBuffer();
-            } catch (e) { console.warn('Logo not loaded:', e); return null; }
+            try { var resp = await fetch(LOGO_PATH); if (!resp.ok) throw new Error('HTTP ' + resp.status); return await resp.arrayBuffer(); }
+            catch (e) { return null; }
         }
-
         async function drawLogo(pdfDoc, page, logoBytes, yTop, targetWidth) {
             if (!logoBytes) return;
             var img = null;
@@ -369,204 +640,140 @@
             try {
                 if (isPng) img = await pdfDoc.embedPng(logoBytes);
                 else if (isJpg) img = await pdfDoc.embedJpg(logoBytes);
-                else {
-                    try { img = await pdfDoc.embedPng(logoBytes); }
-                    catch (e) { img = await pdfDoc.embedJpg(logoBytes); }
-                }
+                else { try { img = await pdfDoc.embedPng(logoBytes); } catch (e) { img = await pdfDoc.embedJpg(logoBytes); } }
                 var aspect = img.height / img.width;
-                var w = targetWidth;
-                var h = w * aspect;
+                var w = targetWidth; var h = w * aspect;
                 var x = (PAGE_W - w) / 2;
                 page.drawImage(img, { x: x, y: yTop - h, width: w, height: h });
-            } catch (e) { console.warn('Logo embed failed:', e); }
+            } catch (e) {}
         }
-
         function drawCentered(page, text, y, size, font, color) {
             var w = font.widthOfTextAtSize(text, size);
             page.drawText(text, { x: (PAGE_W - w) / 2, y: y, size: size, font: font, color: color });
         }
-
-        // ============================================================
-        // PDF DISPATCHER
-        // ============================================================
         async function generateOrderPDF(order) {
             var pdfDoc = await PDFLib.PDFDocument.create();
             var code = (order.logbook_code || '').toUpperCase().replace(/\s/g, '');
             var logoBytes = await loadLogo();
-
             if (code.includes('PHY191'))       await generatePHY191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('CIT104'))  await generateCIT104PDF(pdfDoc, order, logoBytes);
             else if (code.includes('CIT191') || code.includes('IFT191')) await generateIFT191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('BIO191') || code.includes('BIO107')) await generateBIO191PDF(pdfDoc, order, logoBytes);
             else if (code.includes('MTH101'))  await generateMTH101PDF(pdfDoc, order, logoBytes);
             else                               await generatePHY191PDF(pdfDoc, order, logoBytes);
-
             var pdfBytes = await pdfDoc.save();
             return URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
         }
-
-        // ============================================================
-        // TEMPLATE: PHY 191
-        // ============================================================
         async function generatePHY191PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
             var black = PDFLib.rgb(0, 0, 0);
-
             await drawLogo(pdfDoc, page, logoBytes, 800, 65);
-
             drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
             drawCentered(page, 'FACULTY OF SCIENCE', 680, 12, bold, black);
             drawCentered(page, 'PHYSICS LABORATORY MANUAL', 625, 18, bold, black);
             drawCentered(page, 'COURSE CODE: PHY 191', 585, 11, bold, black);
             drawCentered(page, 'COURSE TITLE: ' + cap(order.logbook_name), 555, 11, bold, black);
-
-            var labelX = 60;
-            var lineStartX = 145;
-            var lineEndX = 535;
-            var startY = 495;
-            var step = 45;
-
+            var labelX = 60; var lineStartX = 145; var lineEndX = 535; var startY = 495; var step = 45;
             var fields = [
                 { label: 'NAME:', value: cap(order.student_name) },
                 { label: 'PROGRAMME:', value: cap(order.programme) },
                 { label: 'MATRIC. NO:', value: cap(order.matric_number) },
                 { label: 'LEVEL:', value: cap(order.level) }
             ];
-
             fields.forEach(function(f, i) {
                 var y = startY - (i * step);
                 page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
                 if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
                 page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
             });
-
             var gY = startY - (4 * step);
             page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
             if (order.student_group) page.drawText(cap(order.student_group), { x: 130, y: gY, size: 13, font: bold, color: black });
             page.drawLine({ start: { x: 125, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
-
             page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
             page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
         }
-
-        // ============================================================
-        // TEMPLATE: CIT 104
-        // ============================================================
         async function generateCIT104PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
             var black = PDFLib.rgb(0, 0, 0);
-
             await drawLogo(pdfDoc, page, logoBytes, 800, 60);
-
             drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
             drawCentered(page, 'Department of Computer Science', 682, 13, bold, black);
             drawCentered(page, 'CIT 104: Introduction to Computer Science', 645, 12, font, black);
             drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 618, 13, bold, black);
-
             page.drawRectangle({ x: 70, y: 568, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
             drawCentered(page, "Student's Particulars", 578, 20, bold, black);
-
             function fieldLine(label, x, y, width, value) {
                 if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
                 page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
                 page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
             }
-
             var year = new Date().getFullYear();
             var yearLevel = year + '/' + (order.level || '100');
-
             fieldLine('Matriculation number', 70, 490, 220, cap(order.matric_number));
             page.drawLine({ start: { x: 300, y: 480 }, end: { x: 300, y: 505 }, thickness: 0.7, color: black });
             fieldLine('Year/Level of Course', 310, 490, 215, yearLevel);
-
             fieldLine('Name of Student (SURNAME, Other Names)', 70, 430, 455, cap(order.student_name));
             fieldLine('Department', 70, 370, 455, cap(order.department));
-
             page.drawText('Name of Laboratory Coordinator', { x: 70, y: 310, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 70, y: 322 }, end: { x: 300, y: 322 }, thickness: 0.7, color: black });
             page.drawText('Signature and Date', { x: 420, y: 310, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 420, y: 322 }, end: { x: 525, y: 322 }, thickness: 0.7, color: black });
-
             page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 255, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 70, y: 267 }, end: { x: 300, y: 267 }, thickness: 0.7, color: black });
             page.drawText('Signature and Date', { x: 420, y: 255, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 420, y: 267 }, end: { x: 525, y: 267 }, thickness: 0.7, color: black });
         }
-
-        // ============================================================
-        // TEMPLATE: IFT 191 / CIT 191
-        // ============================================================
         async function generateIFT191PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
             var black = PDFLib.rgb(0, 0, 0);
-
             await drawLogo(pdfDoc, page, logoBytes, 800, 60);
-
             drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 14, bold, black);
             drawCentered(page, 'Faculty of Computing', 682, 13, bold, black);
             drawCentered(page, 'Department of Information Systems and Technology', 664, 12, bold, black);
             drawCentered(page, 'NOUN-IFT191: Computer Laboratory I', 628, 12, font, black);
             drawCentered(page, 'LABORATORY MANUAL AND LOGBOOK', 602, 13, bold, black);
-
             page.drawRectangle({ x: 70, y: 552, width: 455, height: 38, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
             drawCentered(page, 'Student Particulars', 562, 20, bold, black);
-
             function fieldLine(label, x, y, width, value) {
                 if (value) page.drawText(value, { x: x, y: y + 6, size: 13, font: bold, color: black });
                 page.drawLine({ start: { x: x, y: y }, end: { x: x + width, y: y }, thickness: 0.7, color: black });
                 page.drawText(label, { x: x, y: y - 12, size: 9, font: font, color: black });
             }
-
             var year = new Date().getFullYear();
             var yearLevel = year + '/' + (order.level || '100');
-
             fieldLine('Matriculation number', 70, 478, 220, cap(order.matric_number));
             page.drawLine({ start: { x: 300, y: 468 }, end: { x: 300, y: 493 }, thickness: 0.7, color: black });
             fieldLine('Year/Level of Course', 310, 478, 215, yearLevel);
-
             fieldLine('Name of Student (SURNAME, Other Names)', 70, 418, 455, cap(order.student_name));
             fieldLine('Department', 70, 358, 455, cap(order.department));
-
             page.drawText('Name of Laboratory Coordinator', { x: 70, y: 298, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 70, y: 310 }, end: { x: 300, y: 310 }, thickness: 0.7, color: black });
             page.drawText('Signature and Date', { x: 420, y: 298, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 420, y: 310 }, end: { x: 525, y: 310 }, thickness: 0.7, color: black });
-
             page.drawText('Examiner (or Course Coordinator)', { x: 70, y: 243, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 70, y: 255 }, end: { x: 300, y: 255 }, thickness: 0.7, color: black });
             page.drawText('Signature and Date', { x: 420, y: 243, size: 9, font: font, color: black });
             page.drawLine({ start: { x: 420, y: 255 }, end: { x: 525, y: 255 }, thickness: 0.7, color: black });
         }
-
-        // ============================================================
-        // TEMPLATE: BIO 191 (displays as BIO 107)
-        // ============================================================
         async function generateBIO191PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
             var black = PDFLib.rgb(0, 0, 0);
-
             await drawLogo(pdfDoc, page, logoBytes, 800, 65);
-
             drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 700, 12, bold, black);
             drawCentered(page, 'FACULTY OF SCIENCE', 682, 12, bold, black);
             drawCentered(page, 'LABORATORY MANUAL', 640, 13, bold, black);
             drawCentered(page, 'COURSE CODE: BIO 107', 605, 11, bold, black);
             drawCentered(page, 'COURSE TITLE: GENERAL BIOLOGY PRACTICAL I', 575, 11, bold, black);
-
-            var labelX = 60;
-            var lineStartX = 175;
-            var lineEndX = 535;
-            var startY = 500;
-            var step = 42;
-
+            var labelX = 60; var lineStartX = 175; var lineEndX = 535; var startY = 500; var step = 42;
             var fields = [
                 { label: 'NAME:', value: cap(order.student_name) },
                 { label: 'PROGRAMME:', value: cap(order.programme) },
@@ -575,69 +782,52 @@
                 { label: 'STUDY CENTRE:', value: cap(order.study_centre) },
                 { label: 'PRACTICAL CENTRE:', value: '' }
             ];
-
             fields.forEach(function(f, i) {
                 var y = startY - (i * step);
                 page.drawText(f.label, { x: labelX, y: y, size: 11, font: bold, color: black });
                 if (f.value) page.drawText(f.value, { x: lineStartX + 4, y: y, size: 13, font: bold, color: black });
                 page.drawLine({ start: { x: lineStartX, y: y - 4 }, end: { x: lineEndX, y: y - 4 }, thickness: 0.6, color: black });
             });
-
             var gY = startY - (6 * step);
             page.drawText('GROUP:', { x: labelX, y: gY, size: 11, font: bold, color: black });
             if (order.student_group) page.drawText(cap(order.student_group), { x: 135, y: gY, size: 13, font: bold, color: black });
             page.drawLine({ start: { x: 130, y: gY - 4 }, end: { x: 400, y: gY - 4 }, thickness: 0.6, color: black });
-
             page.drawText('DATE:', { x: 415, y: gY, size: 11, font: bold, color: black });
             page.drawLine({ start: { x: 455, y: gY - 4 }, end: { x: 535, y: gY - 4 }, thickness: 0.6, color: black });
         }
-
-        // ============================================================
-        // TEMPLATE: MTH 101
-        // ============================================================
         async function generateMTH101PDF(pdfDoc, order, logoBytes) {
             var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
             var font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             var bold = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBold);
             var black = PDFLib.rgb(0, 0, 0);
-
             await drawLogo(pdfDoc, page, logoBytes, 810, 65);
-
             drawCentered(page, 'NATIONAL OPEN UNIVERSITY OF NIGERIA', 715, 12, bold, black);
             drawCentered(page, 'DEPARTMENT OF MATHEMATICS', 697, 12, bold, black);
             drawCentered(page, 'MATHEMATICS LABOURATORY I', 660, 11, bold, black);
             drawCentered(page, 'LABORATORY MANUAL AND LOG BOOK', 643, 11, bold, black);
             drawCentered(page, "STUDENT'S PARTICULARS", 620, 11, bold, black);
-
             page.drawRectangle({ x: 210, y: 485, width: 175, height: 115, borderColor: black, borderWidth: 1, color: PDFLib.rgb(1, 1, 1) });
             drawCentered(page, 'Insert', 557, 10, bold, black);
             drawCentered(page, 'Recent', 537, 10, bold, black);
             drawCentered(page, 'Passport', 517, 10, bold, black);
-
             var year = new Date().getFullYear();
             var yearLevel = year + '/' + (order.level || '100');
-
             page.drawText(cap(order.matric_number), { x: 55, y: 460, size: 17, font: bold, color: black });
             page.drawLine({ start: { x: 55, y: 450 }, end: { x: 385, y: 450 }, thickness: 0.6, color: black });
             page.drawText('Matriculation number', { x: 55, y: 432, size: 8, font: bold, color: black });
-
             page.drawText(yearLevel, { x: 400, y: 460, size: 17, font: bold, color: black });
             page.drawLine({ start: { x: 400, y: 450 }, end: { x: 540, y: 450 }, thickness: 0.6, color: black });
             page.drawText('Year/Level of Course', { x: 400, y: 432, size: 8, font: bold, color: black });
-
             page.drawText(cap(order.student_name), { x: 55, y: 380, size: 17, font: bold, color: black });
             page.drawLine({ start: { x: 55, y: 370 }, end: { x: 540, y: 370 }, thickness: 0.6, color: black });
             page.drawText('Name of Student (Surname, First name, Middle name)', { x: 55, y: 352, size: 8, font: bold, color: black });
-
             page.drawText(cap(order.department), { x: 55, y: 300, size: 17, font: bold, color: black });
             page.drawLine({ start: { x: 55, y: 290 }, end: { x: 540, y: 290 }, thickness: 0.6, color: black });
             page.drawText('Department', { x: 55, y: 272, size: 8, font: bold, color: black });
-
             page.drawLine({ start: { x: 55, y: 240 }, end: { x: 290, y: 240 }, thickness: 0.6, color: black });
             page.drawText('Name of Laboratory Co-ordinator', { x: 55, y: 225, size: 8, font: bold, color: black });
             page.drawLine({ start: { x: 400, y: 240 }, end: { x: 540, y: 240 }, thickness: 0.6, color: black });
             page.drawText('Signature and Date', { x: 400, y: 225, size: 8, font: bold, color: black });
-
             page.drawLine({ start: { x: 55, y: 190 }, end: { x: 290, y: 190 }, thickness: 0.6, color: black });
             page.drawText('Examiner (or Course Co-ordinator)', { x: 55, y: 175, size: 8, font: bold, color: black });
             page.drawLine({ start: { x: 400, y: 190 }, end: { x: 540, y: 190 }, thickness: 0.6, color: black });
@@ -645,7 +835,7 @@
         }
 
         // ============================================================
-        // MODAL & UTILITIES
+        // MODALS
         // ============================================================
         function showModal(title, message, onConfirm) {
             document.getElementById('modalTitle').textContent = title;
@@ -657,13 +847,22 @@
             newBtn.addEventListener('click', onConfirm);
         }
         function closeModal() { document.getElementById('confirmModal').classList.remove('active'); }
+
         function logout() {
             localStorage.removeItem('adminEmail');
             localStorage.removeItem('adminUser');
             window.location.href = '/admin/login.html';
         }
-        function loadAll() { loadNewOrders(); loadProcessingOrders(); loadCompletedOrders(); }
-        document.addEventListener('DOMContentLoaded', function() { loadAll(); setInterval(loadAll, 60000); });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        function loadAll() { loadNewOrders(); loadProcessingOrders(); loadInstantSales(); loadCompletedOrders(); }
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkSuperAdmin();
+            loadAll();
+            setInterval(loadAll, 60000);
+        });
     </script>
 </body>
 </html>

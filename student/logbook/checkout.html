@@ -11,11 +11,9 @@
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-* { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         :root {
             --bg: #f9fafb; --card: #ffffff; --text: #111827;
-            --border: #e5e7eb; --muted: #6b7280; --shadow: 0 2px 8px rgba(0,0,0,0.02);
+            --border: #e5e7eb; --muted: #6b7280;
             --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f;
         }
         * { box-sizing: border-box; }
@@ -24,38 +22,77 @@
         .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
         .navbar .brand span { font-weight: 300; color: var(--text); }
         .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
-        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; position: relative; }
         .navbar a:hover { color: var(--primary); }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background: #dc2626; color: white; font-size: 0.65rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+        .cart-badge.hidden-badge { display: none; }
+
         .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; }
-        .checkout-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow); }
+        .checkout-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
         .checkout-card .title { font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
-        .checkout-card .summary { background: var(--primary-light); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-        .checkout-card .summary .label { color: var(--muted); font-size: 0.85rem; }
-        .checkout-card .summary .value { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+
+        .items-list {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .items-list .items-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+        .checkout-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .checkout-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .checkout-item .info { display: flex; flex-direction: column; }
+        .checkout-item .info .code { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+        .checkout-item .info .name { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+        .checkout-item .price { font-weight: 700; color: var(--text); }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.85rem;
+            margin-top: 0.85rem;
+            border-top: 2px solid var(--primary);
+        }
+        .total-row .label { font-weight: 600; color: var(--text); font-size: 0.95rem; }
+        .total-row .value { font-weight: 800; color: var(--primary); font-size: 1.3rem; }
+
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
-        .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; transition: border 0.2s; font-family: inherit; }
+        .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; font-family: inherit; }
         .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,135,81,0.15); }
-        .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .form-group small { color: var(--muted); font-size: 0.75rem; display: block; margin-top: 0.25rem; }
+
+        .btn { width: 100%; padding: 0.85rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: inherit; transition: background 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #008751; animation: spin 0.8s linear infinite; }
+
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-radius: 50%; border-top-color: #ffffff; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
         .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .text-muted { color: var(--muted); }
-        .mt-2 { margin-top: 0.5rem; }
-        .mt-4 { margin-top: 1rem; }
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
-        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; font-size: 0.9rem; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
         .toast.error { border-left-color: #dc2626; }
         .toast.warning { border-left-color: #f59e0b; }
         .toast.success { border-left-color: #22c55e; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
+
         @media (max-width: 640px) {
-            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
             .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; flex-wrap: wrap; }
             .navbar .nav-links a { font-size: 0.8rem; }
             .container { padding: 1rem; }
@@ -76,15 +113,10 @@
         <div class="checkout-card">
             <div class="title"><i class="fas fa-credit-card" style="color: var(--primary);"></i> Checkout</div>
 
-            <div id="orderSummary" class="summary">
-                <div>
-                    <div class="label">Logbook</div>
-                    <div class="value" id="logbookDisplay">Loading...</div>
-                </div>
-                <div>
-                    <div class="label">Amount</div>
-                    <div class="value" id="amountDisplay">&#8358;0</div>
-                </div>
+            <!-- Cart items list -->
+            <div id="itemsList" class="items-list">
+                <div class="items-title">Your Items</div>
+                <div id="itemsContent"><p style="color: var(--muted); font-size: 0.9rem;">Loading...</p></div>
             </div>
 
             <form id="checkoutForm">
@@ -113,15 +145,15 @@
                     <input type="text" id="level" placeholder="e.g., 100 Level" required />
                 </div>
                 <div class="form-group">
-                    <label for="group">Group <span style="color: #dc2626;">*</span></label>
-                    <input type="text" id="group" placeholder="e.g., Group A" required />
+                    <label for="group">Group (optional)</label>
+                    <input type="text" id="group" placeholder="e.g., Group A" />
                 </div>
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="department">Department (optional)</label>
                     <input type="text" id="department" placeholder="e.g., Computer Science" />
                 </div>
                 <div class="form-group">
-                    <label for="studyCentre">Study Centre</label>
+                    <label for="studyCentre">Study Centre (optional)</label>
                     <input type="text" id="studyCentre" placeholder="e.g., Ikorodu Study Centre" />
                 </div>
 
@@ -130,9 +162,9 @@
                 </button>
             </form>
 
-            <div id="paymentStatus" class="text-center hidden mt-4">
-                <div class="loader"></div>
-                <p class="text-muted mt-2">Processing payment...</p>
+            <div id="paymentStatus" class="hidden" style="text-align: center; margin-top: 1rem;">
+                <div class="loader" style="border-top-color: var(--primary);"></div>
+                <p style="color: var(--muted); margin-top: 0.5rem;">Processing payment...</p>
             </div>
         </div>
     </div>
@@ -141,100 +173,102 @@
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
         var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ibml5bnl2Y3h6c3BqbXpnb3ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwMTY5MTksImV4cCI6MjEwMDU5MjkxOX0.cp3F1zyJg0BAqPD0iLDbW2YHOD6JLZWtkthHINMX0RA";
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        var PAYSTACK_KEY = 'pk_live_475a5b8cb32b89f1826c00b7c18806ab517d73cd';
+        var PAYSTACK_KEY = 'pk_test_bab718f93005134c2437a6f9fe83f3f8db6d966a';
+        var CART_KEY = 'logbookCart';
 
-        // Smart navbar
-        (function() {
+        var cartItems = [];
+
+        // ============================================================
+        // CART
+        // ============================================================
+        function getCart() {
+            try {
+                var data = localStorage.getItem(CART_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
+        }
+
+        function clearCart() {
+            localStorage.removeItem(CART_KEY);
+        }
+
+        function renderItems() {
+            cartItems = getCart();
+            var container = document.getElementById('itemsContent');
+
+            if (cartItems.length === 0) {
+                container.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem;">Your cart is empty.</p>';
+                setTimeout(function() { window.location.href = 'shop.html'; }, 2000);
+                return;
+            }
+
+            var total = 0;
+            var html = '';
+            cartItems.forEach(function(item) {
+                total += Number(item.price) || 0;
+                html += '<div class="checkout-item">' +
+                    '<div class="info">' +
+                        '<span class="code">' + item.code + '</span>' +
+                        '<span class="name">' + item.name + '</span>' +
+                    '</div>' +
+                    '<span class="price">₦' + (item.price || 0).toLocaleString() + '</span>' +
+                '</div>';
+            });
+
+            html += '<div class="total-row">' +
+                '<span class="label">Total (' + cartItems.length + ' ' + (cartItems.length === 1 ? 'item' : 'items') + ')</span>' +
+                '<span class="value">₦' + total.toLocaleString() + '</span>' +
+            '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // NAVBAR
+        // ============================================================
+        function renderNavbar() {
             var navLinks = document.getElementById('navLinks');
-            var studentEmail = localStorage.getItem('studentEmail');
+            var isTutorialStudent = localStorage.getItem('isTutorialStudent') === 'true';
             var adminEmail = localStorage.getItem('adminEmail');
             var isMobile = window.innerWidth < 640;
             var html = '';
+            var count = getCart().length;
+
             if (adminEmail) {
                 html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
-            } else if (studentEmail) {
+            } else if (isTutorialStudent) {
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart' + (count > 0 ? ' <span class="cart-badge">' + count + '</span>' : '') + '</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
-                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart' + (count > 0 ? ' <span class="cart-badge">' + count + '</span>' : '') + '</a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
-                html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
-                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
+                if (!isMobile) html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
             }
             navLinks.innerHTML = html;
-        })();
-
-        function logout() {
-            localStorage.removeItem('studentEmail');
-            localStorage.removeItem('studentName');
-            localStorage.removeItem('adminEmail');
-            sessionStorage.clear();
-            window.location.href = '../../index.html';
         }
 
+        // ============================================================
+        // TOAST
+        // ============================================================
         function showToast(message, type) {
             type = type || 'info';
             var container = document.getElementById('toastContainer');
             var toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            var icons = { success: 'fas fa-check-circle', error: 'fas fa-exclamation-circle', warning: 'fas fa-exclamation-triangle', info: 'fas fa-info-circle' };
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
             toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
             container.appendChild(toast);
             setTimeout(function() { if (toast.parentElement) toast.remove(); }, 5000);
         }
 
-        // Auto-normalize on blur
-        function normalizeLevel(el) {
-            var v = el.value.trim();
-            if (v && !/level/i.test(v)) {
-                v = v.replace(/\s*level\s*/i, '').trim();
-                el.value = v + ' Level';
-            }
-        }
-        function normalizeGroup(el) {
-            var v = el.value.trim();
-            if (v && !/group/i.test(v)) {
-                v = v.replace(/\s*group\s*/i, '').trim();
-                el.value = 'Group ' + v;
-            }
-        }
-        function normalizeCentre(el) {
-            var v = el.value.trim();
-            if (v && !/study\s*cent(re|er)/i.test(v)) {
-                v = v.replace(/\s*study\s*cent(re|er)\s*/i, '').trim();
-                el.value = v + ' Study Centre';
-            }
-        }
-
-        function loadSelectedLogbook() {
-            try {
-                var data = sessionStorage.getItem('selectedLogbook');
-                if (!data) {
-                    showToast('No logbook selected. Redirecting...', 'warning');
-                    setTimeout(function() { window.location.href = 'shop.html'; }, 2000);
-                    return null;
-                }
-                var book = JSON.parse(data);
-                document.getElementById('logbookDisplay').textContent = book.code + ' - ' + book.name;
-                document.getElementById('amountDisplay').textContent = '₦' + book.price.toLocaleString();
-
-                var savedEmail = localStorage.getItem('studentEmail');
-                var savedName = localStorage.getItem('studentName');
-                if (savedEmail) document.getElementById('email').value = savedEmail;
-                if (savedName) document.getElementById('studentName').value = savedName;
-
-                return book;
-            } catch (error) {
-                console.error('Error loading logbook:', error);
-                window.location.href = 'shop.html';
-                return null;
-            }
-        }
-
+        // ============================================================
+        // ORDER NUMBER
+        // ============================================================
         function generateOrderNumber() {
             var date = new Date();
             var year = date.getFullYear();
@@ -244,11 +278,16 @@
             return 'CMT-' + year + month + day + '-' + random;
         }
 
+        // ============================================================
+        // SUBMIT
+        // ============================================================
         document.getElementById('checkoutForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            var book = loadSelectedLogbook();
-            if (!book) return;
+            if (cartItems.length === 0) {
+                showToast('Your cart is empty.', 'error');
+                return;
+            }
 
             var studentName = document.getElementById('studentName').value.trim();
             var matricNumber = document.getElementById('matricNumber').value.trim().toUpperCase();
@@ -256,25 +295,19 @@
             var phone = document.getElementById('phone').value.trim();
             var department = document.getElementById('department').value.trim();
             var programme = document.getElementById('programme').value.trim();
-
-            // Auto-normalize on submit (in case user didn't blur)
-            normalizeLevel(document.getElementById('level'));
-            normalizeGroup(document.getElementById('group'));
-            normalizeCentre(document.getElementById('studyCentre'));
-
             var level = document.getElementById('level').value.trim();
             var group = document.getElementById('group').value.trim();
             var studyCentre = document.getElementById('studyCentre').value.trim();
 
-            if (!studentName || !matricNumber || !email || !phone || !programme || !level || !group) {
+            if (!studentName || !matricNumber || !email || !phone || !programme || !level) {
                 showToast('Please fill in all required fields.', 'error');
                 return;
             }
 
-            // NOUN matric format: NOU + 9 digits = 12 chars
+            // NOUN matric format check
             var matricRegex = /^NOU\d{9}$/;
             if (!matricRegex.test(matricNumber)) {
-                showToast('Invalid Matric Number. Format must be NOU followed by 9 digits (e.g., NOU123456789).', 'error');
+                showToast('Invalid Matric Number. Format: NOU + 9 digits (e.g., NOU123456789).', 'error');
                 return;
             }
 
@@ -289,6 +322,14 @@
             var deliveryDate = new Date();
             deliveryDate.setHours(deliveryDate.getHours() + 48);
 
+            var totalAmount = 0;
+            cartItems.forEach(function(item) { totalAmount += Number(item.price) || 0; });
+
+            // Build items summary string
+            var itemCodes = cartItems.map(function(i) { return i.code; }).join(', ');
+            var itemNames = cartItems.map(function(i) { return i.code + ' - ' + i.name; }).join(' | ');
+
+            // Save order to database
             supabaseClient
                 .from('logbook_orders')
                 .insert([{
@@ -302,12 +343,13 @@
                     programme: programme,
                     level: level,
                     student_group: group,
-                    logbook_code: book.code,
-                    logbook_name: book.name,
-                    amount: book.price,
+                    logbook_code: itemCodes,
+                    logbook_name: itemNames,
+                    amount: totalAmount,
                     order_date: new Date().toISOString(),
                     delivery_date: deliveryDate.toISOString(),
-                    status: 'pending'
+                    status: 'pending',
+                    order_type: 'normal'
                 }])
                 .select()
                 .single()
@@ -319,13 +361,13 @@
                     var handler = PaystackPop.setup({
                         key: PAYSTACK_KEY,
                         email: email,
-                        amount: book.price * 100,
+                        amount: totalAmount * 100,
                         currency: 'NGN',
                         ref: reference,
                         metadata: {
                             custom_fields: [
                                 { display_name: "Order Number", variable_name: "order_number", value: orderNumber },
-                                { display_name: "Logbook", variable_name: "logbook", value: book.code }
+                                { display_name: "Items", variable_name: "items", value: itemCodes }
                             ]
                         },
                         callback: function(response) {
@@ -337,32 +379,29 @@
                                 })
                                 .eq('order_number', orderNumber)
                                 .then(function() {
+                                    // Save last order data
                                     sessionStorage.setItem('lastOrder', JSON.stringify({
                                         orderNumber: orderNumber,
                                         studentName: studentName,
                                         email: email,
-                                        logbook: book.code,
-                                        logbookName: book.name,
-                                        amount: book.price,
+                                        logbook: itemCodes,
+                                        logbookName: itemNames,
+                                        itemsCount: cartItems.length,
+                                        amount: totalAmount,
                                         orderDate: new Date().toLocaleDateString(),
                                         deliveryDate: deliveryDate.toLocaleDateString()
                                     }));
+
                                     localStorage.setItem('studentEmail', email);
                                     localStorage.setItem('studentName', studentName);
+
+                                    // Clear cart
+                                    clearCart();
+
                                     window.location.href = 'confirmation.html';
                                 })
                                 .catch(function() {
-                                    sessionStorage.setItem('lastOrder', JSON.stringify({
-                                        orderNumber: orderNumber,
-                                        studentName: studentName,
-                                        email: email,
-                                        logbook: book.code,
-                                        logbookName: book.name,
-                                        amount: book.price,
-                                        orderDate: new Date().toLocaleDateString()
-                                    }));
-                                    localStorage.setItem('studentEmail', email);
-                                    localStorage.setItem('studentName', studentName);
+                                    clearCart();
                                     window.location.href = 'confirmation.html';
                                 });
                         },
@@ -385,11 +424,12 @@
                 });
         });
 
+        // ============================================================
+        // INIT
+        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            loadSelectedLogbook();
-            document.getElementById('level').addEventListener('blur', function() { normalizeLevel(this); });
-            document.getElementById('group').addEventListener('blur', function() { normalizeGroup(this); });
-            document.getElementById('studyCentre').addEventListener('blur', function() { normalizeCentre(this); });
+            renderNavbar();
+            renderItems();
         });
     </script>
 </body>

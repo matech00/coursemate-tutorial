@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-* { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
         * { box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
@@ -19,8 +17,29 @@
         .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
         .navbar .brand span { font-weight: 300; color: var(--text); }
         .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
-        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; position: relative; }
         .navbar a:hover { color: var(--primary); }
+
+        /* Cart badge */
+        .cart-link { position: relative; }
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background: #dc2626;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+        .cart-badge.hidden-badge { display: none; }
+
         .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
         .page-header { text-align: center; margin-bottom: 2.5rem; }
@@ -29,7 +48,6 @@
 
         .logbook-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
 
-        /* ===== CLEAN LOGBOOK CARD ===== */
         .logbook-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -45,88 +63,80 @@
             box-shadow: 0 12px 30px rgba(0,0,0,0.08);
             border-color: #A5D6A7;
         }
-        .logbook-card .course-code {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: -0.02em;
-            line-height: 1;
+        .logbook-card .course-code { font-size: 1.6rem; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.5rem; }
+        .logbook-card .course-name { font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 0.4rem; line-height: 1.4; }
+        .logbook-card .description { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; flex: 1; }
+        .logbook-card .price-row { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .logbook-card .price { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+        .logbook-card .price-note { font-size: 0.75rem; color: var(--muted); }
+
+        .logbook-card .btn {
+            width: 100%; padding: 0.7rem; border: none; border-radius: 10px;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 0.5rem; font-size: 0.9rem;
+            transition: background 0.2s; touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent; font-family: inherit;
             margin-bottom: 0.5rem;
         }
-        .logbook-card .course-name {
-            font-size: 0.95rem;
-            color: var(--text);
-            font-weight: 500;
-            margin-bottom: 0.4rem;
-            line-height: 1.4;
-        }
-        .logbook-card .description {
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-            flex: 1;
-        }
-        .logbook-card .price-row {
-            display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .logbook-card .price {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .logbook-card .price-note {
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-        .logbook-card .btn {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            background: var(--primary);
-            color: white;
-            transition: background 0.2s;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            font-family: inherit;
-        }
-        .logbook-card .btn:hover { background: var(--primary-dark); }
+        .logbook-card .btn:last-child { margin-bottom: 0; }
+        .logbook-card .btn-cart { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .logbook-card .btn-cart:hover { background: var(--primary-light); }
+        .logbook-card .btn-cart.in-cart { background: #22c55e; color: white; border-color: #22c55e; }
+        .logbook-card .btn-instant { background: var(--primary); color: white; }
+        .logbook-card .btn-instant:hover { background: var(--primary-dark); }
         .logbook-card .btn:active { transform: scale(0.98); }
 
-        /* Top accent bar */
         .logbook-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 1.5rem; right: 1.5rem; height: 3px;
-            background: var(--primary);
-            border-radius: 0 0 3px 3px;
-            opacity: 0;
-            transition: opacity 0.25s;
+            content: ''; position: absolute; top: 0; left: 1.5rem; right: 1.5rem; height: 3px;
+            background: var(--primary); border-radius: 0 0 3px 3px; opacity: 0; transition: opacity 0.25s;
         }
         .logbook-card:hover::before { opacity: 1; }
 
+        /* Floating cart button */
+        .floating-cart {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 12px 30px rgba(0,135,81,0.3);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            z-index: 999;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .floating-cart:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,135,81,0.4); }
+        .floating-cart.visible { display: flex; }
+        .floating-cart .badge {
+            background: white;
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
         .loader { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
         .toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; width: 100%; }
-        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease; font-size: 0.9rem; }
+        .toast { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; animation: slideIn 0.3s ease; }
         .toast.success { border-left-color: #22c55e; }
         .toast.error { border-left-color: #dc2626; }
         .toast.warning { border-left-color: #f59e0b; }
+        .toast .toast-close { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1rem; margin-left: auto; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         .hidden { display: none !important; }
+
         @media (max-width: 768px) {
             .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
             .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; }
@@ -151,7 +161,7 @@
     <div class="container">
         <div class="page-header">
             <h1>Practical Logbooks</h1>
-            <p>Select a logbook below and place your order. Ready for pickup within 48 hours.</p>
+            <p>Add items to cart and checkout together, or buy instantly for pickup.</p>
         </div>
 
         <div id="loadingState" style="text-align: center; padding: 3rem 0;">
@@ -160,11 +170,14 @@
         </div>
 
         <div id="logbookGrid" class="logbook-grid hidden"></div>
-
-        <div id="orderMessage" class="hidden" style="margin-top: 2rem; padding: 1rem; background: var(--primary-light); border-radius: 12px; text-align: center;">
-            <p style="color: var(--primary); font-weight: 600; margin: 0;" id="orderMessageText"></p>
-        </div>
     </div>
+
+    <!-- Floating Cart Button -->
+    <button id="floatingCart" class="floating-cart" onclick="goToCart()">
+        <i class="fas fa-shopping-cart"></i>
+        <span>View Cart</span>
+        <span class="badge" id="floatingCartCount">0</span>
+    </button>
 
     <script>
         var supabaseUrl = "https://mbniynyvcxzspjmzgovp.supabase.co";
@@ -172,15 +185,89 @@
         var supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // ============================================================
-        // SMART NAVBAR — only tutorial students see "Dashboard"
+        // CART MANAGEMENT
+        // ============================================================
+        var CART_KEY = 'logbookCart';
+
+        function getCart() {
+            try {
+                var data = localStorage.getItem(CART_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        }
+
+        function addToCart(code, name, price) {
+            var cart = getCart();
+            var exists = cart.find(function(item) { return item.code === code; });
+            if (exists) {
+                showToast('Already in cart', 'info');
+                return;
+            }
+            cart.push({ code: code, name: name, price: price });
+            saveCart(cart);
+            updateCartUI();
+            showToast(name + ' added to cart', 'success');
+        }
+
+        function removeFromCart(code) {
+            var cart = getCart().filter(function(item) { return item.code !== code; });
+            saveCart(cart);
+            updateCartUI();
+        }
+
+        function isInCart(code) {
+            return getCart().some(function(item) { return item.code === code; });
+        }
+
+        function updateCartUI() {
+            var cart = getCart();
+            var count = cart.length;
+
+            // Floating cart
+            var floating = document.getElementById('floatingCart');
+            var floatingCount = document.getElementById('floatingCartCount');
+            if (count > 0) {
+                floating.classList.add('visible');
+                floatingCount.textContent = count;
+            } else {
+                floating.classList.remove('visible');
+            }
+
+            // Cart icon in navbar
+            updateNavbarBadge();
+
+            // Update button states on cards
+            document.querySelectorAll('.logbook-card').forEach(function(card) {
+                var code = card.dataset.code;
+                var btn = card.querySelector('.btn-cart');
+                if (!btn) return;
+                if (isInCart(code)) {
+                    btn.classList.add('in-cart');
+                    btn.innerHTML = '<i class="fas fa-check"></i> In Cart';
+                    btn.disabled = false;
+                } else {
+                    btn.classList.remove('in-cart');
+                    btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+                }
+            });
+        }
+
+        function goToCart() {
+            window.location.href = 'cart.html';
+        }
+
+        // ============================================================
+        // NAVBAR
         // ============================================================
         function renderNavbar() {
             var navLinks = document.getElementById('navLinks');
-            // ✅ Check specifically for tutorial-student flag
             var isTutorialStudent = localStorage.getItem('isTutorialStudent') === 'true';
             var adminEmail = localStorage.getItem('adminEmail');
             var isMobile = window.innerWidth < 640;
-
             var html = '';
 
             if (adminEmail) {
@@ -188,21 +275,32 @@
                 html += '<a href="/admin/print-orders.html"><i class="fas fa-print"></i> Print Queue</a>';
                 html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else if (isTutorialStudent) {
-                // Tutorial student — show Dashboard
                 html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="cart.html" class="cart-link"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-badge hidden-badge" id="navCartBadge">0</span></a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
             } else {
-                // Guest or logbook-only buyer
                 html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
                 html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="cart.html" class="cart-link"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-badge hidden-badge" id="navCartBadge">0</span></a>';
                 html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
                 html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
                 if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
             }
-
             navLinks.innerHTML = html;
+        }
+
+        function updateNavbarBadge() {
+            var badge = document.getElementById('navCartBadge');
+            if (!badge) return;
+            var count = getCart().length;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove('hidden-badge');
+            } else {
+                badge.classList.add('hidden-badge');
+            }
         }
 
         function logout() {
@@ -210,7 +308,6 @@
             localStorage.removeItem('studentName');
             localStorage.removeItem('isTutorialStudent');
             localStorage.removeItem('adminEmail');
-            localStorage.removeItem('adminUser');
             sessionStorage.clear();
             window.location.href = '../../index.html';
         }
@@ -222,77 +319,84 @@
             try {
                 var loadingState = document.getElementById('loadingState');
                 var logbookGrid = document.getElementById('logbookGrid');
-
                 var response = await supabaseClient.from('logbooks').select('*').order('code');
                 if (response.error) throw response.error;
-
                 var data = response.data;
                 if (!data || data.length === 0) {
-                    loadingState.innerHTML = '<p style="color: var(--muted);">No logbooks available at the moment.</p>';
+                    loadingState.innerHTML = '<p style="color: var(--muted);">No logbooks available.</p>';
                     return;
                 }
-
                 renderLogbooks(data);
                 loadingState.classList.add('hidden');
                 logbookGrid.classList.remove('hidden');
+                updateCartUI();
             } catch (error) {
                 console.error('Load error:', error);
-                document.getElementById('loadingState').innerHTML = '<p style="color: #dc2626;">Failed to load logbooks.</p><button onclick="loadLogbooks()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>';
+                document.getElementById('loadingState').innerHTML = '<p style="color: #dc2626;">Failed to load logbooks.</p>';
             }
         }
 
-        // ============================================================
-        // RENDER — clean cards, no book icon
-        // ============================================================
         function renderLogbooks(logbooks) {
             var grid = document.getElementById('logbookGrid');
             var html = '';
             for (var i = 0; i < logbooks.length; i++) {
                 var book = logbooks[i];
                 var safeName = (book.name || '').replace(/'/g, "\\'");
-                html += '<div class="logbook-card">' +
+                html += '<div class="logbook-card" data-code="' + book.code + '">' +
                     '<div class="course-code">' + (book.code || '') + '</div>' +
                     '<div class="course-name">' + (book.name || '') + '</div>' +
-                    '<p class="description">' + (book.description || 'Official practical logbook. Ready for pickup within 48 hours.') + '</p>' +
+                    '<p class="description">' + (book.description || 'Official practical logbook. Order for 48-hour delivery or buy instantly for pickup.') + '</p>' +
                     '<div class="price-row">' +
                         '<span class="price">&#8358;' + (book.price ? book.price.toLocaleString() : '0') + '</span>' +
                         '<span class="price-note">one-time</span>' +
                     '</div>' +
-                    '<button type="button" onclick="buyLogbook(\'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')" class="btn">' +
-                        'Buy Now' +
+                    '<button type="button" class="btn btn-cart" onclick="handleAddToCart(this, \'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')">' +
+                        '<i class="fas fa-cart-plus"></i> Add to Cart' +
+                    '</button>' +
+                    '<button type="button" class="btn btn-instant" onclick="buyInstant(\'' + book.code + '\', \'' + safeName + '\', ' + book.price + ')">' +
+                        '<i class="fas fa-bolt"></i> Buy Instant' +
                     '</button>' +
                 '</div>';
             }
             grid.innerHTML = html;
         }
 
-        // ============================================================
-        // BUY LOGBOOK
-        // ============================================================
-        function buyLogbook(code, name, price) {
-            sessionStorage.setItem('selectedLogbook', JSON.stringify({
-                code: code,
-                name: name,
-                price: price
-            }));
-            window.location.href = 'checkout.html';
-        }
-
-        function checkOrderMessage() {
-            var message = sessionStorage.getItem('orderMessage');
-            if (message) {
-                var msgEl = document.getElementById('orderMessage');
-                document.getElementById('orderMessageText').textContent = message;
-                msgEl.classList.remove('hidden');
-                sessionStorage.removeItem('orderMessage');
-                setTimeout(function() { msgEl.classList.add('hidden'); }, 8000);
+        function handleAddToCart(btn, code, name, price) {
+            if (btn.classList.contains('in-cart')) {
+                removeFromCart(code);
+                showToast(name + ' removed from cart', 'warning');
+            } else {
+                addToCart(code, name, price);
             }
         }
 
+        function buyInstant(code, name, price) {
+            sessionStorage.setItem('selectedLogbook', JSON.stringify({
+                code: code, name: name, price: price
+            }));
+            window.location.href = 'quick-buy.html';
+        }
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: var(--primary);"></i><span style="flex:1;">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(function() { if (toast.parentElement) toast.remove(); }, 3500);
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             renderNavbar();
             loadLogbooks();
-            checkOrderMessage();
         });
     </script>
 </body>

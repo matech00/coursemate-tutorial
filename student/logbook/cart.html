@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Cart - CourseMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="../../assets/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root { --bg: #f9fafb; --card: #fff; --text: #111827; --border: #e5e7eb; --muted: #6b7280; --primary: #008751; --primary-light: #E8F5E9; --primary-dark: #006d3f; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .navbar .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .navbar .brand span { font-weight: 300; color: var(--text); }
+        .navbar .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .navbar a { color: var(--text); text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.4rem; position: relative; }
+        .navbar a:hover { color: var(--primary); }
+        .cart-link { position: relative; }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background: #dc2626; color: white; font-size: 0.65rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+        .cart-badge.hidden-badge { display: none; }
+
+        .container { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-header { margin-bottom: 1.5rem; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.6rem; }
+        .page-header h1 i { color: var(--primary); }
+        .page-header p { color: var(--muted); font-size: 0.9rem; margin: 0.35rem 0 0 0; }
+
+        .cart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .cart-item:first-child { padding-top: 0; }
+        .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .cart-item .info { flex: 1; }
+        .cart-item .code {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        .cart-item .name {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.3;
+        }
+        .cart-item .price {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 0.35rem;
+        }
+        .cart-item .remove-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .cart-item .remove-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-top: 2px solid var(--border);
+            margin-top: 1rem;
+        }
+        .total-row .label {
+            font-size: 0.95rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .total-row .value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); margin-top: 0.75rem; }
+        .btn-outline:hover { background: var(--primary-light); }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--muted);
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; color: var(--primary); }
+        .empty-state h2 { font-size: 1.2rem; color: var(--text); font-weight: 700; margin: 0 0 0.5rem 0; }
+        .empty-state p { font-size: 0.9rem; margin: 0 0 1.5rem 0; }
+
+        @media (max-width: 640px) {
+            .navbar { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .navbar .nav-links { width: 100%; gap: 0.75rem; font-size: 0.8rem; }
+            .navbar .nav-links a { font-size: 0.8rem; }
+            .container { padding: 1rem; }
+            .page-header h1 { font-size: 1.3rem; }
+            .cart-item .code { font-size: 1rem; }
+            .cart-item .name { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="../../index.html" class="brand">Course<span>Mate</span></a>
+        <div class="nav-links" id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-cart"></i> Your Cart</h1>
+            <p>Review your items and proceed to checkout.</p>
+        </div>
+
+        <div id="cartContent"></div>
+    </div>
+
+    <script>
+        var CART_KEY = 'logbookCart';
+
+        function getCart() {
+            try {
+                var data = localStorage.getItem(CART_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+        }
+
+        function escapeHtml(t) {
+            if (!t) return '';
+            return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderNavbar() {
+            var navLinks = document.getElementById('navLinks');
+            var isTutorialStudent = localStorage.getItem('isTutorialStudent') === 'true';
+            var adminEmail = localStorage.getItem('adminEmail');
+            var isMobile = window.innerWidth < 640;
+            var html = '';
+            var cartCount = getCart().length;
+
+            if (adminEmail) {
+                html += '<a href="/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Admin</a>';
+                html += '<a href="/admin/print-orders.html"><i class="fas fa-print"></i> Print Queue</a>';
+                html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else if (isTutorialStudent) {
+                html += '<a href="../../student/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                if (!isMobile) html += '<a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>';
+            } else {
+                html += '<a href="../../index.html"><i class="fas fa-home"></i> Home</a>';
+                html += '<a href="shop.html"><i class="fas fa-book"></i> Shop</a>';
+                html += '<a href="my-orders.html"><i class="fas fa-list"></i> My Orders</a>';
+                html += '<a href="../../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>';
+                if (!isMobile) html += '<a href="../../register.html"><i class="fas fa-user-plus"></i> Register</a>';
+            }
+            navLinks.innerHTML = html;
+        }
+
+        function logout() {
+            localStorage.removeItem('studentEmail');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('isTutorialStudent');
+            localStorage.removeItem('adminEmail');
+            sessionStorage.clear();
+            window.location.href = '../../index.html';
+        }
+
+        function renderCart() {
+            var cart = getCart();
+            var container = document.getElementById('cartContent');
+
+            if (cart.length === 0) {
+                container.innerHTML = '' +
+                    '<div class="empty-state">' +
+                        '<i class="fas fa-shopping-cart"></i>' +
+                        '<h2>Your cart is empty</h2>' +
+                        '<p>Add some logbooks to get started.</p>' +
+                        '<a href="shop.html" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 1.75rem;"><i class="fas fa-book"></i> Browse Logbooks</a>' +
+                    '</div>';
+                return;
+            }
+
+            var total = 0;
+            cart.forEach(function(item) { total += Number(item.price) || 0; });
+
+            var html = '<div class="cart-card">';
+            cart.forEach(function(item) {
+                html += '<div class="cart-item">' +
+                    '<div class="info">' +
+                        '<div class="code">' + escapeHtml(item.code) + '</div>' +
+                        '<div class="name">' + escapeHtml(item.name) + '</div>' +
+                        '<div class="price">₦' + (item.price || 0).toLocaleString() + '</div>' +
+                    '</div>' +
+                    '<button class="remove-btn" onclick="removeItem(\'' + item.code + '\')" title="Remove">' +
+                        '<i class="fas fa-trash"></i>' +
+                    '</button>' +
+                '</div>';
+            });
+
+            html += '<div class="total-row">' +
+                '<span class="label">Total (' + cart.length + ' ' + (cart.length === 1 ? 'item' : 'items') + ')</span>' +
+                '<span class="value">₦' + total.toLocaleString() + '</span>' +
+            '</div>';
+
+            html += '<button class="btn btn-primary" onclick="proceedToCheckout()" style="margin-top: 1rem;">' +
+                '<i class="fas fa-arrow-right"></i> Proceed to Checkout' +
+            '</button>';
+
+            html += '<a href="shop.html" class="btn btn-outline">' +
+                '<i class="fas fa-plus"></i> Add More Logbooks' +
+            '</a>';
+
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function removeItem(code) {
+            var cart = getCart().filter(function(item) { return item.code !== code; });
+            saveCart(cart);
+            renderCart();
+        }
+
+        function proceedToCheckout() {
+            // Cart is already in localStorage — checkout.html will read it
+            window.location.href = 'checkout.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNavbar();
+            renderCart();
+        });
+    </script>
+</body>
+</html>

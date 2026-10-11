@@ -55,9 +55,6 @@ module.exports = async function handler(req, res) {
                         <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin: 15px 0;">
                             <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${message}</p>
                         </div>
-                        <div style="border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 15px; font-size: 12px; color: #9ca3af; text-align: center;">
-                            <p style="margin: 0;">This is an automated notification from CourseMate Tutorial.</p>
-                        </div>
                     </div>
                 `,
             });
@@ -65,29 +62,24 @@ module.exports = async function handler(req, res) {
         }
 
         // ============================================================
-        // ORDER RECEIVED
+        // ORDER RECEIVED (normal order)
         // ============================================================
         if (type === 'order_received') {
             const { to, full_name, order_number, logbook_code, logbook_name, amount } = body;
-            if (!to || !order_number) {
-                return res.status(400).json({ error: 'Missing order details' });
-            }
+            if (!to || !order_number) return res.status(400).json({ error: 'Missing order details' });
             await transporter.sendMail({
                 from: fromEmail,
                 to: to,
                 subject: 'Order Received - ' + order_number,
                 html: `
-                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <div style="background: #008751; padding: 20px; text-align: center;">
                             <h1 style="color: white; margin: 0; font-size: 20px;">Order Received</h1>
                         </div>
                         <div style="padding: 25px; color: #333;">
                             <p style="font-size: 15px;">Hello <strong>${full_name || 'Student'}</strong>,</p>
-                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">
-                                Thank you for your order. We have received your request and are preparing your logbook.
-                            </p>
+                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">Thank you for your order. We have received your request and are preparing your logbook.</p>
                             <div style="background: #f9fafb; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #008751;">
-                                <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Order Summary</p>
                                 <p style="margin: 5px 0; font-size: 14px;"><strong>Order Number:</strong> ${order_number}</p>
                                 <p style="margin: 5px 0; font-size: 14px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
                                 <p style="margin: 5px 0; font-size: 14px;"><strong>Amount Paid:</strong> &#8358;${(amount || 0).toLocaleString()}</p>
@@ -95,92 +87,151 @@ module.exports = async function handler(req, res) {
                             <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0;">
                                 <p style="margin: 0; font-size: 14px; color: #92400e;">
                                     <strong>What's next?</strong><br>
-                                    Your logbook is being prepared. You will receive another email once it is ready for pickup (approximately 48 hours).
+                                    Your logbook will be ready for pickup within 48 hours. We will send you another email when it's ready.
                                 </p>
                             </div>
-                            <p style="color: #4b5563; font-size: 14px;">
-                                If you have any questions, please reply to this email or use the feedback form on our website.
-                            </p>
-                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-                                Best regards,<br><strong>CourseMate Team</strong>
-                            </p>
-                        </div>
-                        <div style="background: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #9ca3af;">
-                            This is an automated message from CourseMate Logbook Service.
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">Best regards,<br><strong>CourseMate Team</strong></p>
                         </div>
                     </div>
                 `,
             });
-            return res.status(200).json({ success: true, sentTo: to, type: 'order_received' });
+            return res.status(200).json({ success: true, type: 'order_received' });
         }
 
         // ============================================================
-        // READY FOR PICKUP
+        // READY FOR PICKUP (normal order)
         // ============================================================
         if (type === 'ready_for_pickup') {
             const { to, full_name, order_number, logbook_code, logbook_name, pickup_location } = body;
-            if (!to || !order_number) {
-                return res.status(400).json({ error: 'Missing order details' });
-            }
-
-            // Ready From = today
+            if (!to || !order_number) return res.status(400).json({ error: 'Missing order details' });
             const today = new Date();
             const readyFrom = today.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-            // Available Until = today + 7 days
-            const untilDate = new Date();
-            untilDate.setDate(untilDate.getDate() + 7);
+            const untilDate = new Date(); untilDate.setDate(untilDate.getDate() + 7);
             const availableUntil = untilDate.toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
             const locationText = pickup_location || 'NOUN Ikorodu Study Centre';
-
             await transporter.sendMail({
                 from: fromEmail,
                 to: to,
                 subject: 'Logbook Ready for Pickup - ' + order_number,
                 html: `
-                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                         <div style="background: #008751; padding: 20px; text-align: center;">
                             <h1 style="color: white; margin: 0; font-size: 20px;">Your Logbook is Ready</h1>
                         </div>
                         <div style="padding: 25px; color: #333;">
                             <p style="font-size: 15px;">Hello <strong>${full_name || 'Student'}</strong>,</p>
-                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">
-                                Good news! Your logbook has been printed and is now ready for pickup. You can come pick it up starting today.
-                            </p>
-
+                            <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">Your logbook is printed and ready for pickup.</p>
                             <div style="background: #dcfce7; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #16a34a;">
-                                <p style="margin: 0 0 10px 0; font-size: 13px; color: #166534; text-transform: uppercase; font-weight: 600;">Pickup Details</p>
                                 <p style="margin: 5px 0; font-size: 15px;"><strong>Order Number:</strong> ${order_number}</p>
                                 <p style="margin: 5px 0; font-size: 15px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
                                 <p style="margin: 5px 0; font-size: 15px;"><strong>Pickup Location:</strong> ${locationText}</p>
                                 <p style="margin: 5px 0; font-size: 15px;"><strong>Ready From:</strong> ${readyFrom}</p>
                                 <p style="margin: 5px 0; font-size: 15px;"><strong>Available Until:</strong> ${availableUntil}</p>
                             </div>
-
-                            <div style="background: #f9fafb; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                                <p style="margin: 0; font-size: 14px; color: #4b5563;">
-                                    <strong>Please bring:</strong><br>
-                                    - Your Matric Number<br>
-                                    - This Order Number (${order_number})
-                                </p>
-                            </div>
-
-                            <p style="color: #4b5563; font-size: 14px;">
-                                If you cannot pick it up within 7 days, please reply to this email or use the feedback form on our website.
-                            </p>
-
-                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-                                Best regards,<br><strong>CourseMate Team</strong>
-                            </p>
-                        </div>
-                        <div style="background: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #9ca3af;">
-                            This is an automated message from CourseMate Logbook Service.
+                            <p style="color: #4b5563; font-size: 14px;">Please bring your Matric Number and Order Number.</p>
+                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">Best regards,<br><strong>CourseMate Team</strong></p>
                         </div>
                     </div>
                 `,
             });
-            return res.status(200).json({ success: true, sentTo: to, type: 'ready_for_pickup' });
+            return res.status(200).json({ success: true, type: 'ready_for_pickup' });
+        }
+
+        // ============================================================
+        // INSTANT SALE NOTIFICATION (new)
+        // Sends to seller + super admin
+        // ============================================================
+        if (type === 'instant_sale') {
+            const { instant_id, buyer_name, buyer_email, logbook_code, logbook_name, amount, seller_name, seller_code, seller_email } = body;
+
+            if (!instant_id || !seller_email) {
+                return res.status(400).json({ error: 'Missing instant sale details' });
+            }
+
+            const formattedAmount = '₦' + (amount || 0).toLocaleString();
+            const saleDate = new Date().toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' });
+
+            // ---- EMAIL TO SELLER ----
+            const sellerEmailHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #008751; padding: 20px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 20px;">New Instant Sale</h1>
+                    </div>
+                    <div style="padding: 25px; color: #333;">
+                        <p style="font-size: 15px;">Hello <strong>${seller_name || 'Seller'}</strong>,</p>
+                        <p style="color: #4b5563; font-size: 15px; line-height: 1.7;">Great news! A buyer just purchased a logbook through your account. Please hand over the logbook when the buyer shows this receipt.</p>
+
+                        <div style="background: #dcfce7; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #16a34a;">
+                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #166534; text-transform: uppercase; font-weight: 600;">Sale Details</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Instant ID:</strong> ${instant_id}</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Buyer:</strong> ${buyer_name}</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Buyer Email:</strong> ${buyer_email}</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Amount:</strong> ${formattedAmount}</p>
+                            <p style="margin: 5px 0; font-size: 15px;"><strong>Date:</strong> ${saleDate}</p>
+                        </div>
+
+                        <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #92400e;">
+                                <strong>Action needed:</strong> When the buyer shows their receipt (with the Instant ID above), hand them the logbook.
+                            </p>
+                        </div>
+
+                        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">Best regards,<br><strong>CourseMate Team</strong></p>
+                    </div>
+                </div>
+            `;
+
+            try {
+                await transporter.sendMail({
+                    from: fromEmail,
+                    to: seller_email,
+                    subject: 'New Instant Sale - ' + instant_id,
+                    html: sellerEmailHtml,
+                });
+                console.log('✅ Seller notification sent to', seller_email);
+            } catch (err) {
+                console.error('❌ Failed to send seller email:', err);
+            }
+
+            // ---- EMAIL TO SUPER ADMIN ----
+            const superAdminHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #0f172a; padding: 20px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 20px;">🔔 Instant Sale Alert</h1>
+                    </div>
+                    <div style="padding: 25px; color: #333;">
+                        <p style="font-size: 15px;">A new instant sale just happened.</p>
+
+                        <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #008751;">
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Instant ID:</strong> ${instant_id}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Seller:</strong> ${seller_name} (${seller_code})</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Seller Email:</strong> ${seller_email}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Buyer:</strong> ${buyer_name}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Buyer Email:</strong> ${buyer_email}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Logbook:</strong> ${logbook_code} - ${logbook_name}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Amount:</strong> ${formattedAmount}</p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Date:</strong> ${saleDate}</p>
+                        </div>
+
+                        <p style="color: #6b7280; font-size: 13px;">This is an automated alert from CourseMate.</p>
+                    </div>
+                </div>
+            `;
+
+            try {
+                await transporter.sendMail({
+                    from: fromEmail,
+                    to: 'coursematetutorial@gmail.com',
+                    subject: '🔔 Instant Sale - ' + instant_id + ' via ' + seller_code,
+                    html: superAdminHtml,
+                });
+                console.log('✅ Super admin notification sent');
+            } catch (err) {
+                console.error('❌ Failed to send super admin email:', err);
+            }
+
+            return res.status(200).json({ success: true, type: 'instant_sale' });
         }
 
         return res.status(400).json({ error: 'Invalid email type.' });
